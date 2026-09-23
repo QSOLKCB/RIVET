@@ -128,7 +128,7 @@ Machine contracts define compact normative identities where automation needs the
 
 Do not duplicate large rule sets in many files; link to the authority.
 
-Published versioned machine contracts and the versioned human authority paths they name are immutable. Breaking semantic changes require new contract identities and new versioned authority paths rather than rewriting an existing version in place.
+Published versioned machine contracts and the versioned human authority paths they name are immutable. Frozen legacy authority paths such as `CONSTITUTION.md`, `ARCHITECTURE.md`, and `PORTABILITY.md` must also remain byte-stable for the contract identities that name them. Breaking semantic changes require new contract identities and new versioned authority paths rather than rewriting an existing version in place.
 
 ## R0 boundary
 

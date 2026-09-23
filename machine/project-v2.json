@@ -26,7 +26,7 @@
   "normative_human_sources": [
     "CONSTITUTION-v2.md",
     "ARCHITECTURE-v2.md",
-    "PORTABILITY.md",
+    "PORTABILITY-v2.md",
     "RENDERING-v1.md"
   ],
   "machine_sources": [
@@ -43,11 +43,12 @@
   "r0_implementation_allowed": false,
   "historical_human_contracts": [
     "CONSTITUTION.md",
-    "ARCHITECTURE.md"
+    "ARCHITECTURE.md",
+    "PORTABILITY.md"
   ],
   "planning_sources": [
     "RUNTIME-PLAN-v1.md",
-    "DONORS.md",
+    "DONORS-v1.md",
     "machine/runtime-plan-v1.json"
   ]
 }

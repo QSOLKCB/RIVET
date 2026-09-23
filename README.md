@@ -121,11 +121,12 @@ The GitHub Pages site is intentionally static HTML/CSS with no framework, analyt
 - [CONSTITUTION.md](CONSTITUTION.md) — frozen v1 authority retained for compatibility.
 - [ARCHITECTURE-v2.md](ARCHITECTURE-v2.md) — current layer, runtime, rendering, and authority model.
 - [ARCHITECTURE.md](ARCHITECTURE.md) — frozen v1 project authority retained for compatibility.
-- [PORTABILITY.md](PORTABILITY.md) — MES, target identity, containers, emulation, and evidence.
+- [PORTABILITY-v2.md](PORTABILITY-v2.md) — current MES, target identity, containers, emulation, and evidence.
+- [PORTABILITY.md](PORTABILITY.md) — frozen v1 project authority retained for compatibility.
 - [RENDERING-v1.md](RENDERING-v1.md) — CPU/software rendering contract and GPU exclusion boundary.
 - [ROADMAP.md](ROADMAP.md) — staged implementation plan.
 - [RUNTIME-PLAN-v1.md](RUNTIME-PLAN-v1.md) — donor-derived runtime and memory plan for R1+.
-- [DONORS.md](DONORS.md) — bounded lessons from existing QSOL projects.
+- [DONORS-v1.md](DONORS-v1.md) — frozen donor/provenance map for runtime-plan v1.
 - [AGENTS.md](AGENTS.md) — rules for coding agents and contributors.
 - [machine/project-v2.json](machine/project-v2.json) — current compact machine entrypoint; merged v1 contracts remain preserved for compatibility.
 - [machine/](machine/) — versioned machine-readable project contracts.

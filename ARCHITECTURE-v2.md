@@ -177,7 +177,7 @@ Runtime work should prefer:
 
 The runtime does **not** pre-create scheduler, executor, cache, plugin, or backend hierarchies for hypothetical future use. A second real implementation must create the need before a general abstraction is introduced.
 
-Exact donor sources and adoption boundaries are recorded in [RUNTIME-PLAN-v1.md](RUNTIME-PLAN-v1.md) and [DONORS.md](DONORS.md).
+Exact donor sources and adoption boundaries are recorded in [RUNTIME-PLAN-v1.md](RUNTIME-PLAN-v1.md) and [DONORS-v1.md](DONORS-v1.md).
 
 ## Storage
 

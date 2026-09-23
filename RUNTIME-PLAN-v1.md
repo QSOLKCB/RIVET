@@ -2,7 +2,7 @@
 
 **Status: planning document for R1 and later. No runtime implementation is established by this file.**
 
-This plan converts proven donor mechanisms into a deliberately small RIVET implementation sequence. Exact donor links and adoption boundaries are recorded in [DONORS.md](DONORS.md).
+This plan converts proven donor mechanisms into a deliberately small RIVET implementation sequence. Exact donor links and adoption boundaries are recorded in [DONORS-v1.md](DONORS-v1.md).
 
 ## Prime runtime rule
 

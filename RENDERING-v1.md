@@ -128,7 +128,7 @@ Initial browser profiles should prefer:
 - no JavaScript requirement for WEB1;
 - no GPU-dependent web feature requirement.
 
-A future web profile that fundamentally requires a GPU is not automatically a RIVET requirement.
+A web profile that fundamentally requires a GPU is outside RIVET and cannot become a RIVET Browser requirement, capability, or conformance profile.
 
 ## Specialised applications
 
