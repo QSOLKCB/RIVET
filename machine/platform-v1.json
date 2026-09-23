@@ -22,13 +22,20 @@
     "exact_capacity_success": true,
     "oversize_result": "RIVET_ERR_CAPACITY",
     "missing_result": "RIVET_ERR_NOT_FOUND",
-    "output_modified_only_on_success": true
+    "output_modified_only_on_success": true,
+    "zero_capacity_empty_file": {
+      "allowed": true,
+      "requires_non_null_buffer": true,
+      "result": "RIVET_OK",
+      "byte_count": 0
+    }
   },
   "monotonic_time": {
     "unit": "nanoseconds",
     "absolute_origin": "unspecified",
     "required_property": "nondecreasing",
-    "output_modified_only_on_success": true
+    "output_modified_only_on_success": true,
+    "intermediate_overflow_must_not_reject_representable_result": true
   },
   "backends": [
     {
@@ -55,7 +62,12 @@
     "fixture_bytes": 237,
     "fixture_sha256": "8d4a34353106071386727b776fa3089801563708dc521e0d363a447e12bb791e",
     "fixture_fnv1a64": "36aaff7f4aaa99ab",
-    "proof": "examples/r5_platform_proof.c"
+    "proof": "examples/r5_platform_proof.c",
+    "empty_fixture": {
+      "path": "fixtures/r5_empty.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
   },
   "evidence_requirements": [
     "native-posix-gcc",
@@ -97,5 +109,13 @@
       "fixture_bytes": 237,
       "fixture_fnv1a64": "36aaff7f4aaa99ab"
     }
+  },
+  "capability_set": {
+    "exact": true,
+    "ids": [
+      "filesystem.read",
+      "timer.monotonic"
+    ],
+    "additional_id_result": "RIVET_ERR_INVALID_ARGUMENT"
   }
 }

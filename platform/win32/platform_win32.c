@@ -97,6 +97,58 @@ static rivet_result win32_read_file(
     return RIVET_OK;
 }
 
+static unsigned long long win32_mul_div_floor(
+    unsigned long long multiplicand,
+    unsigned long long multiplier,
+    unsigned long long divisor
+)
+{
+    unsigned long long quotient = 0u;
+    unsigned long long remainder = 0u;
+    unsigned int bit = 64u;
+
+    while (bit != 0u) {
+        unsigned long long carry = 0u;
+
+        --bit;
+
+        if (remainder >= divisor - remainder) {
+            remainder = remainder - (divisor - remainder);
+            carry = 1u;
+        } else {
+            remainder += remainder;
+        }
+
+        quotient = quotient * 2u + carry;
+
+        if ((multiplier & (1ULL << bit)) != 0u) {
+            if (remainder >= divisor - multiplicand) {
+                remainder = remainder - (divisor - multiplicand);
+                ++quotient;
+            } else {
+                remainder += multiplicand;
+            }
+        }
+    }
+
+    return quotient;
+}
+
+#ifdef RIVET_PLATFORM_TESTING
+unsigned long long rivet_win32_test_mul_div_floor(
+    unsigned long long multiplicand,
+    unsigned long long multiplier,
+    unsigned long long divisor
+)
+{
+    return win32_mul_div_floor(
+        multiplicand,
+        multiplier,
+        divisor
+    );
+}
+#endif
+
 static rivet_result win32_monotonic_ns(
     unsigned long long *nanoseconds
 )
@@ -122,13 +174,16 @@ static rivet_result win32_monotonic_ns(
     seconds = count / freq;
     remainder = count % freq;
 
-    if (seconds > ULLONG_MAX / 1000000000ULL ||
-        remainder > ULLONG_MAX / 1000000000ULL) {
+    if (seconds > ULLONG_MAX / 1000000000ULL) {
         return RIVET_ERR_CAPACITY;
     }
 
     base = seconds * 1000000000ULL;
-    fraction = (remainder * 1000000000ULL) / freq;
+    fraction = win32_mul_div_floor(
+        remainder,
+        1000000000ULL,
+        freq
+    );
 
     if (ULLONG_MAX - base < fraction) {
         return RIVET_ERR_CAPACITY;

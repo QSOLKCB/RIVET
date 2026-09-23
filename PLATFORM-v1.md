@@ -13,10 +13,12 @@ Machine-readable identity: machine/platform-v1.json.
 
 ## Claim boundary
 
-Platform v1 exposes only two capabilities already named by the frozen capability contract:
+Platform v1 exposes exactly two capabilities already named by the frozen capability contract:
 
     filesystem.read
     timer.monotonic
+
+Backend metadata containing any additional capability ID is invalid for Platform v1.
 
 It does not claim a complete operating-system abstraction.
 
@@ -68,6 +70,7 @@ Rules:
 - no heap allocation;
 - caller declares buffer capacity;
 - exact-size files may fill the complete buffer and still succeed;
+- a zero-byte file succeeds with capacity 0 when the caller supplies a valid non-null buffer and byte-count output;
 - a file larger than capacity returns RIVET_ERR_CAPACITY;
 - a missing path returns RIVET_ERR_NOT_FOUND;
 - other backend/OS failures return RIVET_ERR_UNSUPPORTED;
@@ -84,7 +87,8 @@ Rules:
 - absolute epoch/origin is unspecified;
 - only monotonic ordering is meaningful;
 - the public output is modified only on success;
-- conversion overflow fails explicitly with RIVET_ERR_CAPACITY.
+- conversion overflow fails explicitly with RIVET_ERR_CAPACITY;
+- fractional tick conversion must not fail merely because an intermediate product would overflow when the final nanosecond value is representable.
 
 No wall-clock/calendar API is introduced.
 
@@ -123,7 +127,9 @@ Both backends read the already-frozen R4 fixture:
     SHA-256     = 8d4a34353106071386727b776fa3089801563708dc521e0d363a447e12bb791e
     FNV-1a64    = 36aaff7f4aaa99ab
 
-The native proof also calls the monotonic clock twice and requires the second observation to be greater than or equal to the first.
+The proof also reads the tracked zero-byte fixture fixtures/r5_empty.txt with capacity 0 and requires RIVET_OK with byte_count=0.
+
+The native proof calls the monotonic clock twice and requires the second observation to be greater than or equal to the first.
 
 Correctness identity is the fixture bytes and operation semantics, not the timer's absolute value.
 
@@ -151,6 +157,7 @@ Program:
 Required semantic output includes:
 
     bytes=237
+    empty=0
     fnv1a64=36aaff7f4aaa99ab
     monotonic=nondecreasing
 

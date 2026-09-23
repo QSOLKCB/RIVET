@@ -69,6 +69,10 @@ rivet_result rivet_platform_validate(
         return RIVET_ERR_INVALID_ARGUMENT;
     }
 
+    if (platform->info->capabilities.count != 2u) {
+        return RIVET_ERR_INVALID_ARGUMENT;
+    }
+
     result = platform_require_capability(
         platform->info,
         "filesystem.read"
@@ -100,7 +104,6 @@ rivet_result rivet_platform_read_file(
     }
     if (!platform_path_valid(path) ||
         buffer == NULL ||
-        capacity == 0u ||
         byte_count == NULL) {
         return RIVET_ERR_INVALID_ARGUMENT;
     }

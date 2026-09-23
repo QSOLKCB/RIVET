@@ -31,8 +31,12 @@ int main(int argc, char **argv)
     unsigned long long first = 0u;
     unsigned long long second = 0u;
     unsigned long long hash;
+    unsigned char empty_buffer = 0u;
+    size_t empty_count = 99u;
     const char *path =
         argc > 1 ? argv[1] : "fixtures/r4_textview.txt";
+    const char *empty_path =
+        argc > 2 ? argv[2] : "fixtures/r5_empty.txt";
 
     platform = rivet_platform_current();
     if (rivet_platform_validate(platform) != RIVET_OK) {
@@ -54,6 +58,16 @@ int main(int argc, char **argv)
         return 1;
     }
 
+    if (rivet_platform_read_file(
+            platform,
+            empty_path,
+            &empty_buffer,
+            0u,
+            &empty_count) != RIVET_OK ||
+        empty_count != 0u) {
+        return 1;
+    }
+
     if (rivet_platform_monotonic_ns(
             platform,
             &first) != RIVET_OK ||
@@ -65,12 +79,13 @@ int main(int argc, char **argv)
     }
 
     printf(
-        "rivet-r5: backend=%s os=%s pointer_bits=%u endian=%s bytes=%lu fnv1a64=%016llx monotonic=nondecreasing\n",
+        "rivet-r5: backend=%s os=%s pointer_bits=%u endian=%s bytes=%lu empty=%lu fnv1a64=%016llx monotonic=nondecreasing\n",
         platform->info->backend_id,
         platform->info->os_api,
         platform->info->pointer_bits,
         platform->info->little_endian ? "little" : "big",
         (unsigned long)byte_count,
+        (unsigned long)empty_count,
         hash
     );
     return 0;

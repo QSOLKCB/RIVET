@@ -12,26 +12,26 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Verify R1-R4 contract surfaces are unchanged
+      - name: Verify only R5 allowlisted paths differ
         run: |
-          git diff --exit-code e9dcaf87cb241fe59f0fa388c10ce93a78007a22 -- \
-            CORE-v1.md \
-            GFX-v1.md \
-            UI-v1.md \
-            TEXTVIEW-v1.md \
-            machine/core-v1.json \
-            machine/gfx-v1.json \
-            machine/ui-v1.json \
-            machine/textview-v1.json \
-            machine/project-v6.json \
-            include/rivet/rivet.h \
-            core/rivet.c \
-            include/rivet/gfx.h \
-            gfx/raster.c \
-            include/rivet/ui.h \
-            ui/ui.c \
-            apps/textview/textview.h \
-            apps/textview/textview.c
+          git diff --exit-code e9dcaf87cb241fe59f0fa388c10ce93a78007a22 -- . \
+            ':(exclude).github/workflows/r5-platform.yml' \
+            ':(exclude)AGENTS.md' \
+            ':(exclude)Makefile' \
+            ':(exclude)PLATFORM-v1.md' \
+            ':(exclude)README.md' \
+            ':(exclude)ROADMAP.md' \
+            ':(exclude)examples/r5_platform_proof.c' \
+            ':(exclude)fixtures/r5_empty.txt' \
+            ':(exclude)include/rivet/platform.h' \
+            ':(exclude)index.html' \
+            ':(exclude)machine/platform-v1.json' \
+            ':(exclude)machine/project-v7.json' \
+            ':(exclude)platform/platform.c' \
+            ':(exclude)platform/posix/platform_posix.c' \
+            ':(exclude)platform/win32/platform_win32.c' \
+            ':(exclude)scripts/r5_win32_build.ps1' \
+            ':(exclude)tests/test_platform.c'
 
       - name: Validate machine JSON
         run: |
@@ -64,13 +64,14 @@ jobs:
         run: |
           make clean
           make platform-posix
-          output="$(./build/rivet-platform-posix fixtures/r4_textview.txt)"
+          output="$(./build/rivet-platform-posix fixtures/r4_textview.txt fixtures/r5_empty.txt)"
           echo "$output"
           bits="$(getconf LONG_BIT)"
           echo "$output" | grep -F "backend=posix-v1"
           echo "$output" | grep -F "os=POSIX"
           echo "$output" | grep -F "pointer_bits=$bits"
           echo "$output" | grep -F "bytes=237"
+          echo "$output" | grep -F "empty=0"
           echo "$output" | grep -F "fnv1a64=36aaff7f4aaa99ab"
           echo "$output" | grep -F "monotonic=nondecreasing"
 
@@ -91,7 +92,7 @@ jobs:
           make test-platform CC=gcc CFLAGS="-std=c99 -O2 -Wall -Wextra -Wpedantic -Werror"
           make clean
           make platform-posix CC=gcc CFLAGS="-std=c99 -O2 -Wall -Wextra -Wpedantic -Werror"
-          ./build/rivet-platform-posix fixtures/r4_textview.txt
+          ./build/rivet-platform-posix fixtures/r4_textview.txt fixtures/r5_empty.txt
 
   win32-native:
     runs-on: windows-latest
@@ -114,7 +115,7 @@ jobs:
       - name: Execute Win32 platform proof
         shell: pwsh
         run: |
-          $output = & .\build\rivet-platform-win32.exe "fixtures\r4_textview.txt"
+          $output = & .\build\rivet-platform-win32.exe "fixtures\r4_textview.txt" "fixtures\r5_empty.txt"
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           $output
           if ($output -notmatch "backend=win32-v1") { throw "wrong backend identity" }
@@ -122,5 +123,6 @@ jobs:
           $expectedBits = if ("${{ matrix.arch }}" -eq "x86") { "32" } else { "64" }
           if ($output -notmatch "pointer_bits=$expectedBits") { throw "wrong pointer width" }
           if ($output -notmatch "bytes=237") { throw "wrong fixture byte count" }
+          if ($output -notmatch "empty=0") { throw "zero-capacity empty-file proof failed" }
           if ($output -notmatch "fnv1a64=36aaff7f4aaa99ab") { throw "wrong fixture identity" }
           if ($output -notmatch "monotonic=nondecreasing") { throw "clock proof failed" }
