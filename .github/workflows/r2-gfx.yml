@@ -1,0 +1,79 @@
+name: R2 GFX
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  frozen-r1:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Verify R1 contract surface is unchanged
+        run: |
+          git diff --exit-code 344fe946ca2cc95f480e5f97c617acdde67e7214 -- \
+            CORE-v1.md \
+            machine/core-v1.json \
+            machine/project-v3.json \
+            include/rivet/rivet.h \
+            core/rivet.c
+
+      - name: Validate machine JSON
+        run: |
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+
+          for path in sorted(Path("machine").rglob("*.json")):
+              json.loads(path.read_text(encoding="utf-8"))
+              print(path)
+          PY
+
+  c99:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        cc: [gcc, clang]
+    env:
+      CC: ${{ matrix.cc }}
+      CFLAGS: -std=c99 -O2 -Wall -Wextra -Wpedantic -Werror
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: GFX unit tests
+        run: |
+          make clean
+          make test-gfx
+          make clean
+          make test-gfx CPPFLAGS=-DRIVET_EXTERNAL_CPPFLAGS=1
+
+      - name: Deterministic surface proof
+        run: |
+          make clean
+          make gfx CPPFLAGS=-DRIVET_EXTERNAL_CPPFLAGS=1
+          ./build/rivet-gfx-proof build/rivet-gfx-proof.ppm
+          expected="$(python3 -c 'import json; print(json.load(open("machine/gfx-v1.json"))["reference_vector"]["ppm_sha256"])')"
+          echo "$expected  build/rivet-gfx-proof.ppm" | sha256sum -c -
+          wc -c build/rivet-gfx-proof build/rivet-gfx-proof.ppm
+
+  sanitizers:
+    runs-on: ubuntu-latest
+    env:
+      CC: clang
+      CFLAGS: -std=c99 -O1 -g -Wall -Wextra -Wpedantic -Werror -fsanitize=address,undefined -fno-omit-frame-pointer
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Sanitized GFX tests
+        run: |
+          make clean
+          make test-gfx CPPFLAGS=-DRIVET_SANITIZED=1
+
+      - name: Sanitized surface proof
+        run: |
+          make clean
+          make gfx CPPFLAGS=-DRIVET_SANITIZED=1
+          ./build/rivet-gfx-proof build/rivet-gfx-proof.ppm

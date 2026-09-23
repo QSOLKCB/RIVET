@@ -17,7 +17,7 @@ No application/runtime implementation belongs in R0.
 
 ## R1 — Portable core
 
-**Current phase.**
+**Complete in PR #3.**
 
 R1 follows [RUNTIME-PLAN-v1.md](RUNTIME-PLAN-v1.md):
 
@@ -47,18 +47,28 @@ Success criterion: one tiny host program exercises the core with no GUI dependen
 See [CORE-v1.md](CORE-v1.md).
 ## R2 — Software surface
 
-Add the smallest raster contract needed for a real application:
+**Current phase.**
 
-- surface;
-- clip;
-- fill;
-- glyph/bitmap blit;
-- copy/scroll where justified.
+Implemented R2 surface slice:
 
-Add one host adapter and reference screenshots/hashes where practical.
+- [x] caller-owned RGBA8888 byte surface;
+- [x] checked width/height/stride/buffer attachment;
+- [x] explicit surface validation;
+- [x] bounded half-open clip rectangle;
+- [x] replace-only rectangle fill;
+- [x] MSB-first transparent-zero 1-bit glyph/bitmap blit;
+- [x] overlap-safe in-place copy/scroll primitive;
+- [x] no-heap canonical raster path;
+- [x] headless PPM evidence adapter;
+- [x] deterministic pixel FNV + PPM SHA-256 vector;
+- [x] GCC/Clang and ASan/UBSan coverage;
+- [x] regression gate preserving the R1 Core v1 surface.
+
+The PPM presenter is deliberately an evidence adapter, not a native OS/window backend. Platform presentation remains later work.
 
 No GPU API or GPU rendering path. The CPU/software surface is the rendering architecture.
 
+See [GFX-v1.md](GFX-v1.md).
 ## R3 — Input + lean UI
 
 Add keyboard-first input and only the widgets required by a demonstration application.
