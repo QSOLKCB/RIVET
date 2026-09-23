@@ -88,7 +88,7 @@ An application declares required and optional capabilities. A target declares pr
 
 Capabilities are never inherited merely because a target sounds newer or more powerful.
 
-See [PORTABILITY.md](PORTABILITY.md).
+See [PORTABILITY-v2.md](PORTABILITY-v2.md).
 
 ## Browser as proof
 
