@@ -62,8 +62,8 @@
     "native-posix-clang",
     "native-win32-x64",
     "win32-x86-process",
-    "container-gcc13-bookworm",
-    "container-gcc14-bookworm"
+    "container-gcc13.5.0-bookworm",
+    "container-gcc14.3.0-bookworm"
   ],
   "evidence_caveats": [
     "container-pass-is-not-target-os-pass",
@@ -84,5 +84,18 @@
     "gpu",
     "dynamic-backend-loading",
     "backend-registry"
-  ]
+  ],
+  "observed_native_evidence": {
+    "posix": {
+      "gcc": true,
+      "clang": true
+    },
+    "win32": {
+      "x64_pointer_bits": 64,
+      "x86_pointer_bits": 32,
+      "endian": "little",
+      "fixture_bytes": 237,
+      "fixture_fnv1a64": "36aaff7f4aaa99ab"
+    }
+  }
 }
