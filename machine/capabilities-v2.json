@@ -1,6 +1,11 @@
 {
-  "schema": "rivet.capabilities/v1",
-  "version": 1,
+  "schema": "rivet.capabilities/v2",
+  "version": 2,
+  "supersedes": "rivet.capabilities/v1",
+  "breaking_changes": [
+    "gpu removed from capabilities",
+    "gpu declared outside the RIVET rendering capability model"
+  ],
   "selection_model": "minimum-execution-substrate",
   "implicit_inheritance": false,
   "capabilities": [
@@ -17,15 +22,19 @@
     {"id":"audio.pcm","class":"media"},
     {"id":"threads","class":"acceleration"},
     {"id":"simd","class":"acceleration"},
-    {"id":"gpu","class":"acceleration"},
     {"id":"document.html","class":"document"},
     {"id":"document.css","class":"document"},
     {"id":"script.javascript","class":"script"}
   ],
+  "explicit_non_capabilities": [
+    {
+      "id": "gpu",
+      "reason": "RIVET rendering terminates at a CPU-produced software pixel surface; GPU APIs are outside the RIVET rendering contract"
+    }
+  ],
   "baseline_not_required": [
     "threads",
     "simd",
-    "gpu",
     "network.tcp",
     "network.http",
     "network.tls",

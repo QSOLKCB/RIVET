@@ -124,7 +124,8 @@ The GitHub Pages site is intentionally static HTML/CSS with no framework, analyt
 - [ROADMAP.md](ROADMAP.md) — staged implementation plan.
 - [DONORS.md](DONORS.md) — bounded lessons from existing QSOL projects.
 - [AGENTS.md](AGENTS.md) — rules for coding agents and contributors.
-- [machine/](machine/) — compact machine-readable project contracts.
+- [machine/project-v2.json](machine/project-v2.json) — current compact machine entrypoint; merged v1 contracts remain preserved for compatibility.
+- [machine/](machine/) — versioned machine-readable project contracts.
 
 ## Licence
 

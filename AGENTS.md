@@ -19,13 +19,24 @@ Do not introduce any of the following as a required RIVET-core dependency withou
 - React or another JavaScript UI framework;
 - mandatory C++ runtime;
 - mandatory Rust runtime;
-- GPU rendering or compute APIs in the RIVET core, UI, document engine, or RIVET Browser, including OpenGL, Vulkan, Direct3D, Metal, WebGL, WebGPU, CUDA, or shader-based rendering;
 - mandatory network;
 - mandatory threads;
 - cloud service;
 - database server.
 
 This does not forbid optional adapters or language bindings. It forbids silently making them the foundation.
+
+## Absolute GPU prohibition
+
+RIVET contributors and coding agents must not introduce GPU rendering or compute APIs as required **or optional** RIVET framework machinery.
+
+This prohibition applies to the core, UI, document engine, RIVET Browser, framework adapters, and capability registry, including OpenGL, Vulkan, Direct3D, Metal, WebGL, WebGPU, CUDA, GPU compute, and shader-based rendering.
+
+The optional-adapter allowance above does **not** create an exception to this rule.
+
+A specialised application may use external GPU code outside the RIVET rendering contract, but that code is not a RIVET capability or rendering adapter and must not be promoted into framework authority.
+
+Host OS/window-system compositing of a completed RIVET pixel surface remains outside the RIVET contract.
 
 ## Before adding code
 
@@ -112,6 +123,8 @@ Human prose explains why.
 Machine contracts define compact normative identities where automation needs them.
 
 Do not duplicate large rule sets in many files; link to the authority.
+
+Published versioned machine contracts are immutable. Breaking semantic changes require a new contract identity rather than rewriting an existing version in place.
 
 ## R0 boundary
 

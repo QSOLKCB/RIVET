@@ -1,6 +1,7 @@
 {
-  "schema": "rivet.invariants/v1",
-  "version": 1,
+  "schema": "rivet.invariants/v2",
+  "version": 2,
+  "supersedes": "rivet.invariants/v1",
   "authority": "CONSTITUTION.md",
   "invariants": [
     {"id":"RIVET-INV-001","name":"minimal-sufficient-implementation"},
@@ -20,7 +21,9 @@
     {"id":"RIVET-INV-015","name":"browser-downstream"},
     {"id":"RIVET-INV-016","name":"dependencies-justify-themselves"},
     {"id":"RIVET-INV-017","name":"donors-not-authority"},
-    {"id":"RIVET-INV-018","name":"compatibility-is-feature"}
+    {"id":"RIVET-INV-018","name":"compatibility-is-feature"},
+    {"id":"RIVET-INV-019","name":"targets-pixels-not-gpus"},
+    {"id":"RIVET-INV-020","name":"reduce-work-before-accelerating"}
   ],
   "change_rule": "dedicated-pr-required"
 }

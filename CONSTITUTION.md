@@ -2,7 +2,7 @@
 
 RIVET is allowed to evolve. These invariants exist to stop evolution from quietly turning it into the class of software it was created to avoid.
 
-Machine-readable counterparts live in `machine/invariants.json`.
+The current machine-readable counterpart is `machine/invariants-v2.json`. The merged R0 v1 record remains preserved at `machine/invariants.json` and is not rewritten in place.
 
 ## RIVET-INV-001 — Minimal sufficient implementation
 
