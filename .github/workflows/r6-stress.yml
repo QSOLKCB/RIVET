@@ -17,6 +17,7 @@ jobs:
           git diff --exit-code 9528ce8cf2d089f9895970e0b8563a459afbab7e -- . \
             ':(exclude).github/workflows/r6-stress.yml' \
             ':(exclude).github/workflows/r6-windows2012r2.yml' \
+            ':(exclude).github/workflows/r5-platform.yml' \
             ':(exclude)AGENTS.md' \
             ':(exclude)HISTORICAL-v1.md' \
             ':(exclude)README.md' \
