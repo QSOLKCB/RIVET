@@ -1,0 +1,87 @@
+{
+  "schema": "rivet.runtime-plan/v1",
+  "version": 1,
+  "status": "planned-not-implemented",
+  "authority": "RUNTIME-PLAN-v1.md",
+  "normative": false,
+  "rules": [
+    "second-implementation-earns-abstraction",
+    "logical-scale-not-resident-scale",
+    "stream-consume-reduce-discard-when-semantically-valid",
+    "explicit-bounded-memory-budget-for-external-input-growth",
+    "successful-result-identity-separate-from-execution-plan",
+    "benchmark-observations-not-correctness-identity",
+    "reference-path-before-optimized-promotion",
+    "reduce-work-before-accelerating",
+    "reuse-requires-complete-effective-input-identity"
+  ],
+  "deferred_until_evidence": [
+    "generic-cache-framework",
+    "persistent-worker-pool",
+    "simd",
+    "multithreaded-runtime",
+    "host-calibration",
+    "duplicate-work-coalescing"
+  ],
+  "donors": [
+    {
+      "id": "galaxy-v0.6.0",
+      "revision": "fa1c76fb49664ae4cdd6dc090cccd702399c2b60",
+      "release": "v0.6.0",
+      "url": "https://github.com/QSOLKCB/GALAXY/commit/fa1c76fb49664ae4cdd6dc090cccd702399c2b60"
+    },
+    {
+      "id": "galaxy-v0.5.0",
+      "revision": "b2e860309a04d7591c86f71d2b4ab1e5eec4c4d7",
+      "release": "v0.5.0",
+      "url": "https://github.com/QSOLKCB/GALAXY/commit/b2e860309a04d7591c86f71d2b4ab1e5eec4c4d7"
+    },
+    {
+      "id": "galaxy-v0.4.0",
+      "revision": "6f17a734b9241359d36a9bf3d208b8527a456327",
+      "release": "v0.4.0",
+      "url": "https://github.com/QSOLKCB/GALAXY/commit/6f17a734b9241359d36a9bf3d208b8527a456327"
+    },
+    {
+      "id": "opt-v1.0.0",
+      "revision": "41e2fc3677469839fb298dedefd0ce72caebcc68",
+      "release": "v1.0.0",
+      "url": "https://github.com/QSOLKCB/OPT/commit/41e2fc3677469839fb298dedefd0ce72caebcc68"
+    },
+    {
+      "id": "opt-v1.2.0",
+      "revision": "3441c6ceacd4a6ca43ec46de758e2d5bc23d8ca7",
+      "release": "v1.2.0",
+      "url": "https://github.com/QSOLKCB/OPT/commit/3441c6ceacd4a6ca43ec46de758e2d5bc23d8ca7"
+    },
+    {
+      "id": "qsol-mesh-pr3",
+      "revision": "e38fa71f1d8c1489bf4adf3538f2716c531e86a9",
+      "source": "pull-request-head",
+      "url": "https://github.com/QSOLKCB/QSOL-MESH/commit/e38fa71f1d8c1489bf4adf3538f2716c531e86a9"
+    },
+    {
+      "id": "igm-execution-campaigns",
+      "revision": "9b2df317a463f53ebb9e71b9a3bac0610a8ba5c6",
+      "path": "docs/EXECUTION_CAMPAIGNS.md",
+      "url": "https://github.com/QSOLKCB/igm/blob/9b2df317a463f53ebb9e71b9a3bac0610a8ba5c6/docs/EXECUTION_CAMPAIGNS.md"
+    },
+    {
+      "id": "ternary-drift-design",
+      "revision": "0ef476a5296faf008bcd0e25d0b080f608af47e3",
+      "path": "TERNARYDRIFT/docs/DESIGN.md",
+      "url": "https://github.com/QSOLKCB/GAMES/blob/0ef476a5296faf008bcd0e25d0b080f608af47e3/TERNARYDRIFT/docs/DESIGN.md"
+    },
+    {
+      "id": "c64-architecture",
+      "revision": "e8875f2f6d0872a94094381e054c27fba3894c0a",
+      "path": "docs/ARCHITECTURE.md",
+      "url": "https://github.com/QSOLKCB/C64/blob/e8875f2f6d0872a94094381e054c27fba3894c0a/docs/ARCHITECTURE.md"
+    }
+  ],
+  "execution_plan_invariance": {
+    "scope": "successful-executions-with-same-semantic-inputs-and-declared-profile",
+    "resource_exhaustion_is_distinct_failure": true,
+    "budget_too_small_may_fail_closed": true
+  }
+}

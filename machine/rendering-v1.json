@@ -1,0 +1,43 @@
+{
+  "schema": "rivet.rendering/v1",
+  "version": 1,
+  "authority": "RENDERING-v1.md",
+  "canonical_path": "cpu-software-raster",
+  "canonical_output": "pixel-surface",
+  "gpu_targeting": false,
+  "gpu_capability": false,
+  "gpu_apis_in_scope": [],
+  "host_presentation": {
+    "may_be_accelerated_internally": true,
+    "acceleration_is_inside_rivet_contract": false,
+    "may_redefine_pixel_semantics": false
+  },
+  "reference_path": "scalar-cpu",
+  "optional_cpu_optimisations": [
+    "dirty-region-paint",
+    "incremental-layout",
+    "bounded-cache",
+    "safe-result-reuse",
+    "simd-after-measurement",
+    "bounded-threading-after-measurement"
+  ],
+  "optimisation_order": [
+    "eliminate-work",
+    "bound-work",
+    "reduce-movement",
+    "reuse-safe-results",
+    "measure",
+    "accelerate-cpu-remainder-if-justified"
+  ],
+  "forbidden_framework_rendering_targets": [
+    "OpenGL",
+    "Vulkan",
+    "Direct3D",
+    "Metal",
+    "WebGL",
+    "WebGPU",
+    "CUDA",
+    "GPU-compute",
+    "shader-rendering"
+  ]
+}

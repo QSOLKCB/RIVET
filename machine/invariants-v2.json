@@ -1,0 +1,89 @@
+{
+  "schema": "rivet.invariants/v2",
+  "version": 2,
+  "supersedes": "rivet.invariants/v1",
+  "authority": "CONSTITUTION-v2.md",
+  "invariants": [
+    {
+      "id": "RIVET-INV-001",
+      "name": "minimal-sufficient-implementation"
+    },
+    {
+      "id": "RIVET-INV-002",
+      "name": "meaning-independent-of-machinery"
+    },
+    {
+      "id": "RIVET-INV-003",
+      "name": "capability-not-presentation"
+    },
+    {
+      "id": "RIVET-INV-004",
+      "name": "explicit-capabilities"
+    },
+    {
+      "id": "RIVET-INV-005",
+      "name": "boring-reference-path"
+    },
+    {
+      "id": "RIVET-INV-006",
+      "name": "no-mandatory-heavyweight-runtime"
+    },
+    {
+      "id": "RIVET-INV-007",
+      "name": "portable-c-baseline-stable-abi"
+    },
+    {
+      "id": "RIVET-INV-008",
+      "name": "single-threaded-valid"
+    },
+    {
+      "id": "RIVET-INV-009",
+      "name": "local-software-does-not-worship-network"
+    },
+    {
+      "id": "RIVET-INV-010",
+      "name": "user-owns-state-and-capability"
+    },
+    {
+      "id": "RIVET-INV-011",
+      "name": "explicit-failure"
+    },
+    {
+      "id": "RIVET-INV-012",
+      "name": "architecture-neutral-formats"
+    },
+    {
+      "id": "RIVET-INV-013",
+      "name": "resource-use-is-evidence"
+    },
+    {
+      "id": "RIVET-INV-014",
+      "name": "portability-requires-execution-evidence"
+    },
+    {
+      "id": "RIVET-INV-015",
+      "name": "browser-downstream"
+    },
+    {
+      "id": "RIVET-INV-016",
+      "name": "dependencies-justify-themselves"
+    },
+    {
+      "id": "RIVET-INV-017",
+      "name": "donors-not-authority"
+    },
+    {
+      "id": "RIVET-INV-018",
+      "name": "compatibility-is-feature"
+    },
+    {
+      "id": "RIVET-INV-019",
+      "name": "targets-pixels-not-gpus"
+    },
+    {
+      "id": "RIVET-INV-020",
+      "name": "reduce-work-before-accelerating"
+    }
+  ],
+  "change_rule": "dedicated-pr-required"
+}

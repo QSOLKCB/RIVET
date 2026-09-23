@@ -25,12 +25,24 @@ RIVET exists to make it practical to build software that is:
 - small enough to inspect;
 - explicit about the capabilities it needs;
 - usable without Chromium, Electron, Node.js, React, or an OS webview;
-- functional without a GPU;
+- rendered through CPU/software pixel surfaces without targeting a GPU API;
 - functional without a network when the application itself does not require one;
 - portable across operating systems and CPU families without redefining application semantics;
 - friendly to power users rather than hostile to them;
 - measurable instead of merely marketed as "lightweight";
 - capable of surviving older and constrained hardware.
+
+## Rendering doctrine
+
+> **RIVET targets pixels, not GPUs.**
+
+The same CPU/software rendering architecture applies on historical and modern systems. RIVET does not grow an OpenGL/Vulkan/Direct3D/Metal/WebGPU path merely because newer machines contain a GPU.
+
+A host OS or compositor may internally accelerate presentation of the completed pixel surface. That is outside RIVET's rendering contract.
+
+Performance work starts by doing less: tighter invalidation, bounded layout/paint, reuse, compact representations, and measured CPU-side optimisation.
+
+See [RENDERING-v1.md](RENDERING-v1.md).
 
 ## First principle: minimal sufficient implementation
 
@@ -40,7 +52,7 @@ Smaller includes fewer lines where clarity is preserved, fewer dependencies, few
 
 This is not code golf. A shorter implementation that is harder to verify, less portable, less safe, or less readable is not an improvement.
 
-See [CONSTITUTION.md](CONSTITUTION.md).
+See [CONSTITUTION-v2.md](CONSTITUTION-v2.md).
 
 ## Architectural thesis
 
@@ -76,7 +88,7 @@ An application declares required and optional capabilities. A target declares pr
 
 Capabilities are never inherited merely because a target sounds newer or more powerful.
 
-See [PORTABILITY.md](PORTABILITY.md).
+See [PORTABILITY-v2.md](PORTABILITY-v2.md).
 
 ## Browser as proof
 
@@ -105,13 +117,19 @@ The GitHub Pages site is intentionally static HTML/CSS with no framework, analyt
 
 ## Repository guide
 
-- [CONSTITUTION.md](CONSTITUTION.md) — non-negotiable project invariants.
-- [ARCHITECTURE.md](ARCHITECTURE.md) — layer and authority model.
-- [PORTABILITY.md](PORTABILITY.md) — MES, target identity, containers, emulation, and evidence.
+- [CONSTITUTION-v2.md](CONSTITUTION-v2.md) — current non-negotiable project invariants.
+- [CONSTITUTION.md](CONSTITUTION.md) — frozen v1 authority retained for compatibility.
+- [ARCHITECTURE-v2.md](ARCHITECTURE-v2.md) — current layer, runtime, rendering, and authority model.
+- [ARCHITECTURE.md](ARCHITECTURE.md) — frozen v1 project authority retained for compatibility.
+- [PORTABILITY-v2.md](PORTABILITY-v2.md) — current MES, target identity, containers, emulation, and evidence.
+- [PORTABILITY.md](PORTABILITY.md) — frozen v1 project authority retained for compatibility.
+- [RENDERING-v1.md](RENDERING-v1.md) — CPU/software rendering contract and GPU exclusion boundary.
 - [ROADMAP.md](ROADMAP.md) — staged implementation plan.
-- [DONORS.md](DONORS.md) — bounded lessons from existing QSOL projects.
+- [RUNTIME-PLAN-v1.md](RUNTIME-PLAN-v1.md) — donor-derived runtime and memory plan for R1+.
+- [DONORS-v1.md](DONORS-v1.md) — frozen donor/provenance map for runtime-plan v1.
 - [AGENTS.md](AGENTS.md) — rules for coding agents and contributors.
-- [machine/](machine/) — compact machine-readable project contracts.
+- [machine/project-v2.json](machine/project-v2.json) — current compact machine entrypoint; merged v1 contracts remain preserved for compatibility.
+- [machine/](machine/) — versioned machine-readable project contracts.
 
 ## Licence
 

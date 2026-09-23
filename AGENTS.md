@@ -1,6 +1,6 @@
 # RIVET Agent and Contributor Contract
 
-Read [CONSTITUTION.md](CONSTITUTION.md) before changing architecture.
+Read [CONSTITUTION-v2.md](CONSTITUTION-v2.md) before changing architecture. `CONSTITUTION.md` is the frozen v1 authority and must not be rewritten.
 
 ## Prime directive
 
@@ -19,13 +19,28 @@ Do not introduce any of the following as a required RIVET-core dependency withou
 - React or another JavaScript UI framework;
 - mandatory C++ runtime;
 - mandatory Rust runtime;
-- mandatory GPU;
 - mandatory network;
 - mandatory threads;
 - cloud service;
 - database server.
 
 This does not forbid optional adapters or language bindings. It forbids silently making them the foundation.
+
+## Absolute GPU prohibition
+
+RIVET contributors and coding agents must not introduce GPU rendering or compute APIs as required **or optional** RIVET framework machinery.
+
+This prohibition applies to the core, UI, document engine, RIVET Browser, framework adapters, and capability registry, including OpenGL, Vulkan, Direct3D, Metal, WebGL, WebGPU, CUDA, GPU compute, and shader-based rendering.
+
+The optional-adapter allowance above does **not** create an exception to this rule.
+
+A specialised application may use external GPU code outside the RIVET rendering contract, but that code is not a RIVET capability or rendering adapter and must not be promoted into framework authority.
+
+Host OS/window-system compositing of a completed RIVET pixel surface remains outside the RIVET contract.
+
+## Runtime planning rule
+
+Before implementing runtime/memory infrastructure, read [RUNTIME-PLAN-v1.md](RUNTIME-PLAN-v1.md). It is a plan, not permission to pre-build abstractions. The second concrete implementation earns an abstraction.
 
 ## Before adding code
 
@@ -92,7 +107,18 @@ When a bug appears:
 
 Do not optimise by weakening semantics.
 
-Keep a reference path. Measure before claiming benefit. Record the environment.
+RIVET targets software pixel surfaces, not GPUs. Do not add a GPU path as an optimisation.
+
+Optimise in this order:
+
+1. eliminate unnecessary work;
+2. bound working sets;
+3. invalidate/recompute more precisely;
+4. reuse safe results;
+5. measure;
+6. only then consider optional CPU-side SIMD or bounded threading.
+
+Keep a scalar/reference path. Measure before claiming benefit. Record the environment.
 
 ## Documentation
 
@@ -101,6 +127,8 @@ Human prose explains why.
 Machine contracts define compact normative identities where automation needs them.
 
 Do not duplicate large rule sets in many files; link to the authority.
+
+Published versioned machine contracts and the versioned human authority paths they name are immutable. Frozen legacy authority paths such as `CONSTITUTION.md`, `ARCHITECTURE.md`, and `PORTABILITY.md` must also remain byte-stable for the contract identities that name them. Breaking semantic changes require new contract identities and new versioned authority paths rather than rewriting an existing version in place.
 
 ## R0 boundary
 

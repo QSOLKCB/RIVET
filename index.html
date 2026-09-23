@@ -26,17 +26,18 @@ a{color:var(--hot)}.muted{color:var(--muted)}footer{margin-top:56px;color:var(--
 <pre>APPLICATION MEANING != EXECUTION MACHINERY
 BUTTON              != CAPABILITY
 CONTAINER PASS       != TARGET-OS PASS
+RIVET TARGETS PIXELS != GPUs
 "LIGHTWEIGHT"        != EVIDENCE</pre>
 <div class="grid">
 <div class="card"><strong>Minimal</strong><br><span class="muted">If equivalent behaviour can be implemented with materially less code and no loss of correctness, safety, readability or portability, the smaller implementation wins.</span></div>
 <div class="card"><strong>Explicit</strong><br><span class="muted">Applications declare capabilities. Targets declare what they actually provide. Unsupported means unsupported.</span></div>
-<div class="card"><strong>Portable</strong><br><span class="muted">C99 baseline, stable C ABI direction, software rendering reference path, no mandatory GPU/network/threads.</span></div>
+<div class="card"><strong>Portable</strong><br><span class="muted">C99 baseline, stable C ABI direction, CPU/software raster rendering, no RIVET GPU API, no mandatory network or threads.</span></div>
 <div class="card"><strong>User-owned</strong><br><span class="muted">Capabilities survive UI fashion. State should remain inspectable. No telemetry or account requirement by default.</span></div>
 </div>
 <h2>The proof</h2>
 <p>The long-term demonstration is a lean RIVET Browser spanning modern systems and deliberately constrained historical targets. The browser is downstream of the framework: it must prove the architecture rather than infect it.</p>
 <h2>Start here</h2>
-<p><a href="README.md">README</a> · <a href="CONSTITUTION.md">Constitution</a> · <a href="ARCHITECTURE.md">Architecture</a> · <a href="PORTABILITY.md">Portability</a> · <a href="ROADMAP.md">Roadmap</a></p>
+<p><a href="README.md">README</a> · <a href="CONSTITUTION-v2.md">Constitution</a> · <a href="ARCHITECTURE-v2.md">Architecture</a> · <a href="PORTABILITY-v2.md">Portability</a> · <a href="RENDERING-v1.md">Rendering</a> · <a href="ROADMAP.md">Roadmap</a> · <a href="RUNTIME-PLAN-v1.md">Runtime plan</a></p>
 <footer>MPL-2.0 · static HTML/CSS · no framework · no analytics · no build step</footer>
 </main>
 </body>

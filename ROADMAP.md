@@ -4,7 +4,7 @@ The roadmap is deliberately staged so architecture is earned before complexity a
 
 ## R0 — Constitutional foundation
 
-**Current PR.**
+**Complete in PR #1.**
 
 - freeze project mission and invariants;
 - define capability and Minimum Execution Substrate concepts;
@@ -16,6 +16,15 @@ The roadmap is deliberately staged so architecture is earned before complexity a
 No application/runtime implementation belongs in R0.
 
 ## R1 — Portable core
+
+R1 follows [RUNTIME-PLAN-v1.md](RUNTIME-PLAN-v1.md):
+
+- the second implementation earns the abstraction;
+- no heap proportional to a logical domain when bounded/procedural execution suffices;
+- explicit memory budgets where resident state can grow with external input;
+- successful-result identity remains separate from workers/chunks/budgets; a budget too small for the minimum representation may fail explicitly with resource exhaustion;
+- benchmark observations do not enter correctness identity;
+- reuse/cache requires complete effective-input binding.
 
 Implement the smallest useful C99 core:
 
@@ -41,7 +50,7 @@ Add the smallest raster contract needed for a real application:
 
 Add one host adapter and reference screenshots/hashes where practical.
 
-No GPU requirement.
+No GPU API or GPU rendering path. The CPU/software surface is the rendering architecture.
 
 ## R3 — Input + lean UI
 
@@ -113,7 +122,7 @@ Required goals:
 - keyboard-first operation;
 - inspectable configuration;
 - measured footprint;
-- no mandatory accelerator.
+- CPU/software raster rendering with no RIVET GPU path.
 
 ## R9 — Retro portability expansion
 
@@ -137,16 +146,25 @@ The relay may provide modern TLS/HTTP/content-encoding transport.
 
 It must not become a remote pixel renderer for profiles claiming local parsing/layout/rendering.
 
-## R11 — Optional acceleration
+## R11 — Work elimination and CPU optimisation
 
-Only after stable reference semantics:
+R11 may draw from the measured mechanisms catalogued in [RUNTIME-PLAN-v1.md](RUNTIME-PLAN-v1.md) and [DONORS-v1.md](DONORS-v1.md), but none are promoted merely because they worked in a donor project.
 
-- SIMD;
-- threads;
-- GPU/native compositor;
-- host-aware calibration.
 
-Promotion requires conformance and measured benefit.
+Only after stable reference semantics and measurement:
+
+- dirty-region painting;
+- incremental layout and precise invalidation;
+- bounded caches with explicit ownership;
+- compact display/layout representations;
+- safe result reuse;
+- optional SIMD where it produces a measured benefit;
+- optional bounded threading where it produces a measured benefit;
+- host-aware CPU-path calibration only when the added machinery pays for itself.
+
+There is no GPU/native-GPU-compositor roadmap rung. RIVET continues to produce software pixel surfaces; host presentation acceleration remains outside the RIVET contract.
+
+Promotion requires conformance, measured benefit, and evidence that simpler work-elimination techniques were considered first.
 
 ## R12 — Long-lived compatibility policy
 
