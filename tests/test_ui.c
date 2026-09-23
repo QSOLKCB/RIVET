@@ -4,12 +4,20 @@
 
 #include <stdio.h>
 
+#ifdef RIVET_EXEC_CHARSET_REGRESSION
+#define CHECK(expr) do { \
+    if (!(expr)) { \
+        return __LINE__; \
+    } \
+} while (0)
+#else
 #define CHECK(expr) do { \
     if (!(expr)) { \
         fprintf(stderr, "CHECK failed at %s:%d: %s\n", __FILE__, __LINE__, #expr); \
         return 1; \
     } \
 } while (0)
+#endif
 
 static const char ascii_open[] = {0x4f,0x50,0x45,0x4e,0x00};
 static const char ascii_save[] = {0x53,0x41,0x56,0x45,0x00};
