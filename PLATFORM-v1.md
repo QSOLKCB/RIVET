@@ -129,7 +129,7 @@ Correctness identity is the fixture bytes and operation semantics, not the timer
 
 ## R5 evidence matrix
 
-R5 CI is required to execute native POSIX under GCC and Clang, native Win32 x64, a Win32 x86 process, and POSIX proofs in GCC 13 and GCC 14 Bookworm containers.
+R5 CI is required to execute native POSIX under GCC and Clang, native Win32 x64, a Win32 x86 process, and POSIX proofs in GCC 13.5.0 and GCC 14.3.0 Bookworm containers.
 
 Native POSIX is native host execution.
 
@@ -137,7 +137,7 @@ Native Win32 x64 is native Windows OS/API execution.
 
 The Win32 x86 lane is explicit 32-bit process execution. On a 64-bit Windows runner the process may execute through WOW64; it is not a claim of physical 32-bit hardware.
 
-The GCC container lanes are E1 containerised toolchain evidence.
+The GCC 13.5.0 and GCC 14.3.0 container lanes are E1 containerised toolchain evidence.
 
     CONTAINER PASS != TARGET-OS PASS
     WIN32 x86 PROCESS != PHYSICAL 32-BIT HARDWARE
