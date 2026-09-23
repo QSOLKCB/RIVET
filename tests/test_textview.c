@@ -181,6 +181,44 @@ static int test_render(void)
     return 0;
 }
 
+
+static int test_trailing_newline_render(void)
+{
+    static const unsigned char bytes[] = {0x41u,0x0au};
+    unsigned char pixels[16u * 8u * 4u];
+    rivet_surface surface;
+    rivet_textview viewer;
+    size_t offsets[1];
+    rivet_rect bounds = {0L,0L,16ul,8ul};
+    rivet_textview_style style = {
+        {0x01u,0x02u,0x03u,0xffu},
+        {0x10u,0x20u,0x30u,0xffu},
+        {0x40u,0x50u,0x60u,0xffu},
+        {0x70u,0x80u,0x90u,0xffu}
+    };
+
+    CHECK(rivet_surface_attach(
+        &surface,
+        pixels,
+        sizeof(pixels),
+        16ul,
+        8ul,
+        64u) == RIVET_OK);
+    CHECK(rivet_textview_open(
+        &viewer,
+        bytes,
+        sizeof(bytes),
+        offsets,
+        1u) == RIVET_OK);
+    CHECK(viewer.line_count == 1u);
+    CHECK(rivet_textview_render(
+        &surface,
+        &viewer,
+        bounds,
+        style) == RIVET_OK);
+    return 0;
+}
+
 int main(void)
 {
     CHECK(RIVET_TEXTVIEW_CONTRACT_VERSION == 1u);
@@ -188,6 +226,7 @@ int main(void)
     CHECK(test_navigation() == 0);
     CHECK(test_search() == 0);
     CHECK(test_render() == 0);
+    CHECK(test_trailing_newline_render() == 0);
 
 #ifndef RIVET_EXEC_CHARSET_REGRESSION
     puts("rivet textview tests: ok");
