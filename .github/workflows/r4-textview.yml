@@ -29,6 +29,10 @@ jobs:
             include/rivet/ui.h \
             ui/ui.c
 
+      - name: Verify reference fixture LF policy
+        run: |
+          test "$(git check-attr eol -- fixtures/r4_textview.txt)" = "fixtures/r4_textview.txt: eol: lf"
+
       - name: Validate machine JSON
         run: |
           python3 - <<'PY'

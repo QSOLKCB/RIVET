@@ -342,8 +342,7 @@ rivet_result rivet_textview_find_next(
 
     if (rivet_textview_validate(viewer) != RIVET_OK ||
         query == NULL ||
-        query_length == 0u ||
-        query_length > viewer->byte_count) {
+        query_length == 0u) {
         return RIVET_ERR_INVALID_ARGUMENT;
     }
 
@@ -353,9 +352,12 @@ rivet_result rivet_textview_find_next(
         }
     }
 
-    if (viewer->has_match &&
-        viewer->match_offset < viewer->byte_count) {
-        start = viewer->match_offset + 1u;
+    if (query_length > viewer->byte_count) {
+        return RIVET_ERR_NOT_FOUND;
+    }
+
+    if (viewer->has_match) {
+        start = viewer->match_offset + viewer->match_length;
     } else {
         start = viewer->line_offsets[viewer->top_line];
     }
@@ -521,10 +523,21 @@ rivet_result rivet_textview_render(
                 offset - viewer->match_offset <
                     viewer->match_length) {
                 rivet_rect match_cell;
+                unsigned long remaining_width =
+                    bounds.width - x_offset;
+                unsigned long remaining_height =
+                    bounds.height - y_offset;
+
                 match_cell.x = x;
                 match_cell.y = y;
-                match_cell.width = TV_GLYPH_PITCH;
-                match_cell.height = TV_ROW_HEIGHT;
+                match_cell.width =
+                    remaining_width < TV_GLYPH_PITCH ?
+                    remaining_width :
+                    TV_GLYPH_PITCH;
+                match_cell.height =
+                    remaining_height < TV_ROW_HEIGHT ?
+                    remaining_height :
+                    TV_ROW_HEIGHT;
                 if (rivet_surface_fill_rect(
                         surface,
                         match_cell,

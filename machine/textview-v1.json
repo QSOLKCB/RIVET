@@ -50,7 +50,8 @@
     "top_line": 4,
     "match_offset": 120,
     "fnv1a64": "c64fb52b456cde58",
-    "ppm_sha256": "89a92f0fdfb2966a06b91ab50c3d2c905cf4eb340782d2df001dfe6cb369b95a"
+    "ppm_sha256": "89a92f0fdfb2966a06b91ab50c3d2c905cf4eb340782d2df001dfe6cb369b95a",
+    "fixture_eol": "lf-pinned-by-gitattributes"
   },
   "non_goals": [
     "browser",
@@ -75,5 +76,15 @@
     "gpu",
     "cache",
     "search-index"
-  ]
+  ],
+  "search": {
+    "restart": "after-full-current-match-range",
+    "wrap": "once-to-byte-zero-excluding-current-match",
+    "oversized_supported_query": "RIVET_ERR_NOT_FOUND",
+    "miss_preserves_previous_match": true
+  },
+  "rendering": {
+    "viewport_write_boundary": "strict",
+    "match_background_clipped_to_viewport": true
+  }
 }

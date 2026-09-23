@@ -81,10 +81,11 @@ Rules:
 
 - query is non-empty;
 - query bytes must belong to the supported non-newline display subset;
-- search begins after the current match, otherwise at the current top line;
+- search begins after the full current matched range, otherwise at the current top line;
 - one wrap to the beginning is permitted, but the current match is not reported again when it is the only occurrence;
 - a found match records exact byte offset/length and moves `top_line` to the containing line;
-- a miss returns `RIVET_ERR_NOT_FOUND` and preserves the previous match.
+- a supported query longer than the document is a normal miss and returns `RIVET_ERR_NOT_FOUND`;
+- every miss preserves the previous match.
 
 No case folding, regex, Unicode normalization or hidden index/cache is introduced.
 
@@ -100,7 +101,7 @@ Rendering:
 - fills the viewport background;
 - draws rows at an 8-pixel pitch;
 - truncates horizontally at the viewport edge;
-- highlights matched bytes using caller-supplied colors.
+- highlights matched bytes using caller-supplied colors without writing outside the declared viewport.
 
 ## Headless open adapter
 
@@ -144,7 +145,7 @@ pixel FNV-1a64   = c64fb52b456cde58
 PPM SHA-256      = 89a92f0fdfb2966a06b91ab50c3d2c905cf4eb340782d2df001dfe6cb369b95a
 ```
 
-The fixture, pixel bytes and PPM output are deterministic conformance evidence, not performance claims.
+The fixture is explicitly pinned to LF checkout semantics through `.gitattributes`; the fixture, pixel bytes and PPM output are deterministic conformance evidence, not performance claims.
 
 ## Non-goals
 

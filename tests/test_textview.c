@@ -6,7 +6,7 @@
 #include <stdio.h>
 
 #ifdef RIVET_EXEC_CHARSET_REGRESSION
-#define CHECK(expr) do { if (!(expr)) return __LINE__; } while (0)
+#define CHECK(expr) do { if (!(expr)) return 1; } while (0)
 #else
 #define CHECK(expr) do { \
     if (!(expr)) { \
@@ -160,6 +160,59 @@ static int test_single_byte_search_wrap(void)
     return 0;
 }
 
+
+static int test_search_skips_overlap_inside_current_match(void)
+{
+    static const unsigned char bytes[] = {0x41u,0x41u,0x41u};
+    static const unsigned char query[] = {0x41u,0x41u};
+    rivet_textview viewer;
+    size_t offsets[1];
+
+    CHECK(rivet_textview_open(
+        &viewer,
+        bytes,
+        sizeof(bytes),
+        offsets,
+        1u) == RIVET_OK);
+    CHECK(rivet_textview_find_next(
+        &viewer,
+        query,
+        sizeof(query)) == RIVET_OK);
+    CHECK(viewer.match_offset == 0u);
+    CHECK(viewer.match_length == 2u);
+    CHECK(rivet_textview_find_next(
+        &viewer,
+        query,
+        sizeof(query)) == RIVET_ERR_NOT_FOUND);
+    CHECK(viewer.has_match == 1);
+    CHECK(viewer.match_offset == 0u);
+    CHECK(viewer.match_length == 2u);
+    return 0;
+}
+
+static int test_oversized_query_is_miss(void)
+{
+    static const unsigned char bytes[] = {0x41u};
+    static const unsigned char query[] = {0x41u,0x41u};
+    rivet_textview viewer;
+    size_t offsets[1];
+
+    CHECK(rivet_textview_open(
+        &viewer,
+        bytes,
+        sizeof(bytes),
+        offsets,
+        1u) == RIVET_OK);
+    CHECK(rivet_textview_find_next(
+        &viewer,
+        query,
+        sizeof(query)) == RIVET_ERR_NOT_FOUND);
+    CHECK(viewer.has_match == 0);
+    CHECK(viewer.match_offset == 0u);
+    CHECK(viewer.match_length == 0u);
+    return 0;
+}
+
 static int test_render(void)
 {
     unsigned char pixels[96u * 32u * 4u];
@@ -210,6 +263,74 @@ static int test_render(void)
 }
 
 
+
+static int test_match_background_stays_inside_viewport(void)
+{
+    static const unsigned char bytes[] = {0x41u};
+    static const unsigned char query[] = {0x41u};
+    unsigned char pixels[6u * 8u * 4u];
+    rivet_surface surface;
+    rivet_textview viewer;
+    size_t offsets[1];
+    rivet_rect bounds = {0L,0L,5ul,7ul};
+    rivet_textview_style style = {
+        {0x01u,0x02u,0x03u,0xffu},
+        {0x10u,0x20u,0x30u,0xffu},
+        {0x40u,0x50u,0x60u,0xffu},
+        {0x70u,0x80u,0x90u,0xffu}
+    };
+    size_t i;
+    unsigned long x;
+    unsigned long y;
+
+    for (i = 0u; i < sizeof(pixels); ++i) {
+        pixels[i] = 0xa5u;
+    }
+
+    CHECK(rivet_surface_attach(
+        &surface,
+        pixels,
+        sizeof(pixels),
+        6ul,
+        8ul,
+        24u) == RIVET_OK);
+    CHECK(rivet_textview_open(
+        &viewer,
+        bytes,
+        sizeof(bytes),
+        offsets,
+        1u) == RIVET_OK);
+    CHECK(rivet_textview_find_next(
+        &viewer,
+        query,
+        sizeof(query)) == RIVET_OK);
+    CHECK(rivet_textview_render(
+        &surface,
+        &viewer,
+        bounds,
+        style) == RIVET_OK);
+
+    for (y = 0ul; y < 7ul; ++y) {
+        const unsigned char *pixel =
+            pixels + (size_t)y * 24u + 5u * 4u;
+        CHECK(pixel[0] == 0xa5u);
+        CHECK(pixel[1] == 0xa5u);
+        CHECK(pixel[2] == 0xa5u);
+        CHECK(pixel[3] == 0xa5u);
+    }
+
+    for (x = 0ul; x < 6ul; ++x) {
+        const unsigned char *pixel =
+            pixels + 7u * 24u + (size_t)x * 4u;
+        CHECK(pixel[0] == 0xa5u);
+        CHECK(pixel[1] == 0xa5u);
+        CHECK(pixel[2] == 0xa5u);
+        CHECK(pixel[3] == 0xa5u);
+    }
+
+    return 0;
+}
+
 static int test_trailing_newline_render(void)
 {
     static const unsigned char bytes[] = {0x41u,0x0au};
@@ -254,7 +375,10 @@ int main(void)
     CHECK(test_navigation() == 0);
     CHECK(test_search() == 0);
     CHECK(test_single_byte_search_wrap() == 0);
+    CHECK(test_search_skips_overlap_inside_current_match() == 0);
+    CHECK(test_oversized_query_is_miss() == 0);
     CHECK(test_render() == 0);
+    CHECK(test_match_background_stays_inside_viewport() == 0);
     CHECK(test_trailing_newline_render() == 0);
 
 #ifndef RIVET_EXEC_CHARSET_REGRESSION
