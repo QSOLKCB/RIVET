@@ -59,10 +59,12 @@ jobs:
         run: |
           make clean
           make test
+          make clean
+          make test CPPFLAGS=-DRIVET_EXTERNAL_CPPFLAGS=1
 
       - name: Headless proof
         run: |
           make clean
-          make
+          make CPPFLAGS=-DRIVET_EXTERNAL_CPPFLAGS=1
           ./build/rivet-headless
           wc -c build/rivet-headless
