@@ -12,32 +12,32 @@ The eventual RIVET Browser is a proof application, not the definition of the fra
 
 ## Status
 
-**R2 — software surface.**
+**R3 — input + lean UI.**
 
-R1 is merged at `344fe946ca2cc95f480e5f97c617acdde67e7214`. R2 adds the first CPU raster contract without changing Core v1.
+R2 is merged at `07ed7b1d37f7e09d40d8bd01c27788e205544dfe`. R3 adds portable logical keyboard events plus two command projections: exact key bindings and one lean menu.
 
-GFX v1 provides caller-owned RGBA8888 byte surfaces, clipping, replace-only fills, 1-bit bitmap/glyph blits, and overlap-safe in-place copy/scroll.
+The menu uses caller-owned items and a tiny built-in uppercase 5x7 bitmap alphabet. It renders through GFX v1 and requires no heap allocation.
 
-The raster path requires **no heap allocation** and contains no GPU API, alpha compositor, font engine, image decoder, native window, or UI layer.
-
-## R2 quick proof
+## R3 quick proof
 
 ```sh
-make test-gfx
-make gfx
-./build/rivet-gfx-proof build/rivet-gfx-proof.ppm
+make test-ui
+make ui
+./build/rivet-ui-proof build/rivet-ui-proof.ppm
 ```
 
 The deterministic proof must produce:
 
 ```text
-FNV-1a64    1c0020d75a3b782d
-PPM SHA-256 e525783bbdaaddd3cc193a855cd62b9a259d9074dc32125b79241dab3ed1d7cc
+FNV-1a64    8e022a6d842ff8e5
+PPM SHA-256 c7feae9354c6934df1b199aa869845e0bae2cf46bb0cabce4e78930095fb21fd
+open/save   1 / 1
+menu final  hidden
 ```
 
-The PPM writer is a headless evidence adapter only; it does not claim a native window/platform backend.
+The proof activates SAVE through the menu, removes the menu presentation, then still activates OPEN through `CTRL+O` using the same command registry.
 
-See [GFX-v1.md](GFX-v1.md).
+See [UI-v1.md](UI-v1.md).
 ## Mission
 
 RIVET exists to make it practical to build software that is:
@@ -137,7 +137,8 @@ The GitHub Pages site is intentionally static HTML/CSS with no framework, analyt
 
 ## Repository guide
 
-- [GFX-v1.md](GFX-v1.md) — R2 software-surface ABI and deterministic raster contract.
+- [UI-v1.md](UI-v1.md) — R3 logical keyboard, command projection, and lean-menu contract.
+- [GFX-v1.md](GFX-v1.md) — frozen R2 software-surface ABI and deterministic raster contract.
 - [CORE-v1.md](CORE-v1.md) — frozen R1 core/ABI contract.
 - [CONSTITUTION-v2.md](CONSTITUTION-v2.md) — current non-negotiable project invariants.
 - [CONSTITUTION.md](CONSTITUTION.md) — frozen v1 authority retained for compatibility.
@@ -150,7 +151,8 @@ The GitHub Pages site is intentionally static HTML/CSS with no framework, analyt
 - [RUNTIME-PLAN-v1.md](RUNTIME-PLAN-v1.md) — donor-derived runtime and memory plan for R1+.
 - [DONORS-v1.md](DONORS-v1.md) — frozen donor/provenance map for runtime-plan v1.
 - [AGENTS.md](AGENTS.md) — rules for coding agents and contributors.
-- [machine/project-v4.json](machine/project-v4.json) — current machine entrypoint for R2.
+- [machine/project-v5.json](machine/project-v5.json) — current machine entrypoint for R3.
+- [machine/project-v4.json](machine/project-v4.json) — frozen R2 project contract.
 - [machine/project-v3.json](machine/project-v3.json) — frozen R1 project contract.
 - [machine/project-v2.json](machine/project-v2.json) — frozen R0 project contract.
 - [machine/](machine/) — versioned machine-readable project contracts.

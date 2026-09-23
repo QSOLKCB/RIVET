@@ -1,0 +1,82 @@
+{
+  "schema": "rivet.ui/v1",
+  "version": 1,
+  "authority": "UI-v1.md",
+  "abi_version": 1,
+  "language_baseline": "C99",
+  "public_header": "include/rivet/ui.h",
+  "reference_implementation": "ui/ui.c",
+  "dependencies": {
+    "core": "rivet.core/v1",
+    "gfx": "rivet.gfx/v1"
+  },
+  "input": {
+    "model": "logical-key-event",
+    "printable_keys": "ascii-0x20-through-0x7e",
+    "navigation_keys": [
+      "RIVET_KEY_UP",
+      "RIVET_KEY_DOWN",
+      "RIVET_KEY_ENTER",
+      "RIVET_KEY_ESCAPE"
+    ],
+    "modifiers": [
+      "SHIFT",
+      "CTRL",
+      "ALT",
+      "META"
+    ],
+    "native_backend": false
+  },
+  "command_projections": [
+    "exact-key-binding",
+    "menu-item"
+  ],
+  "menu": {
+    "caller_owned_items": true,
+    "heap": false,
+    "row_height_pixels": 11,
+    "glyphs": "uppercase-A-Z-and-space-5x7",
+    "unsupported_glyph_result": "RIVET_ERR_UNSUPPORTED",
+    "insufficient_bounds_result": "RIVET_ERR_CAPACITY",
+    "hidden_render": "successful-no-op"
+  },
+  "presentation_independence": {
+    "same_command_registry": true,
+    "menu_removal_preserves_keymap_access": true
+  },
+  "command_palette": {
+    "implemented": false,
+    "reason": "not-yet-smaller-than-existing-command-projections"
+  },
+  "reference_vector": {
+    "program": "examples/r3_ui_proof.c",
+    "width": 96,
+    "height": 48,
+    "selected_item": "SAVE",
+    "fnv1a64": "8e022a6d842ff8e5",
+    "ppm_sha256": "c7feae9354c6934df1b199aa869845e0bae2cf46bb0cabce4e78930095fb21fd",
+    "final_command_counts": {
+      "open": 1,
+      "save": 1,
+      "quit": 0
+    },
+    "final_menu_visible": false
+  },
+  "non_goals": [
+    "native-keyboard-backend",
+    "pointer-input",
+    "text-editing",
+    "unicode-text",
+    "font-engine",
+    "command-palette",
+    "generic-widget-hierarchy",
+    "native-menu",
+    "accessibility-backend",
+    "window-system",
+    "layout-engine",
+    "threads",
+    "simd",
+    "gpu",
+    "cache"
+  ]
+}

@@ -6,14 +6,18 @@ CORE = core/rivet.c
 HEADER = include/rivet/rivet.h
 GFX = gfx/raster.c
 GFX_HEADER = include/rivet/gfx.h
+UI = ui/ui.c
+UI_HEADER = include/rivet/ui.h
 HEADLESS_PPM = platform/headless/ppm.c
 HEADLESS_PPM_HEADER = platform/headless/ppm.h
 
-.PHONY: all gfx test test-gfx check-no-heap check-no-heap-gfx clean
+.PHONY: all gfx ui test test-gfx test-ui check-no-heap check-no-heap-gfx check-no-heap-ui clean
 
 all: $(BUILD_DIR)/rivet-headless
 
 gfx: $(BUILD_DIR)/rivet-gfx-proof
+
+ui: $(BUILD_DIR)/rivet-ui-proof
 
 $(BUILD_DIR):
 	mkdir -p $(BUILD_DIR)
@@ -30,11 +34,20 @@ $(BUILD_DIR)/test-gfx: $(GFX) $(GFX_HEADER) $(HEADER) tests/test_gfx.c | $(BUILD
 $(BUILD_DIR)/rivet-gfx-proof: $(GFX) $(GFX_HEADER) $(HEADER) $(HEADLESS_PPM) $(HEADLESS_PPM_HEADER) examples/r2_gfx_proof.c | $(BUILD_DIR)
 	$(CC) $(CPPFLAGS) -Iinclude -Iplatform/headless $(CFLAGS) $(GFX) $(HEADLESS_PPM) examples/r2_gfx_proof.c -o $@
 
+$(BUILD_DIR)/test-ui: $(CORE) $(HEADER) $(GFX) $(GFX_HEADER) $(UI) $(UI_HEADER) tests/test_ui.c | $(BUILD_DIR)
+	$(CC) $(CPPFLAGS) -Iinclude $(CFLAGS) $(CORE) $(GFX) $(UI) tests/test_ui.c -o $@
+
+$(BUILD_DIR)/rivet-ui-proof: $(CORE) $(HEADER) $(GFX) $(GFX_HEADER) $(UI) $(UI_HEADER) $(HEADLESS_PPM) $(HEADLESS_PPM_HEADER) examples/r3_ui_proof.c | $(BUILD_DIR)
+	$(CC) $(CPPFLAGS) -Iinclude -Iplatform/headless $(CFLAGS) $(CORE) $(GFX) $(UI) $(HEADLESS_PPM) examples/r3_ui_proof.c -o $@
+
 test: check-no-heap $(BUILD_DIR)/test-core
 	./$(BUILD_DIR)/test-core
 
 test-gfx: check-no-heap-gfx $(BUILD_DIR)/test-gfx
 	./$(BUILD_DIR)/test-gfx
+
+test-ui: check-no-heap-ui $(BUILD_DIR)/test-ui
+	./$(BUILD_DIR)/test-ui
 
 check-no-heap:
 	@if grep -En '(malloc|calloc|realloc|free)[[:space:]]*\(' $(CORE) >/dev/null; then \
@@ -45,6 +58,12 @@ check-no-heap:
 check-no-heap-gfx:
 	@if grep -En '(malloc|calloc|realloc|free)[[:space:]]*\(' $(GFX) >/dev/null; then \
 		echo "R2 raster path must not require heap allocation"; \
+		exit 1; \
+	fi
+
+check-no-heap-ui:
+	@if grep -En '(malloc|calloc|realloc|free)[[:space:]]*\(' $(UI) >/dev/null; then \
+		echo "R3 UI path must not require heap allocation"; \
 		exit 1; \
 	fi
 

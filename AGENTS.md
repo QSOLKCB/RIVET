@@ -134,8 +134,8 @@ Published versioned machine contracts and the versioned human authority paths th
 
 R0 remains frozen in immutable `v0.1.0`.
 
-R1 Core v1 is merged and must not be redefined by R2.
+R1 Core v1 and R2 GFX v1 are merged and must not be redefined by R3.
 
-R2 may add only the software-surface machinery described by [GFX-v1.md](GFX-v1.md): caller-owned RGBA8888 surfaces, clipping, fill, mono bitmap/glyph blit, overlap-safe copy, tests/evidence, and the headless PPM evidence adapter.
+R3 may add only the portable input/UI machinery described by [UI-v1.md](UI-v1.md): logical keyboard events, exact command bindings, one lean menu projection, its tiny bitmap alphabet, tests/evidence, and no-heap rendering through GFX v1.
 
-Do not pull R3 keyboard/UI widgets, native window/message integration, image codecs, font engines, alpha compositors, networking, threads, SIMD, dirty-region schedulers, caches, or GPU machinery into R2.
+Do not pull R4 application/file semantics, native keyboard/window backends, pointer input, text editing, font engines, command palettes, generic widget hierarchies, image codecs, networking, threads, SIMD, caches, or GPU machinery into R3.

@@ -18,7 +18,7 @@ a{color:var(--hot)}.muted{color:var(--muted)}footer{margin-top:56px;color:var(--
 <body>
 <main>
 <header>
-<div class="tag">R2 // SOFTWARE SURFACE</div>
+<div class="tag">R3 // INPUT + LEAN UI</div>
 <h1>RIVET</h1>
 <p class="lead"><strong>Resilient Interface, View &amp; Execution Toolkit.</strong> Lean application infrastructure for software that should remain useful after the fashionable stack is gone.</p>
 </header>
@@ -27,20 +27,21 @@ a{color:var(--hot)}.muted{color:var(--muted)}footer{margin-top:56px;color:var(--
 BUTTON              != CAPABILITY
 CONTAINER PASS       != TARGET-OS PASS
 RIVET TARGETS PIXELS != GPUs
-SURFACE MEMORY       != HIDDEN HEAP
+MENU ITEM            != COMMAND
+PRESENTATION REMOVED != CAPABILITY REMOVED
 "LIGHTWEIGHT"        != EVIDENCE</pre>
 <div class="grid">
 <div class="card"><strong>Minimal</strong><br><span class="muted">If equivalent behaviour can be implemented with materially less code and no loss of correctness, safety, readability or portability, the smaller implementation wins.</span></div>
-<div class="card"><strong>Bounded</strong><br><span class="muted">Core and GFX use caller-owned bounded storage. The R2 raster path owns no hidden heap and no GPU resources.</span></div>
+<div class="card"><strong>Bounded</strong><br><span class="muted">Core, GFX and UI use caller-owned bounded state. The R3 menu adds no hidden heap, worker pool or retained scene graph.</span></div>
 <div class="card"><strong>Portable</strong><br><span class="muted">C99 baseline, stable C ABI direction, CPU/software raster rendering, no RIVET GPU API, no mandatory network or threads.</span></div>
 <div class="card"><strong>User-owned</strong><br><span class="muted">Capabilities survive UI fashion. State should remain inspectable. No telemetry or account requirement by default.</span></div>
 </div>
-<h2>The surface</h2>
-<p>R2 adds a deterministic CPU raster surface: RGBA8888 bytes, clipping, fills, 1-bit glyph/bitmap paint and overlap-safe copy. A headless PPM adapter freezes reference evidence without claiming a native window backend.</p>
+<h2>The input model</h2>
+<p>R3 adds logical keyboard events plus two projections of the same commands: exact key bindings and a tiny rendered menu. The proof hides the menu and still invokes the same command through the keyboard map.</p>
 <h2>The proof</h2>
 <p>The long-term demonstration is a lean RIVET Browser spanning modern systems and deliberately constrained historical targets. The browser is downstream of the framework: it must prove the architecture rather than infect it.</p>
 <h2>Start here</h2>
-<p><a href="README.md">README</a> · <a href="GFX-v1.md">GFX v1</a> · <a href="CORE-v1.md">Core v1</a> · <a href="CONSTITUTION-v2.md">Constitution</a> · <a href="ARCHITECTURE-v2.md">Architecture</a> · <a href="PORTABILITY-v2.md">Portability</a> · <a href="RENDERING-v1.md">Rendering</a> · <a href="ROADMAP.md">Roadmap</a> · <a href="RUNTIME-PLAN-v1.md">Runtime plan</a></p>
+<p><a href="README.md">README</a> · <a href="UI-v1.md">UI v1</a> · <a href="GFX-v1.md">GFX v1</a> · <a href="CORE-v1.md">Core v1</a> · <a href="CONSTITUTION-v2.md">Constitution</a> · <a href="ARCHITECTURE-v2.md">Architecture</a> · <a href="PORTABILITY-v2.md">Portability</a> · <a href="RENDERING-v1.md">Rendering</a> · <a href="ROADMAP.md">Roadmap</a> · <a href="RUNTIME-PLAN-v1.md">Runtime plan</a></p>
 <footer>MPL-2.0 · static HTML/CSS · no framework · no analytics · no build step</footer>
 </main>
 </body>

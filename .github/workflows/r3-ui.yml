@@ -1,0 +1,83 @@
+name: R3 UI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  frozen-r2:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Verify R1/R2 contract surfaces are unchanged
+        run: |
+          git diff --exit-code 07ed7b1d37f7e09d40d8bd01c27788e205544dfe -- \
+            CORE-v1.md \
+            GFX-v1.md \
+            machine/core-v1.json \
+            machine/gfx-v1.json \
+            machine/project-v4.json \
+            include/rivet/rivet.h \
+            core/rivet.c \
+            include/rivet/gfx.h \
+            gfx/raster.c
+
+      - name: Validate machine JSON
+        run: |
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+
+          for path in sorted(Path("machine").rglob("*.json")):
+              json.loads(path.read_text(encoding="utf-8"))
+              print(path)
+          PY
+
+  c99:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        cc: [gcc, clang]
+    env:
+      CC: ${{ matrix.cc }}
+      CFLAGS: -std=c99 -O2 -Wall -Wextra -Wpedantic -Werror
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: UI unit tests
+        run: |
+          make clean
+          make test-ui
+          make clean
+          make test-ui CPPFLAGS=-DRIVET_EXTERNAL_CPPFLAGS=1
+
+      - name: Deterministic UI proof
+        run: |
+          make clean
+          make ui CPPFLAGS=-DRIVET_EXTERNAL_CPPFLAGS=1
+          ./build/rivet-ui-proof build/rivet-ui-proof.ppm
+          expected="$(python3 -c 'import json; print(json.load(open("machine/ui-v1.json"))["reference_vector"]["ppm_sha256"])')"
+          echo "$expected  build/rivet-ui-proof.ppm" | sha256sum -c -
+          wc -c build/rivet-ui-proof build/rivet-ui-proof.ppm
+
+  sanitizers:
+    runs-on: ubuntu-latest
+    env:
+      CC: clang
+      CFLAGS: -std=c99 -O1 -g -Wall -Wextra -Wpedantic -Werror -fsanitize=address,undefined -fno-omit-frame-pointer
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Sanitized UI tests
+        run: |
+          make clean
+          make test-ui CPPFLAGS=-DRIVET_SANITIZED=1
+
+      - name: Sanitized UI proof
+        run: |
+          make clean
+          make ui CPPFLAGS=-DRIVET_SANITIZED=1
+          ./build/rivet-ui-proof build/rivet-ui-proof.ppm

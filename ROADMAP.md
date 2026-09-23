@@ -47,7 +47,7 @@ Success criterion: one tiny host program exercises the core with no GUI dependen
 See [CORE-v1.md](CORE-v1.md).
 ## R2 — Software surface
 
-**Current phase.**
+**Complete in PR #4.**
 
 Implemented R2 surface slice:
 
@@ -71,16 +71,27 @@ No GPU API or GPU rendering path. The CPU/software surface is the rendering arch
 See [GFX-v1.md](GFX-v1.md).
 ## R3 — Input + lean UI
 
-Add keyboard-first input and only the widgets required by a demonstration application.
+**Current phase.**
 
-First command projections:
+Implemented R3 slice:
 
-- keyboard binding;
-- menu;
-- simple command palette if it remains smaller than alternative duplicated UI logic.
+- [x] portable logical key events;
+- [x] exact key+modifier command bindings;
+- [x] one caller-owned menu projection;
+- [x] UP/DOWN/ENTER/ESCAPE menu handling;
+- [x] deterministic menu rendering through GFX v1;
+- [x] tiny uppercase 5x7 built-in glyph set;
+- [x] no-heap UI path;
+- [x] executable proof that menu removal does not remove command capability;
+- [x] deterministic pixel FNV + PPM SHA-256 vector;
+- [x] GCC/Clang and ASan/UBSan coverage;
+- [x] regression gate preserving Core v1 and GFX v1.
+
+The roadmap's optional command palette is deliberately deferred. Key bindings and menu items already project the same stable commands without duplicating command semantics; text-search state has not yet earned its machinery.
 
 Success criterion: capability remains addressable even when a presentation element is removed.
 
+See [UI-v1.md](UI-v1.md).
 ## R4 — Non-browser proof application
 
 Build a small useful application that is **not a browser**.
