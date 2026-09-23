@@ -21,7 +21,7 @@ R6 follows the evidence ladder in PORTABILITY-v2.md.
     qemu-user != full-system guest
     full-system emulation != physical hardware
 
-Each receipt records the source revision, CPU, pointer width, byte order, compiler, emulator when applicable, execution class, and the unchanged Platform v1 proof identity.
+Each receipt records the exact checked-out Git HEAD that produced the binary, plus CPU, pointer width, byte order, compiler, emulator when applicable, execution class, and the unchanged Platform v1 proof identity.
 
 The semantic proof remains:
 
@@ -88,7 +88,10 @@ The workflow requires:
 
 - repository secret RIVET_WIN2012R2_VHD_URL;
 - caller-supplied SHA-256 for the downloaded evaluation media;
-- official evaluation media retained outside the repository.
+- official evaluation media retained outside the repository;
+- Ubuntu's explicit rhsrvany Windows first-boot helper package.
+
+Before boot evidence is accepted, libguestfs inspection must identify Windows 6.3 on x86_64 with product variant Server and exact product name Windows Server 2012 R2 Datacenter Evaluation (with only the optional Microsoft prefix accepted).
 
 The harness:
 
