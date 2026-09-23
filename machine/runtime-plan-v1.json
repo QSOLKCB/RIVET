@@ -1,0 +1,60 @@
+{
+  "schema": "rivet.runtime-plan/v1",
+  "version": 1,
+  "status": "planned-not-implemented",
+  "authority": "RUNTIME-PLAN.md",
+  "normative": false,
+  "rules": [
+    "second-implementation-earns-abstraction",
+    "logical-scale-not-resident-scale",
+    "stream-consume-reduce-discard-when-semantically-valid",
+    "explicit-bounded-memory-budget-for-untrusted-growth",
+    "result-identity-separate-from-execution-plan",
+    "benchmark-observations-not-correctness-identity",
+    "reference-path-before-optimized-promotion",
+    "reduce-work-before-accelerating",
+    "reuse-requires-complete-effective-input-identity"
+  ],
+  "deferred_until_evidence": [
+    "generic-cache-framework",
+    "persistent-worker-pool",
+    "simd",
+    "multithreaded-runtime",
+    "host-calibration",
+    "duplicate-work-coalescing"
+  ],
+  "donors": [
+    {
+      "id": "galaxy-v0.6.0",
+      "url": "https://github.com/QSOLKCB/GALAXY/releases/tag/v0.6.0"
+    },
+    {
+      "id": "galaxy-v0.5.0",
+      "url": "https://github.com/QSOLKCB/GALAXY/releases/tag/v0.5.0"
+    },
+    {
+      "id": "galaxy-v0.4.0",
+      "url": "https://github.com/QSOLKCB/GALAXY/releases/tag/v0.4.0"
+    },
+    {
+      "id": "opt-v1.2.0",
+      "url": "https://github.com/QSOLKCB/OPT/releases/tag/v1.2.0"
+    },
+    {
+      "id": "qsol-mesh-pr3",
+      "url": "https://github.com/QSOLKCB/QSOL-MESH/pull/3"
+    },
+    {
+      "id": "igm-execution-campaigns",
+      "url": "https://github.com/QSOLKCB/igm/blob/main/docs/EXECUTION_CAMPAIGNS.md"
+    },
+    {
+      "id": "ternary-drift-design",
+      "url": "https://github.com/QSOLKCB/GAMES/blob/main/TERNARYDRIFT/docs/DESIGN.md"
+    },
+    {
+      "id": "c64-architecture",
+      "url": "https://github.com/QSOLKCB/C64/blob/main/docs/ARCHITECTURE.md"
+    }
+  ]
+}

@@ -162,3 +162,29 @@ Before copying donor code:
 6. preserve notices where required.
 
 Conceptual inspiration alone does not justify source copying.
+
+## Exact donor sources for the runtime plan
+
+The runtime plan borrows mechanisms from the following concrete records. Performance numbers and tuning constants do **not** transfer automatically.
+
+- **GALAXY v0.6.0 — Stream -> Reduce -> Discard:** <https://github.com/QSOLKCB/GALAXY/releases/tag/v0.6.0> — transient-state elimination, bounded microtiles, retained negative optimization evidence.
+- **GALAXY v0.5.0:** <https://github.com/QSOLKCB/GALAXY/releases/tag/v0.5.0> — canonical reference path, bounded worker-local state, guarded/measured CPU-path promotion.
+- **GALAXY v0.4.0:** <https://github.com/QSOLKCB/GALAXY/releases/tag/v0.4.0> — logical scale separated from resident scale; topology/evidence accounting.
+- **OPT v1.0.0:** <https://github.com/QSOLKCB/OPT/releases/tag/v1.0.0> — correctness-preserving optimization, bounded parallelism, reference equivalence.
+- **OPT v1.1.0:** <https://github.com/QSOLKCB/OPT/releases/tag/v1.1.0> — explicit equivalence witnesses for reuse/parallelism.
+- **OPT v1.2.0:** <https://github.com/QSOLKCB/OPT/releases/tag/v1.2.0> — incremental execution, coalescing, shared materialization, early working-set reduction and measured CPU optimization patterns.
+- **OPT-INC-001:** <https://github.com/QSOLKCB/OPT/blob/main/optimizations/OPT-INC-001-signature-bound-incremental-execution.md> — complete effective-input identity before reuse.
+- **OPT-COAL-001:** <https://github.com/QSOLKCB/OPT/blob/main/optimizations/OPT-COAL-001-concurrent-duplicate-work-coalescing.md> — duplicate-work sharing only when caller semantics survive.
+- **OPT-FAN-001:** <https://github.com/QSOLKCB/OPT/blob/main/optimizations/OPT-FAN-001-shared-materialization-fanout.md> — validate and consume the same immutable/versioned artifact.
+- **OPT-REDUCE-001:** <https://github.com/QSOLKCB/OPT/blob/main/optimizations/OPT-REDUCE-001-early-working-set-reduction.md> — move/reduce work only under semantic equivalence.
+- **QSOL-MESH PR #3:** <https://github.com/QSOLKCB/QSOL-MESH/pull/3> — explicit algorithms over infrastructure; no executor hierarchy before a second executor earns it.
+- **IGM execution campaigns:** <https://github.com/QSOLKCB/igm/blob/main/docs/EXECUTION_CAMPAIGNS.md> and <https://github.com/QSOLKCB/igm/tree/main/runtime> — explicit memory budgets, deterministic chunking, correctness identity independent of workers/chunks/budgets.
+- **Ternary Drift design:** <https://github.com/QSOLKCB/GAMES/blob/main/TERNARYDRIFT/docs/DESIGN.md> — platform-neutral C99 semantics with a thin Win32 boundary.
+- **C64 architecture:** <https://github.com/QSOLKCB/C64/blob/main/docs/ARCHITECTURE.md> — simple experience layer over mature machinery; advanced capability remains reachable.
+- **GLUBALL v1.0.0:** <https://github.com/QSOLKCB/GLUBALL/releases/tag/v1.0.0> — frozen contract identity, sealed vectors and compact receipts.
+- **QEC v170.2.0 / v170.2.1:** <https://github.com/QSOLKCB/QEC/releases/tag/v170.2.0> and <https://github.com/QSOLKCB/QEC/releases/tag/v170.2.1> — source+capability identity, immutable validated bytes, layered evidence without rewriting older identities.
+- **QSOL-CONTEXT:** <https://github.com/QSOLKCB/QSOL-CONTEXT> — selective loading rather than all-state residency.
+- **QSOL-FLOW:** <https://github.com/QSOLKCB/QSOL-FLOW> — smallest complete representation sufficient for the current task; conceptual donor only.
+- **QNTOY v1.0.0:** <https://github.com/QSOLKCB/QNTOY/releases/tag/v1.0.0> — low-RAM/offline precedent.
+
+See [RUNTIME-PLAN.md](RUNTIME-PLAN.md) for when each mechanism is allowed to enter RIVET.

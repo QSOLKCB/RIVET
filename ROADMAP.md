@@ -17,6 +17,15 @@ No application/runtime implementation belongs in R0.
 
 ## R1 — Portable core
 
+R1 follows [RUNTIME-PLAN.md](RUNTIME-PLAN.md):
+
+- the second implementation earns the abstraction;
+- no heap proportional to a logical domain when bounded/procedural execution suffices;
+- explicit memory budgets where resident state can grow with external input;
+- result identity remains separate from workers/chunks/budgets;
+- benchmark observations do not enter correctness identity;
+- reuse/cache requires complete effective-input binding.
+
 Implement the smallest useful C99 core:
 
 - byte/string helpers only where needed;
@@ -138,6 +147,9 @@ The relay may provide modern TLS/HTTP/content-encoding transport.
 It must not become a remote pixel renderer for profiles claiming local parsing/layout/rendering.
 
 ## R11 — Work elimination and CPU optimisation
+
+R11 may draw from the measured mechanisms catalogued in [RUNTIME-PLAN.md](RUNTIME-PLAN.md) and [DONORS.md](DONORS.md), but none are promoted merely because they worked in a donor project.
+
 
 Only after stable reference semantics and measurement:
 

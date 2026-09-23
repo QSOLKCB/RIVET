@@ -1,6 +1,6 @@
 # RIVET Agent and Contributor Contract
 
-Read [CONSTITUTION.md](CONSTITUTION.md) before changing architecture.
+Read [CONSTITUTION-v2.md](CONSTITUTION-v2.md) before changing architecture. `CONSTITUTION.md` is the frozen v1 authority and must not be rewritten.
 
 ## Prime directive
 
@@ -37,6 +37,10 @@ The optional-adapter allowance above does **not** create an exception to this ru
 A specialised application may use external GPU code outside the RIVET rendering contract, but that code is not a RIVET capability or rendering adapter and must not be promoted into framework authority.
 
 Host OS/window-system compositing of a completed RIVET pixel surface remains outside the RIVET contract.
+
+## Runtime planning rule
+
+Before implementing runtime/memory infrastructure, read [RUNTIME-PLAN.md](RUNTIME-PLAN.md). It is a plan, not permission to pre-build abstractions. The second concrete implementation earns an abstraction.
 
 ## Before adding code
 

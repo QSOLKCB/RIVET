@@ -24,7 +24,7 @@
     "host_compositor_acceleration": "outside-rivet-contract"
   },
   "normative_human_sources": [
-    "CONSTITUTION.md",
+    "CONSTITUTION-v2.md",
     "ARCHITECTURE.md",
     "PORTABILITY.md",
     "RENDERING.md"
@@ -40,5 +40,13 @@
     "machine/capabilities-v1.json",
     "machine/project-v1.json"
   ],
-  "r0_implementation_allowed": false
+  "r0_implementation_allowed": false,
+  "historical_human_contracts": [
+    "CONSTITUTION.md"
+  ],
+  "planning_sources": [
+    "RUNTIME-PLAN.md",
+    "DONORS.md",
+    "machine/runtime-plan-v1.json"
+  ]
 }

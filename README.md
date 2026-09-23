@@ -52,7 +52,7 @@ Smaller includes fewer lines where clarity is preserved, fewer dependencies, few
 
 This is not code golf. A shorter implementation that is harder to verify, less portable, less safe, or less readable is not an improvement.
 
-See [CONSTITUTION.md](CONSTITUTION.md).
+See [CONSTITUTION-v2.md](CONSTITUTION-v2.md).
 
 ## Architectural thesis
 
@@ -117,11 +117,13 @@ The GitHub Pages site is intentionally static HTML/CSS with no framework, analyt
 
 ## Repository guide
 
-- [CONSTITUTION.md](CONSTITUTION.md) — non-negotiable project invariants.
+- [CONSTITUTION-v2.md](CONSTITUTION-v2.md) — current non-negotiable project invariants.
+- [CONSTITUTION.md](CONSTITUTION.md) — frozen v1 authority retained for compatibility.
 - [ARCHITECTURE.md](ARCHITECTURE.md) — layer and authority model.
 - [PORTABILITY.md](PORTABILITY.md) — MES, target identity, containers, emulation, and evidence.
 - [RENDERING.md](RENDERING.md) — CPU/software rendering contract and GPU exclusion boundary.
 - [ROADMAP.md](ROADMAP.md) — staged implementation plan.
+- [RUNTIME-PLAN.md](RUNTIME-PLAN.md) — donor-derived runtime and memory plan for R1+.
 - [DONORS.md](DONORS.md) — bounded lessons from existing QSOL projects.
 - [AGENTS.md](AGENTS.md) — rules for coding agents and contributors.
 - [machine/project-v2.json](machine/project-v2.json) — current compact machine entrypoint; merged v1 contracts remain preserved for compatibility.

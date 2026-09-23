@@ -155,6 +155,30 @@ Minimum event classes: startup/shutdown, keyboard, pointer when provided, resize
 
 Concurrency may improve throughput but may not be required merely to open a window and respond to input.
 
+## Runtime and memory doctrine
+
+RIVET separates **result identity** from **execution-plan identity**.
+
+Where declared semantics are invariant, correctness must not change merely because a target uses a different worker count, chunk size, memory budget, cache shape, or optional CPU optimization.
+
+```text
+RESULT IDENTITY != EXECUTION PLAN IDENTITY
+BENCHMARK OBSERVATION != CORRECTNESS IDENTITY
+```
+
+Runtime work should prefer:
+
+- explicit resident-memory budgets rather than allocate-until-failure behaviour;
+- deterministic bounded chunking when work exceeds the resident budget;
+- procedural regeneration instead of retaining reconstructible state;
+- stream -> consume/reduce -> discard for transient representations;
+- reference-path parity before optimized-path promotion;
+- reusable state only when bound to complete effective-input identity.
+
+The runtime does **not** pre-create scheduler, executor, cache, plugin, or backend hierarchies for hypothetical future use. A second real implementation must create the need before a general abstraction is introduced.
+
+Exact donor sources and adoption boundaries are recorded in [RUNTIME-PLAN.md](RUNTIME-PLAN.md) and [DONORS.md](DONORS.md).
+
 ## Storage
 
 RIVET favours explicit, versioned, inspectable state.

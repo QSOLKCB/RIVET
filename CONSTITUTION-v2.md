@@ -1,8 +1,8 @@
-# RIVET Constitution
+# RIVET Constitution v2
 
 RIVET is allowed to evolve. These invariants exist to stop evolution from quietly turning it into the class of software it was created to avoid.
 
-Machine-readable counterparts live in `machine/invariants.json`.
+The machine-readable counterpart is `machine/invariants-v2.json`. The frozen v1 authority remains at `CONSTITUTION.md` because `rivet.invariants/v1` names that path.
 
 ## RIVET-INV-001 — Minimal sufficient implementation
 
@@ -16,7 +16,9 @@ This is **not code golf**. A shorter implementation that obscures correctness, w
 
 ## RIVET-INV-002 — Meaning is independent of machinery
 
-Application semantics may not depend on a particular renderer, widget set, GPU, thread model, CPU family, browser engine, or operating system unless the application explicitly declares that dependency as a capability requirement.
+Application semantics may not depend on a particular renderer, widget set, thread model, CPU family, browser engine, or operating system unless the application explicitly declares that dependency as a capability requirement.
+
+GPU rendering is not an optional RIVET capability. It is excluded separately by RIVET-INV-019.
 
 ```text
 APPLICATION MEANING != EXECUTION MACHINERY
@@ -45,13 +47,17 @@ No requested backend may silently fall back to a different semantic path.
 
 RIVET keeps a simple, inspectable reference implementation wherever practical.
 
-Software rasterisation is the normative graphics baseline. SIMD, GPU, native compositor, multithreaded, or other accelerated paths are optional until they pass conformance against declared reference semantics.
+Software rasterisation is the normative and canonical graphics architecture.
 
-Optimisation may change machinery. It may not redefine meaning.
+RIVET does not implement or target GPU rendering APIs. A host operating system or window system may internally accelerate final presentation of a completed RIVET pixel surface, but that mechanism is below the RIVET contract and may not redefine pixels or application semantics.
+
+Optional CPU-side optimisations such as SIMD or bounded multithreading require conformance against declared reference semantics.
+
+Optimisation may change CPU machinery. It may not redefine meaning.
 
 ## RIVET-INV-006 — No mandatory heavyweight runtime
 
-The RIVET core must not require Chromium, Gecko, WebKit, Electron, an OS WebView, Node.js, React, a GPU, a network connection, a package manager, or a cloud service.
+The RIVET core must not require Chromium, Gecko, WebKit, Electron, an OS WebView, Node.js, React, a network connection, a package manager, a cloud service, or any GPU API.
 
 Applications may explicitly depend on optional capabilities. The core may not.
 
@@ -67,7 +73,7 @@ Language bindings are welcome. No higher-level language runtime becomes semantic
 
 The baseline event/runtime model must remain usable without mandatory threading.
 
-Threads, worker pools, SIMD and GPU work are optimisations or explicit capabilities.
+Threads, worker pools, and SIMD are optional CPU-side optimisations or explicit capabilities. GPU execution is outside the RIVET architecture.
 
 ## RIVET-INV-009 — Local software does not worship the network
 
@@ -136,6 +142,41 @@ Provenance, licence, semantic boundary, and conformance remain explicit.
 Do not remove working capabilities merely because they are unfashionable.
 
 Deprecation requires a documented reason, compatibility consequence, and migration path where practical.
+
+## RIVET-INV-019 — RIVET targets pixels, not GPUs
+
+RIVET's rendering contract ends at a CPU-produced software pixel surface.
+
+RIVET does not target OpenGL, Vulkan, Direct3D, Metal, WebGL, WebGPU, CUDA, GPU compute, shader languages, or equivalent GPU APIs as required **or optional** framework rendering machinery.
+
+A host OS, window server, driver, emulator, or compositor may internally use a GPU when presenting the completed surface. That is outside RIVET's authority and does not create a GPU dependency.
+
+A specialised application may use external GPU code outside the RIVET rendering contract, but such a path is not a RIVET capability and must not become required by the core, UI, document engine, or RIVET Browser.
+
+```text
+RIVET TARGETS PIXELS != RIVET TARGETS GPU
+GPU PRESENT          != GPU REQUIRED
+HOST COMPOSITING     != RIVET RENDERING
+```
+
+## RIVET-INV-020 — Reduce work before accelerating it
+
+Before adding parallelism, SIMD, caching, specialised CPU paths, or other acceleration, first determine whether the work can be eliminated, bounded, deferred, reused, invalidated more precisely, or represented more compactly.
+
+Examples include dirty-region painting instead of full repaint, incremental layout instead of complete relayout, bounded image decode, glyph reuse, compact display data, and avoiding work when state has not changed.
+
+The preferred optimisation order is:
+
+```text
+DO LESS
+  -> STORE LESS
+  -> MOVE LESS
+  -> REUSE SAFE RESULTS
+  -> MEASURE
+  -> THEN ACCELERATE THE REMAINDER IF JUSTIFIED
+```
+
+Hardware power is not permission to waste work.
 
 ## Constitutional change rule
 
