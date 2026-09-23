@@ -28,7 +28,7 @@ $lines = @(
     "@echo off",
     ('call "' + $devcmd + '" -no_logo -arch=' + $Arch + ' -host_arch=x64'),
     "if errorlevel 1 exit /b %errorlevel%",
-    "cl /nologo /W4 /WX /TC /std:c11 /Iinclude core\rivet.c platform\platform.c tests\test_platform.c /Fe:build\test-platform-win32.exe",
+    "cl /nologo /W4 /WX /TC /std:c11 /DRIVET_PLATFORM_TESTING /Iinclude core\rivet.c platform\platform.c platform\win32\platform_win32.c tests\test_platform.c /Fe:build\test-platform-win32.exe",
     "if errorlevel 1 exit /b %errorlevel%",
     "cl /nologo /W4 /WX /TC /std:c11 /Iinclude core\rivet.c platform\platform.c platform\win32\platform_win32.c examples\r5_platform_proof.c /Fe:build\rivet-platform-win32.exe",
     "if errorlevel 1 exit /b %errorlevel%"
