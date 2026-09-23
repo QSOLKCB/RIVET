@@ -22,7 +22,6 @@ jobs:
     timeout-minutes: 120
     env:
       RIVET_WIN2012R2_VHD_URL: ${{ secrets.RIVET_WIN2012R2_VHD_URL }}
-      SOURCE_REVISION: ${{ github.sha }}
     steps:
       - uses: actions/checkout@v4
 
@@ -40,6 +39,7 @@ jobs:
             curl \
             file \
             libguestfs-tools \
+            rhsrvany \
             mingw-w64 \
             qemu-system-x86 \
             qemu-utils \
@@ -82,11 +82,12 @@ jobs:
         run: |
           compiler="$(x86_64-w64-mingw32-gcc --version | head -n1)"
           emulator="$(qemu-system-x86_64 --version | head -n1)"
+          source_revision="$(git rev-parse HEAD)"
 
           python3 scripts/r6_receipt.py \
             --proof-output build/r6-windows2012r2/receipt.txt \
             --output build/r6-windows2012r2/receipt.json \
-            --source-revision "$SOURCE_REVISION" \
+            --source-revision "$source_revision" \
             --target-profile windows-server-2012-r2-datacenter-evaluation-x64 \
             --evidence-class E3 \
             --cpu x86_64 \
