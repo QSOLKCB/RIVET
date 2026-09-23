@@ -132,6 +132,34 @@ static int test_search(void)
     return 0;
 }
 
+
+static int test_single_byte_search_wrap(void)
+{
+    static const unsigned char bytes[] = {0x58u};
+    static const unsigned char query[] = {0x58u};
+    rivet_textview viewer;
+    size_t offsets[1];
+
+    CHECK(rivet_textview_open(
+        &viewer,
+        bytes,
+        sizeof(bytes),
+        offsets,
+        1u) == RIVET_OK);
+    CHECK(rivet_textview_find_next(
+        &viewer,
+        query,
+        sizeof(query)) == RIVET_OK);
+    CHECK(viewer.match_offset == 0u);
+    CHECK(rivet_textview_find_next(
+        &viewer,
+        query,
+        sizeof(query)) == RIVET_ERR_NOT_FOUND);
+    CHECK(viewer.has_match == 1);
+    CHECK(viewer.match_offset == 0u);
+    return 0;
+}
+
 static int test_render(void)
 {
     unsigned char pixels[96u * 32u * 4u];
@@ -225,6 +253,7 @@ int main(void)
     CHECK(test_open_and_index() == 0);
     CHECK(test_navigation() == 0);
     CHECK(test_search() == 0);
+    CHECK(test_single_byte_search_wrap() == 0);
     CHECK(test_render() == 0);
     CHECK(test_trailing_newline_render() == 0);
 
