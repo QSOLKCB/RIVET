@@ -68,3 +68,22 @@ jobs:
           make CPPFLAGS=-DRIVET_EXTERNAL_CPPFLAGS=1
           ./build/rivet-headless
           wc -c build/rivet-headless
+
+  sanitizers:
+    runs-on: ubuntu-latest
+    env:
+      CC: clang
+      CFLAGS: -std=c99 -O1 -g -Wall -Wextra -Wpedantic -Werror -fsanitize=address,undefined -fno-omit-frame-pointer
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Sanitized unit tests
+        run: |
+          make clean
+          make test CPPFLAGS=-DRIVET_SANITIZED=1
+
+      - name: Sanitized headless proof
+        run: |
+          make clean
+          make CPPFLAGS=-DRIVET_SANITIZED=1
+          ./build/rivet-headless

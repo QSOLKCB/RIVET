@@ -233,15 +233,17 @@ rivet_result rivet_loop_step(
 {
     rivet_event event;
 
-    if (!rivet_loop_valid(loop) || did_work == NULL) {
+    if (!rivet_loop_valid(loop) || did_work == NULL ||
+        did_work == &loop->stopped) {
         return RIVET_ERR_INVALID_ARGUMENT;
     }
 
-    *did_work = 0;
-
     if (loop->stopped) {
+        *did_work = 0;
         return RIVET_ERR_STOPPED;
     }
+
+    *did_work = 0;
     if (loop->count == 0u) {
         return RIVET_OK;
     }

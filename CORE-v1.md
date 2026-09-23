@@ -98,6 +98,7 @@ It:
 - performs no hidden allocation;
 - processes at most one queued event per `rivet_loop_step()`;
 - reports an empty queue through `RIVET_OK` with `did_work = 0`;
+- rejects a `did_work` output pointer that aliases `loop->stopped`, so reporting work cannot mutate the stop state;
 - rejects a malformed queued null callback without consuming it;
 - consumes a valid event before invoking its callback;
 - propagates the callback result;

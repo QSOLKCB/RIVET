@@ -160,7 +160,10 @@ static int test_loop_fifo(void)
     CHECK(rivet_loop_step(&loop, &did_work) == RIVET_ERR_INVALID_ARGUMENT);
     CHECK(loop.count == 1u);
     loop.events[loop.head].fn = record_value;
+    count = 0u;
     CHECK(rivet_loop_step(&loop, &did_work) == RIVET_OK && did_work == 1);
+    CHECK(count == 1u);
+    CHECK(output[0] == 1);
 
     loop.head = loop.capacity;
     CHECK(rivet_loop_step(&loop, &did_work) == RIVET_ERR_INVALID_ARGUMENT);
@@ -178,10 +181,16 @@ static int test_loop_failure_and_stop(void)
     CHECK(rivet_loop_step(&loop, &did_work) == RIVET_ERR_UNSUPPORTED);
     CHECK(did_work == 1);
 
+    CHECK(rivet_loop_post(&loop, return_unsupported, NULL) == RIVET_OK);
+    CHECK(loop.count == 1u);
     CHECK(rivet_loop_stop(&loop) == RIVET_OK);
     CHECK(rivet_loop_post(&loop, return_unsupported, NULL) == RIVET_ERR_STOPPED);
+    CHECK(rivet_loop_step(&loop, &loop.stopped) == RIVET_ERR_INVALID_ARGUMENT);
+    CHECK(loop.stopped == 1);
+    CHECK(loop.count == 1u);
     CHECK(rivet_loop_step(&loop, &did_work) == RIVET_ERR_STOPPED);
     CHECK(did_work == 0);
+    CHECK(loop.count == 1u);
     return 0;
 }
 

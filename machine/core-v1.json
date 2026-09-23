@@ -66,5 +66,6 @@
     "invalid_input_preserves_output": true
   },
   "command_registry_fail_closed_on_malformed_active_slots": true,
-  "event_loop_fail_closed_on_null_queued_callback": true
+  "event_loop_fail_closed_on_null_queued_callback": true,
+  "event_loop_rejects_did_work_alias_to_stopped": true
 }
