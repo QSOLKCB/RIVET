@@ -1,0 +1,126 @@
+name: R5 Platform Split
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  frozen-r4:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Verify R1-R4 contract surfaces are unchanged
+        run: |
+          git diff --exit-code e9dcaf87cb241fe59f0fa388c10ce93a78007a22 -- \
+            CORE-v1.md \
+            GFX-v1.md \
+            UI-v1.md \
+            TEXTVIEW-v1.md \
+            machine/core-v1.json \
+            machine/gfx-v1.json \
+            machine/ui-v1.json \
+            machine/textview-v1.json \
+            machine/project-v6.json \
+            include/rivet/rivet.h \
+            core/rivet.c \
+            include/rivet/gfx.h \
+            gfx/raster.c \
+            include/rivet/ui.h \
+            ui/ui.c \
+            apps/textview/textview.h \
+            apps/textview/textview.c
+
+      - name: Validate machine JSON
+        run: |
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+
+          for path in sorted(Path("machine").rglob("*.json")):
+              json.loads(path.read_text(encoding="utf-8"))
+              print(path)
+          PY
+
+  posix-native:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        cc: [gcc, clang]
+    env:
+      CC: ${{ matrix.cc }}
+      CFLAGS: -std=c99 -O2 -Wall -Wextra -Wpedantic -Werror
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Platform contract tests
+        run: |
+          make clean
+          make test-platform
+
+      - name: Native POSIX proof
+        run: |
+          make clean
+          make platform-posix
+          output="$(./build/rivet-platform-posix fixtures/r4_textview.txt)"
+          echo "$output"
+          bits="$(getconf LONG_BIT)"
+          echo "$output" | grep -F "backend=posix-v1"
+          echo "$output" | grep -F "os=POSIX"
+          echo "$output" | grep -F "pointer_bits=$bits"
+          echo "$output" | grep -F "bytes=237"
+          echo "$output" | grep -F "fnv1a64=36aaff7f4aaa99ab"
+          echo "$output" | grep -F "monotonic=nondecreasing"
+
+  posix-container:
+    strategy:
+      matrix:
+        image: [gcc:13-bookworm, gcc:14-bookworm]
+    runs-on: ubuntu-latest
+    container:
+      image: ${{ matrix.image }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: E1 container toolchain proof
+        run: |
+          gcc --version
+          make clean
+          make test-platform CC=gcc CFLAGS="-std=c99 -O2 -Wall -Wextra -Wpedantic -Werror"
+          make clean
+          make platform-posix CC=gcc CFLAGS="-std=c99 -O2 -Wall -Wextra -Wpedantic -Werror"
+          ./build/rivet-platform-posix fixtures/r4_textview.txt
+
+  win32-native:
+    runs-on: windows-latest
+    strategy:
+      matrix:
+        arch: [x64, x86]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build native Win32 backend
+        shell: pwsh
+        run: ./scripts/r5_win32_build.ps1 -Arch ${{ matrix.arch }}
+
+      - name: Execute contract tests
+        shell: pwsh
+        run: |
+          & .\build\test-platform-win32.exe
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+      - name: Execute Win32 platform proof
+        shell: pwsh
+        run: |
+          $output = & .\build\rivet-platform-win32.exe "fixtures\r4_textview.txt"
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          $output
+          if ($output -notmatch "backend=win32-v1") { throw "wrong backend identity" }
+          if ($output -notmatch "os=Win32") { throw "wrong OS/API identity" }
+          $expectedBits = if ("${{ matrix.arch }}" -eq "x86") { "32" } else { "64" }
+          if ($output -notmatch "pointer_bits=$expectedBits") { throw "wrong pointer width" }
+          if ($output -notmatch "bytes=237") { throw "wrong fixture byte count" }
+          if ($output -notmatch "fnv1a64=36aaff7f4aaa99ab") { throw "wrong fixture identity" }
+          if ($output -notmatch "monotonic=nondecreasing") { throw "clock proof failed" }

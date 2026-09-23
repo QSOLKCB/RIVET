@@ -134,8 +134,8 @@ Published versioned machine contracts and the versioned human authority paths th
 
 R0 remains frozen in immutable `v0.1.0`.
 
-R1 Core v1, R2 GFX v1 and R3 UI v1 are merged and must not be redefined by R4.
+R1 Core v1, R2 GFX v1, R3 UI v1 and the R4 Text Viewer v1 proof are merged and must not be redefined by R5.
 
-R4 may add only the application-specific proof machinery described by [TEXTVIEW-v1.md](TEXTVIEW-v1.md): bounded caller-owned text bytes/indexing, exact search/navigation, application-local glyph rendering, key-bound commands, deterministic evidence, and a bounded headless file reader used only by the proof.
+R5 may add only the platform split described by [PLATFORM-v1.md](PLATFORM-v1.md): one shared ABI earned by POSIX and Win32 implementations for bounded `filesystem.read` and `timer.monotonic`, plus target-specific evidence.
 
-Do not promote R4 text restrictions, glyphs, search logic, or stdio file loading into generic RIVET framework authority. Do not pull R5 native platform backends or R7 document/encoding/HTML machinery forward.
+Do not pull windowing, native input, filesystem write, networking, audio, threads, GPU APIs, dynamic backend loading, or general path-encoding machinery into R5.

@@ -12,34 +12,25 @@ The eventual RIVET Browser is a proof application, not the definition of the fra
 
 ## Status
 
-**R4 — non-browser proof application.**
+**R5 — platform split.**
 
-R3 is merged at `1ecdaad1cac1532124dae906d43070a6c7059806`. R4 adds a bounded read-only text viewer under `apps/textview/` without changing Core v1, GFX v1, or UI v1.
+R4 is merged at `e9dcaf87cb241fe59f0fa388c10ce93a78007a22`. R5 introduces the first earned shared platform ABI over two real implementations: POSIX and Win32.
 
-The viewer opens caller-owned bytes into a caller-owned line index, supports exact search plus line/page navigation, renders through GFX v1, and projects navigation/search commands through UI v1 key bindings.
+Platform v1 exposes only `filesystem.read` and `timer.monotonic`. POSIX uses `open/read/clock_gettime`; Win32 uses `CreateFileA/ReadFile/QueryPerformanceCounter`.
 
-## R4 quick proof
+## R5 quick proof
 
 ```sh
-make test-textview
-make textview
-./build/rivet-textview-proof fixtures/r4_textview.txt build/rivet-textview-proof.ppm
+make test-platform
+make platform-posix
+./build/rivet-platform-posix fixtures/r4_textview.txt
 ```
 
-Frozen evidence:
+Both native backends must read the same frozen 237-byte fixture with FNV-1a64 `36aaff7f4aaa99ab` and prove a nondecreasing monotonic clock.
 
-```text
-fixture bytes  237
-lines          9
-search         PIXELS
-top / match    4 / 120
-FNV-1a64       c64fb52b456cde58
-PPM SHA-256    89a92f0fdfb2966a06b91ab50c3d2c905cf4eb340782d2df001dfe6cb369b95a
-```
+R5 CI also executes a native Win32 x64 proof, a Win32 x86 process with `pointer_bits=32`, and GCC 13/14 container proofs.
 
-The headless file reader is proof/application infrastructure only; it is not a RIVET filesystem or native platform backend.
-
-See [TEXTVIEW-v1.md](TEXTVIEW-v1.md).
+See [PLATFORM-v1.md](PLATFORM-v1.md).
 ## Mission
 
 RIVET exists to make it practical to build software that is:
@@ -139,7 +130,8 @@ The GitHub Pages site is intentionally static HTML/CSS with no framework, analyt
 
 ## Repository guide
 
-- [TEXTVIEW-v1.md](TEXTVIEW-v1.md) — R4 bounded non-browser text-viewer proof contract.
+- [PLATFORM-v1.md](PLATFORM-v1.md) — R5 POSIX/Win32 platform ABI and evidence contract.
+- [TEXTVIEW-v1.md](TEXTVIEW-v1.md) — frozen R4 bounded non-browser text-viewer proof contract.
 - [UI-v1.md](UI-v1.md) — frozen R3 logical keyboard, command projection, and lean-menu contract.
 - [GFX-v1.md](GFX-v1.md) — frozen R2 software-surface ABI and deterministic raster contract.
 - [CORE-v1.md](CORE-v1.md) — frozen R1 core/ABI contract.
@@ -154,7 +146,8 @@ The GitHub Pages site is intentionally static HTML/CSS with no framework, analyt
 - [RUNTIME-PLAN-v1.md](RUNTIME-PLAN-v1.md) — donor-derived runtime and memory plan for R1+.
 - [DONORS-v1.md](DONORS-v1.md) — frozen donor/provenance map for runtime-plan v1.
 - [AGENTS.md](AGENTS.md) — rules for coding agents and contributors.
-- [machine/project-v6.json](machine/project-v6.json) — current machine entrypoint for R4.
+- [machine/project-v7.json](machine/project-v7.json) — current machine entrypoint for R5.
+- [machine/project-v6.json](machine/project-v6.json) — frozen R4 project contract.
 - [machine/project-v5.json](machine/project-v5.json) — frozen R3 project contract.
 - [machine/project-v4.json](machine/project-v4.json) — frozen R2 project contract.
 - [machine/project-v3.json](machine/project-v3.json) — frozen R1 project contract.
