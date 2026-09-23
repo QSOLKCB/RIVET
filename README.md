@@ -12,28 +12,32 @@ The eventual RIVET Browser is a proof application, not the definition of the fra
 
 ## Status
 
-**R1 — portable core.**
+**R2 — software surface.**
 
-The immutable `v0.1.0` release freezes R0. R1 adds the first executable C99 substrate: an explicit result model, exact capability membership query, fixed-capacity command registry, and single-threaded FIFO event loop.
+R1 is merged at `344fe946ca2cc95f480e5f97c617acdde67e7214`. R2 adds the first CPU raster contract without changing Core v1.
 
-Core v1 requires **no heap allocation**. Registry and queue storage are supplied by the caller with explicit capacities.
+GFX v1 provides caller-owned RGBA8888 byte surfaces, clipping, replace-only fills, 1-bit bitmap/glyph blits, and overlap-safe in-place copy/scroll.
 
-No GUI, renderer, platform backend, network stack, worker pool, scheduler, scripting engine, SIMD path, or GPU API is part of R1.
+The raster path requires **no heap allocation** and contains no GPU API, alpha compositor, font engine, image decoder, native window, or UI layer.
 
-## R1 quick proof
+## R2 quick proof
 
 ```sh
-make test
-make
-./build/rivet-headless
+make test-gfx
+make gfx
+./build/rivet-gfx-proof build/rivet-gfx-proof.ppm
 ```
 
-The proof host exercises the public core with no GUI dependency.
+The deterministic proof must produce:
 
-The implementation deliberately uses caller-owned bounded storage instead of inventing a generic allocator abstraction before a second allocation policy exists.
+```text
+FNV-1a64    1c0020d75a3b782d
+PPM SHA-256 e525783bbdaaddd3cc193a855cd62b9a259d9074dc32125b79241dab3ed1d7cc
+```
 
-See [CORE-v1.md](CORE-v1.md).
+The PPM writer is a headless evidence adapter only; it does not claim a native window/platform backend.
 
+See [GFX-v1.md](GFX-v1.md).
 ## Mission
 
 RIVET exists to make it practical to build software that is:
@@ -133,7 +137,8 @@ The GitHub Pages site is intentionally static HTML/CSS with no framework, analyt
 
 ## Repository guide
 
-- [CORE-v1.md](CORE-v1.md) — executable R1 core/ABI contract.
+- [GFX-v1.md](GFX-v1.md) — R2 software-surface ABI and deterministic raster contract.
+- [CORE-v1.md](CORE-v1.md) — frozen R1 core/ABI contract.
 - [CONSTITUTION-v2.md](CONSTITUTION-v2.md) — current non-negotiable project invariants.
 - [CONSTITUTION.md](CONSTITUTION.md) — frozen v1 authority retained for compatibility.
 - [ARCHITECTURE-v2.md](ARCHITECTURE-v2.md) — current layer, runtime, rendering, and authority model.
@@ -145,7 +150,8 @@ The GitHub Pages site is intentionally static HTML/CSS with no framework, analyt
 - [RUNTIME-PLAN-v1.md](RUNTIME-PLAN-v1.md) — donor-derived runtime and memory plan for R1+.
 - [DONORS-v1.md](DONORS-v1.md) — frozen donor/provenance map for runtime-plan v1.
 - [AGENTS.md](AGENTS.md) — rules for coding agents and contributors.
-- [machine/project-v3.json](machine/project-v3.json) — current machine entrypoint for R1.
+- [machine/project-v4.json](machine/project-v4.json) — current machine entrypoint for R2.
+- [machine/project-v3.json](machine/project-v3.json) — frozen R1 project contract.
 - [machine/project-v2.json](machine/project-v2.json) — frozen R0 project contract.
 - [machine/](machine/) — versioned machine-readable project contracts.
 

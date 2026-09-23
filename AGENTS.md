@@ -132,8 +132,10 @@ Published versioned machine contracts and the versioned human authority paths th
 
 ## Phase boundary
 
-R0 is frozen in immutable `v0.1.0`.
+R0 remains frozen in immutable `v0.1.0`.
 
-R1 may add only the portable-core surface described by [CORE-v1.md](CORE-v1.md): result semantics, exact capability membership, bounded command registration/dispatch, and a single-threaded bounded event loop.
+R1 Core v1 is merged and must not be redefined by R2.
 
-Do not pull R2 rendering primitives, platform window/message integration, networking, threads, SIMD, caches, schedulers, or other later-phase machinery into R1.
+R2 may add only the software-surface machinery described by [GFX-v1.md](GFX-v1.md): caller-owned RGBA8888 surfaces, clipping, fill, mono bitmap/glyph blit, overlap-safe copy, tests/evidence, and the headless PPM evidence adapter.
+
+Do not pull R3 keyboard/UI widgets, native window/message integration, image codecs, font engines, alpha compositors, networking, threads, SIMD, dirty-region schedulers, caches, or GPU machinery into R2.
