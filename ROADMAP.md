@@ -119,7 +119,7 @@ This proves RIVET can host a useful application that is not a browser while keep
 See [TEXTVIEW-v1.md](TEXTVIEW-v1.md).
 ## R5 — Platform split
 
-**Current phase.**
+**Complete in PR #7.**
 
 Implemented R5 platform slice:
 
@@ -144,14 +144,27 @@ Platform v1 intentionally does not add windows, native input, filesystem write, 
 See [PLATFORM-v1.md](PLATFORM-v1.md).
 ## R6 — Historical stress gate
 
-Add reproducible constrained execution:
+**Current phase.**
 
-- 32-bit x86;
-- one full-system historical Windows target;
-- one big-endian target through emulation.
+Implemented R6 stress-gate machinery:
 
-The exact historical target is chosen based on toolchain feasibility and evidence quality, not nostalgia points.
+- [x] static 32-bit i386 Platform v1 proof;
+- [x] direct 32-bit i386 process execution on the Ubuntu runner;
+- [x] E2 `qemu-i386` execution of the same 32-bit binary;
+- [x] static PowerPC32 cross-build;
+- [x] E2 `qemu-ppc` big-endian execution with `pointer_bits=32` and `endian=big`;
+- [x] machine-readable historical receipt schema and artifact capture;
+- [x] Win64 guest payload cross-build for the historical Windows lane;
+- [x] Windows Server 2012 R2 Datacenter Evaluation E3 full-system QEMU/libguestfs harness;
+- [x] registered-media SHA-256 verification and no-redistribution rule;
+- [x] release/manual workflow for full-system historical Windows evidence;
+- [x] regression gate preserving R1–R5 contracts.
 
+R6 remains **evidence-incomplete** until a passing E3 Windows Server 2012 R2 receipt is retained for the source revision being released. The repository intentionally does not store Microsoft evaluation media.
+
+The automated i386 and PowerPC lanes are cheaper PR gates. The full-system Windows lane is manual/release-gated because licensed media acquisition and full-system execution are materially more expensive.
+
+See [HISTORICAL-v1.md](HISTORICAL-v1.md).
 ## R7 — Document engine
 
 Introduce bounded document capabilities:

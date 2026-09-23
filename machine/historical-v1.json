@@ -1,0 +1,61 @@
+{
+  "schema": "rivet.historical/v1",
+  "version": 1,
+  "authority": "HISTORICAL-v1.md",
+  "framework_abi": false,
+  "semantic_proof": {
+    "source": "examples/r5_platform_proof.c",
+    "bytes": 237,
+    "empty_bytes": 0,
+    "fnv1a64": "36aaff7f4aaa99ab",
+    "monotonic": "nondecreasing"
+  },
+  "automated_lanes": [
+    {
+      "id": "linux-i386-native-process",
+      "cpu": "i386",
+      "pointer_bits": 32,
+      "endian": "little",
+      "execution": "native-compat",
+      "evidence_class": "native-32bit-process"
+    },
+    {
+      "id": "linux-i386-qemu-user",
+      "cpu": "i386",
+      "pointer_bits": 32,
+      "endian": "little",
+      "execution": "qemu-user",
+      "evidence_class": "E2"
+    },
+    {
+      "id": "linux-powerpc32-big-endian-qemu-user",
+      "cpu": "powerpc32",
+      "pointer_bits": 32,
+      "endian": "big",
+      "execution": "qemu-user",
+      "evidence_class": "E2"
+    }
+  ],
+  "historical_windows": {
+    "target": "Windows Server 2012 R2 Datacenter Evaluation x64",
+    "os_version": "6.3",
+    "evidence_class": "E3",
+    "execution": "qemu-full-system",
+    "workflow": ".github/workflows/r6-windows2012r2.yml",
+    "media_source": "Microsoft Evaluation Center",
+    "media_redistributed_by_rivet": false,
+    "media_requires_registration": true,
+    "required_secret": "RIVET_WIN2012R2_VHD_URL",
+    "required_media_sha256": true,
+    "state": "harness-ready-e3-receipt-required-for-release"
+  },
+  "receipt_schema": "rivet.historical-receipt/v1",
+  "phase_completion_rule": "automated lanes pass and an E3 historical-Windows receipt is retained for the release source revision",
+  "non_claims": [
+    "qemu-user-is-not-full-system",
+    "full-system-emulation-is-not-physical-hardware",
+    "powerpc-linux-is-not-classic-mac-os",
+    "powerpc-linux-is-not-amigaos",
+    "windows-server-2012-r2-is-not-windows-9x"
+  ]
+}
