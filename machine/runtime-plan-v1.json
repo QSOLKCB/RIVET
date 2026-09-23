@@ -43,6 +43,12 @@
       "url": "https://github.com/QSOLKCB/GALAXY/commit/6f17a734b9241359d36a9bf3d208b8527a456327"
     },
     {
+      "id": "opt-v1.0.0",
+      "revision": "41e2fc3677469839fb298dedefd0ce72caebcc68",
+      "release": "v1.0.0",
+      "url": "https://github.com/QSOLKCB/OPT/commit/41e2fc3677469839fb298dedefd0ce72caebcc68"
+    },
+    {
       "id": "opt-v1.2.0",
       "revision": "3441c6ceacd4a6ca43ec46de758e2d5bc23d8ca7",
       "release": "v1.2.0",
