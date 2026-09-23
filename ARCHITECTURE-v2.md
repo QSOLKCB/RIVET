@@ -129,7 +129,7 @@ Performance work starts by reducing repaint/layout/materialisation work. SIMD or
 
 Optional native dialogs/services may exist behind capabilities.
 
-See [RENDERING.md](RENDERING.md).
+See [RENDERING-v1.md](RENDERING-v1.md).
 
 ## UI
 
@@ -159,7 +159,7 @@ Concurrency may improve throughput but may not be required merely to open a wind
 
 RIVET separates **result identity** from **execution-plan identity**.
 
-Where declared semantics are invariant, correctness must not change merely because a target uses a different worker count, chunk size, memory budget, cache shape, or optional CPU optimization.
+Where declared semantics are invariant, every successful execution for the same semantic inputs and declared profile must preserve the same correctness result across worker count, chunk size, memory budget, cache shape, or optional CPU optimization. An execution may instead fail explicitly with resource exhaustion when its declared budget cannot satisfy the minimum representation.
 
 ```text
 RESULT IDENTITY != EXECUTION PLAN IDENTITY
@@ -177,7 +177,7 @@ Runtime work should prefer:
 
 The runtime does **not** pre-create scheduler, executor, cache, plugin, or backend hierarchies for hypothetical future use. A second real implementation must create the need before a general abstraction is introduced.
 
-Exact donor sources and adoption boundaries are recorded in [RUNTIME-PLAN.md](RUNTIME-PLAN.md) and [DONORS.md](DONORS.md).
+Exact donor sources and adoption boundaries are recorded in [RUNTIME-PLAN-v1.md](RUNTIME-PLAN-v1.md) and [DONORS.md](DONORS.md).
 
 ## Storage
 

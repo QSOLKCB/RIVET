@@ -1,7 +1,7 @@
 {
   "schema": "rivet.rendering/v1",
   "version": 1,
-  "authority": "RENDERING.md",
+  "authority": "RENDERING-v1.md",
   "canonical_path": "cpu-software-raster",
   "canonical_output": "pixel-surface",
   "gpu_targeting": false,

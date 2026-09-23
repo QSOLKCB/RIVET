@@ -40,7 +40,7 @@ Host OS/window-system compositing of a completed RIVET pixel surface remains out
 
 ## Runtime planning rule
 
-Before implementing runtime/memory infrastructure, read [RUNTIME-PLAN.md](RUNTIME-PLAN.md). It is a plan, not permission to pre-build abstractions. The second concrete implementation earns an abstraction.
+Before implementing runtime/memory infrastructure, read [RUNTIME-PLAN-v1.md](RUNTIME-PLAN-v1.md). It is a plan, not permission to pre-build abstractions. The second concrete implementation earns an abstraction.
 
 ## Before adding code
 
@@ -128,7 +128,7 @@ Machine contracts define compact normative identities where automation needs the
 
 Do not duplicate large rule sets in many files; link to the authority.
 
-Published versioned machine contracts are immutable. Breaking semantic changes require a new contract identity rather than rewriting an existing version in place.
+Published versioned machine contracts and the versioned human authority paths they name are immutable. Breaking semantic changes require new contract identities and new versioned authority paths rather than rewriting an existing version in place.
 
 ## R0 boundary
 

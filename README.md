@@ -42,7 +42,7 @@ A host OS or compositor may internally accelerate presentation of the completed 
 
 Performance work starts by doing less: tighter invalidation, bounded layout/paint, reuse, compact representations, and measured CPU-side optimisation.
 
-See [RENDERING.md](RENDERING.md).
+See [RENDERING-v1.md](RENDERING-v1.md).
 
 ## First principle: minimal sufficient implementation
 
@@ -122,9 +122,9 @@ The GitHub Pages site is intentionally static HTML/CSS with no framework, analyt
 - [ARCHITECTURE-v2.md](ARCHITECTURE-v2.md) — current layer, runtime, rendering, and authority model.
 - [ARCHITECTURE.md](ARCHITECTURE.md) — frozen v1 project authority retained for compatibility.
 - [PORTABILITY.md](PORTABILITY.md) — MES, target identity, containers, emulation, and evidence.
-- [RENDERING.md](RENDERING.md) — CPU/software rendering contract and GPU exclusion boundary.
+- [RENDERING-v1.md](RENDERING-v1.md) — CPU/software rendering contract and GPU exclusion boundary.
 - [ROADMAP.md](ROADMAP.md) — staged implementation plan.
-- [RUNTIME-PLAN.md](RUNTIME-PLAN.md) — donor-derived runtime and memory plan for R1+.
+- [RUNTIME-PLAN-v1.md](RUNTIME-PLAN-v1.md) — donor-derived runtime and memory plan for R1+.
 - [DONORS.md](DONORS.md) — bounded lessons from existing QSOL projects.
 - [AGENTS.md](AGENTS.md) — rules for coding agents and contributors.
 - [machine/project-v2.json](machine/project-v2.json) — current compact machine entrypoint; merged v1 contracts remain preserved for compatibility.

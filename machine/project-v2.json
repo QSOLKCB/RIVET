@@ -27,7 +27,7 @@
     "CONSTITUTION-v2.md",
     "ARCHITECTURE-v2.md",
     "PORTABILITY.md",
-    "RENDERING.md"
+    "RENDERING-v1.md"
   ],
   "machine_sources": [
     "machine/invariants-v2.json",
@@ -46,7 +46,7 @@
     "ARCHITECTURE.md"
   ],
   "planning_sources": [
-    "RUNTIME-PLAN.md",
+    "RUNTIME-PLAN-v1.md",
     "DONORS.md",
     "machine/runtime-plan-v1.json"
   ]

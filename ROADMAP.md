@@ -17,7 +17,7 @@ No application/runtime implementation belongs in R0.
 
 ## R1 — Portable core
 
-R1 follows [RUNTIME-PLAN.md](RUNTIME-PLAN.md):
+R1 follows [RUNTIME-PLAN-v1.md](RUNTIME-PLAN-v1.md):
 
 - the second implementation earns the abstraction;
 - no heap proportional to a logical domain when bounded/procedural execution suffices;
@@ -148,7 +148,7 @@ It must not become a remote pixel renderer for profiles claiming local parsing/l
 
 ## R11 — Work elimination and CPU optimisation
 
-R11 may draw from the measured mechanisms catalogued in [RUNTIME-PLAN.md](RUNTIME-PLAN.md) and [DONORS.md](DONORS.md), but none are promoted merely because they worked in a donor project.
+R11 may draw from the measured mechanisms catalogued in [RUNTIME-PLAN-v1.md](RUNTIME-PLAN-v1.md) and [DONORS.md](DONORS.md), but none are promoted merely because they worked in a donor project.
 
 
 Only after stable reference semantics and measurement:
