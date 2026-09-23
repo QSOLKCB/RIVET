@@ -125,18 +125,18 @@ static size_t tv_line_end(
     size_t line
 )
 {
-    size_t end;
+    size_t start = viewer->line_offsets[line];
+    size_t end =
+        line < viewer->line_count - 1u ?
+        viewer->line_offsets[line + 1u] :
+        viewer->byte_count;
 
-    if (line < viewer->line_count - 1u) {
-        end = viewer->line_offsets[line + 1u];
-        if (end != 0u &&
-            viewer->bytes[end - 1u] == 0x0au) {
-            --end;
-        }
-        return end;
+    if (end > start &&
+        viewer->bytes[end - 1u] == 0x0au) {
+        --end;
     }
 
-    return viewer->byte_count;
+    return end;
 }
 
 static size_t tv_line_for_offset(
