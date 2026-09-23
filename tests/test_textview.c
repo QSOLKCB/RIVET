@@ -116,8 +116,9 @@ static int test_search(void)
     CHECK(rivet_textview_find_next(
         &viewer,
         query_pixels,
-        sizeof(query_pixels)) == RIVET_OK);
+        sizeof(query_pixels)) == RIVET_ERR_NOT_FOUND);
     CHECK(viewer.match_offset == 15u);
+    CHECK(viewer.has_match == 1);
 
     {
         static const unsigned char missing[] = {0x5au,0x5au};
