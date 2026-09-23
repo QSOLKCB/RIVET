@@ -29,7 +29,9 @@ jobs:
             ':(exclude)scripts/r6_ppc_be.sh' \
             ':(exclude)scripts/r6_receipt.py' \
             ':(exclude)scripts/r6_windows2012r2_full_system.sh' \
-            ':(exclude)tests/r6_receipt_selftest.py'
+            ':(exclude)scripts/r6_validate_windows_inspector.py' \
+            ':(exclude)tests/r6_receipt_selftest.py' \
+            ':(exclude)tests/r6_windows_inspector_selftest.py'
 
       - name: Validate machine JSON
         run: |
@@ -49,6 +51,9 @@ jobs:
 
       - name: Receipt parser self-test
         run: python3 tests/r6_receipt_selftest.py
+
+      - name: Historical Windows inspector identity self-test
+        run: python3 tests/r6_windows_inspector_selftest.py
 
       - name: Historical Windows harness syntax
         run: bash -n scripts/r6_windows2012r2_full_system.sh
@@ -154,10 +159,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install Win64 cross-compiler
+      - name: Install Win64 cross-compiler and firstboot helper
         run: |
           sudo apt-get update
-          sudo apt-get install -y --no-install-recommends file mingw-w64
+          sudo apt-get install -y --no-install-recommends file mingw-w64 rhsrvany
+          find /usr/share -type f \( -iname rhsrvany.exe -o -iname pvvxsvc.exe \) -print -quit | grep -q .
 
       - name: Build historical Windows guest payload
         run: |
