@@ -77,7 +77,7 @@ jobs:
   posix-container:
     strategy:
       matrix:
-        image: [gcc:13-bookworm, gcc:14-bookworm]
+        image: [gcc:13.5.0-bookworm, gcc:14.3.0-bookworm]
     runs-on: ubuntu-latest
     container:
       image: ${{ matrix.image }}
