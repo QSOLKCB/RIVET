@@ -69,7 +69,7 @@ rivet_result rivet_platform_validate(
         return RIVET_ERR_INVALID_ARGUMENT;
     }
 
-    if (platform->info->capabilities.count != 2u) {
+    if (platform->info->capabilities.count > 2u) {
         return RIVET_ERR_INVALID_ARGUMENT;
     }
 
