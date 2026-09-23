@@ -9,14 +9,22 @@
   "public_abi_direction": "C",
   "mission": "lean capability-driven application infrastructure with explicit portability, user control and long software lifetimes",
   "browser_role": "downstream-proof-application",
+  "rendering_policy": {
+    "canonical_path": "cpu-software-raster",
+    "gpu_targeting": false,
+    "gpu_capability": false,
+    "host_compositor_acceleration": "outside-rivet-contract"
+  },
   "normative_human_sources": [
     "CONSTITUTION.md",
     "ARCHITECTURE.md",
-    "PORTABILITY.md"
+    "PORTABILITY.md",
+    "RENDERING.md"
   ],
   "machine_sources": [
     "machine/invariants.json",
     "machine/capabilities-v1.json",
+    "machine/rendering-v1.json",
     "machine/project-v1.json"
   ],
   "r0_implementation_allowed": false

@@ -4,7 +4,7 @@ The roadmap is deliberately staged so architecture is earned before complexity a
 
 ## R0 — Constitutional foundation
 
-**Current PR.**
+**Complete in PR #1.**
 
 - freeze project mission and invariants;
 - define capability and Minimum Execution Substrate concepts;
@@ -41,7 +41,7 @@ Add the smallest raster contract needed for a real application:
 
 Add one host adapter and reference screenshots/hashes where practical.
 
-No GPU requirement.
+No GPU API or GPU rendering path. The CPU/software surface is the rendering architecture.
 
 ## R3 — Input + lean UI
 
@@ -113,7 +113,7 @@ Required goals:
 - keyboard-first operation;
 - inspectable configuration;
 - measured footprint;
-- no mandatory accelerator.
+- CPU/software raster rendering with no RIVET GPU path.
 
 ## R9 — Retro portability expansion
 
@@ -137,16 +137,22 @@ The relay may provide modern TLS/HTTP/content-encoding transport.
 
 It must not become a remote pixel renderer for profiles claiming local parsing/layout/rendering.
 
-## R11 — Optional acceleration
+## R11 — Work elimination and CPU optimisation
 
-Only after stable reference semantics:
+Only after stable reference semantics and measurement:
 
-- SIMD;
-- threads;
-- GPU/native compositor;
-- host-aware calibration.
+- dirty-region painting;
+- incremental layout and precise invalidation;
+- bounded caches with explicit ownership;
+- compact display/layout representations;
+- safe result reuse;
+- optional SIMD where it produces a measured benefit;
+- optional bounded threading where it produces a measured benefit;
+- host-aware CPU-path calibration only when the added machinery pays for itself.
 
-Promotion requires conformance and measured benefit.
+There is no GPU/native-GPU-compositor roadmap rung. RIVET continues to produce software pixel surfaces; host presentation acceleration remains outside the RIVET contract.
+
+Promotion requires conformance, measured benefit, and evidence that simpler work-elimination techniques were considered first.
 
 ## R12 — Long-lived compatibility policy
 

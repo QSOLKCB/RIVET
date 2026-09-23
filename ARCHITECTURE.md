@@ -91,7 +91,6 @@ network.tls
 audio.pcm
 threads
 simd
-gpu
 document.html
 document.css
 script.javascript
@@ -116,13 +115,21 @@ The same CPU family may host very different platform capabilities.
 
 ## Graphics
 
-The normative graphics baseline is a software surface.
+The canonical graphics architecture is a CPU-produced software surface.
+
+RIVET targets pixels, not GPUs. There is no RIVET GPU capability and no planned OpenGL, Vulkan, Direct3D, Metal, WebGL, WebGPU, shader, or GPU-compute rendering backend.
+
+The host OS/window system is free to accelerate the final blit or compositing operation internally. That implementation detail is below the RIVET boundary.
 
 Initial primitives should stay small: surface attachment/allocation, clipping, fill, line where justified, bitmap/glyph blit, image blit, and copy/scroll region.
 
 UI widgets should generally draw onto this surface instead of requiring every platform port to implement an entire native widget family.
 
+Performance work starts by reducing repaint/layout/materialisation work. SIMD or bounded threading may be considered only after measurement and reference-path conformance.
+
 Optional native dialogs/services may exist behind capabilities.
+
+See [RENDERING.md](RENDERING.md).
 
 ## UI
 

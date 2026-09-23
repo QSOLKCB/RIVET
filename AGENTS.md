@@ -19,7 +19,7 @@ Do not introduce any of the following as a required RIVET-core dependency withou
 - React or another JavaScript UI framework;
 - mandatory C++ runtime;
 - mandatory Rust runtime;
-- mandatory GPU;
+- GPU rendering or compute APIs in the RIVET core, UI, document engine, or RIVET Browser, including OpenGL, Vulkan, Direct3D, Metal, WebGL, WebGPU, CUDA, or shader-based rendering;
 - mandatory network;
 - mandatory threads;
 - cloud service;
@@ -92,7 +92,18 @@ When a bug appears:
 
 Do not optimise by weakening semantics.
 
-Keep a reference path. Measure before claiming benefit. Record the environment.
+RIVET targets software pixel surfaces, not GPUs. Do not add a GPU path as an optimisation.
+
+Optimise in this order:
+
+1. eliminate unnecessary work;
+2. bound working sets;
+3. invalidate/recompute more precisely;
+4. reuse safe results;
+5. measure;
+6. only then consider optional CPU-side SIMD or bounded threading.
+
+Keep a scalar/reference path. Measure before claiming benefit. Record the environment.
 
 ## Documentation
 
