@@ -169,7 +169,8 @@ static int test_render(void)
         bounds,
         style) == RIVET_OK);
 
-    CHECK(pixels[0] == 0x40u);
+    CHECK(pixels[0] == 0x70u);
+    CHECK(pixels[(5u * 4u) + 0u] == 0x40u);
 
     bounds.x = -1L;
     CHECK(rivet_textview_render(
