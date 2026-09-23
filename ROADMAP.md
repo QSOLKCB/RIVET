@@ -22,7 +22,7 @@ R1 follows [RUNTIME-PLAN-v1.md](RUNTIME-PLAN-v1.md):
 - the second implementation earns the abstraction;
 - no heap proportional to a logical domain when bounded/procedural execution suffices;
 - explicit memory budgets where resident state can grow with external input;
-- result identity remains separate from workers/chunks/budgets;
+- successful-result identity remains separate from workers/chunks/budgets; a budget too small for the minimum representation may fail explicitly with resource exhaustion;
 - benchmark observations do not enter correctness identity;
 - reuse/cache requires complete effective-input binding.
 
