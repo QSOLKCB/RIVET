@@ -134,8 +134,8 @@ Published versioned machine contracts and the versioned human authority paths th
 
 R0 remains frozen in immutable `v0.1.0`.
 
-R1 Core v1 and R2 GFX v1 are merged and must not be redefined by R3.
+R1 Core v1, R2 GFX v1 and R3 UI v1 are merged and must not be redefined by R4.
 
-R3 may add only the portable input/UI machinery described by [UI-v1.md](UI-v1.md): logical keyboard events, exact command bindings, one lean menu projection, its tiny bitmap alphabet, tests/evidence, and no-heap rendering through GFX v1.
+R4 may add only the application-specific proof machinery described by [TEXTVIEW-v1.md](TEXTVIEW-v1.md): bounded caller-owned text bytes/indexing, exact search/navigation, application-local glyph rendering, key-bound commands, deterministic evidence, and a bounded headless file reader used only by the proof.
 
-Do not pull R4 application/file semantics, native keyboard/window backends, pointer input, text editing, font engines, command palettes, generic widget hierarchies, image codecs, networking, threads, SIMD, caches, or GPU machinery into R3.
+Do not promote R4 text restrictions, glyphs, search logic, or stdio file loading into generic RIVET framework authority. Do not pull R5 native platform backends or R7 document/encoding/HTML machinery forward.

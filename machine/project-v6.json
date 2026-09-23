@@ -1,0 +1,68 @@
+{
+  "schema": "rivet.project/v6",
+  "version": 6,
+  "supersedes": "rivet.project/v5",
+  "project": "RIVET",
+  "expanded_name": "Resilient Interface, View & Execution Toolkit",
+  "phase": "R4",
+  "status": "non-browser-proof-application",
+  "license": "MPL-2.0",
+  "portable_language_baseline": "C99",
+  "public_abi_direction": "C",
+  "mission": "lean capability-driven application infrastructure with explicit portability, user control and long software lifetimes",
+  "browser_role": "downstream-proof-application",
+  "proof_application_contract": "rivet.textview/v1",
+  "proof_application_contract_path": "machine/textview-v1.json",
+  "core_contract": "rivet.core/v1",
+  "core_contract_path": "machine/core-v1.json",
+  "gfx_contract": "rivet.gfx/v1",
+  "gfx_contract_path": "machine/gfx-v1.json",
+  "ui_contract": "rivet.ui/v1",
+  "ui_contract_path": "machine/ui-v1.json",
+  "capability_contract": "rivet.capabilities/v2",
+  "capability_contract_path": "machine/capabilities-v2.json",
+  "invariant_contract": "rivet.invariants/v2",
+  "invariant_contract_path": "machine/invariants-v2.json",
+  "rendering_contract": "rivet.rendering/v1",
+  "rendering_contract_path": "machine/rendering-v1.json",
+  "r3_merge_commit": "1ecdaad1cac1532124dae906d43070a6c7059806",
+  "normative_human_sources": [
+    "CONSTITUTION-v2.md",
+    "ARCHITECTURE-v2.md",
+    "PORTABILITY-v2.md",
+    "RENDERING-v1.md",
+    "CORE-v1.md",
+    "GFX-v1.md",
+    "UI-v1.md",
+    "TEXTVIEW-v1.md"
+  ],
+  "machine_sources": [
+    "machine/invariants-v2.json",
+    "machine/capabilities-v2.json",
+    "machine/rendering-v1.json",
+    "machine/core-v1.json",
+    "machine/gfx-v1.json",
+    "machine/ui-v1.json",
+    "machine/textview-v1.json",
+    "machine/project-v6.json"
+  ],
+  "historical_machine_contracts": [
+    "machine/project-v1.json",
+    "machine/project-v2.json",
+    "machine/project-v3.json",
+    "machine/project-v4.json",
+    "machine/project-v5.json",
+    "machine/invariants.json",
+    "machine/capabilities-v1.json"
+  ],
+  "historical_human_contracts": [
+    "CONSTITUTION.md",
+    "ARCHITECTURE.md",
+    "PORTABILITY.md"
+  ],
+  "planning_sources": [
+    "RUNTIME-PLAN-v1.md",
+    "DONORS-v1.md",
+    "machine/runtime-plan-v1.json"
+  ]
+}

@@ -1,0 +1,106 @@
+name: R4 Text Viewer
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  frozen-r3:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Verify R1/R2/R3 contract surfaces are unchanged
+        run: |
+          git diff --exit-code 1ecdaad1cac1532124dae906d43070a6c7059806 -- \
+            CORE-v1.md \
+            GFX-v1.md \
+            UI-v1.md \
+            machine/core-v1.json \
+            machine/gfx-v1.json \
+            machine/ui-v1.json \
+            machine/project-v5.json \
+            include/rivet/rivet.h \
+            core/rivet.c \
+            include/rivet/gfx.h \
+            gfx/raster.c \
+            include/rivet/ui.h \
+            ui/ui.c
+
+      - name: Verify reference fixture LF policy
+        run: |
+          test "$(git check-attr eol -- fixtures/r4_textview.txt)" = "fixtures/r4_textview.txt: eol: lf"
+
+      - name: Validate machine JSON
+        run: |
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+
+          for path in sorted(Path("machine").rglob("*.json")):
+              json.loads(path.read_text(encoding="utf-8"))
+              print(path)
+          PY
+
+  c99:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        cc: [gcc, clang]
+    env:
+      CC: ${{ matrix.cc }}
+      CFLAGS: -std=c99 -O2 -Wall -Wextra -Wpedantic -Werror
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Text viewer unit tests
+        run: |
+          make clean
+          make test-textview
+          make clean
+          make test-textview CPPFLAGS=-DRIVET_EXTERNAL_CPPFLAGS=1
+
+      - name: Deterministic text-viewer proof
+        run: |
+          make clean
+          make textview CPPFLAGS=-DRIVET_EXTERNAL_CPPFLAGS=1
+          fixture_sha="$(python3 -c 'import json; print(json.load(open("machine/textview-v1.json"))["reference_vector"]["fixture_sha256"])')"
+          ppm_sha="$(python3 -c 'import json; print(json.load(open("machine/textview-v1.json"))["reference_vector"]["ppm_sha256"])')"
+          echo "$fixture_sha  fixtures/r4_textview.txt" | sha256sum -c -
+          ./build/rivet-textview-proof fixtures/r4_textview.txt build/rivet-textview-proof.ppm
+          echo "$ppm_sha  build/rivet-textview-proof.ppm" | sha256sum -c -
+          wc -c build/rivet-textview-proof fixtures/r4_textview.txt build/rivet-textview-proof.ppm
+
+  sanitizers:
+    runs-on: ubuntu-latest
+    env:
+      CC: clang
+      CFLAGS: -std=c99 -O1 -g -Wall -Wextra -Wpedantic -Werror -fsanitize=address,undefined -fno-omit-frame-pointer
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Sanitized viewer tests
+        run: |
+          make clean
+          make test-textview CPPFLAGS=-DRIVET_SANITIZED=1
+
+      - name: Sanitized viewer proof
+        run: |
+          make clean
+          make textview CPPFLAGS=-DRIVET_SANITIZED=1
+          ./build/rivet-textview-proof fixtures/r4_textview.txt build/rivet-textview-proof.ppm
+
+  execution-charset:
+    runs-on: ubuntu-latest
+    env:
+      CC: gcc
+      CFLAGS: -std=c99 -O1 -g -Wall -Wextra -Wpedantic -Werror -fexec-charset=IBM1047
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Viewer contract uses frozen ASCII bytes
+        run: |
+          make clean
+          make test-textview CPPFLAGS=-DRIVET_EXEC_CHARSET_REGRESSION=1
