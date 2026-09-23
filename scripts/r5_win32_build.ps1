@@ -24,30 +24,20 @@ if (-not (Test-Path $devcmd)) {
 
 New-Item -ItemType Directory -Force -Path "build" | Out-Null
 
-$testSources = @(
-    "core\rivet.c",
-    "platform\platform.c",
-    "tests\test_platform.c"
-) -join " "
-
-$proofSources = @(
-    "core\rivet.c",
-    "platform\platform.c",
-    "platform\win32\platform_win32.c",
-    "examples\r5_platform_proof.c"
-) -join " "
-
-$prefix = '"' + $devcmd + '" -no_logo -arch=' + $Arch + ' -host_arch=x64 && '
-$common = 'cl /nologo /W4 /WX /TC /std:c11 /Iinclude '
-
-$commands = @(
-    $prefix + $common + $testSources + ' /Fe:build\test-platform-win32.exe',
-    $prefix + $common + $proofSources + ' /Fe:build\rivet-platform-win32.exe'
+$lines = @(
+    "@echo off",
+    ('call "' + $devcmd + '" -no_logo -arch=' + $Arch + ' -host_arch=x64'),
+    "if errorlevel 1 exit /b %errorlevel%",
+    "cl /nologo /W4 /WX /TC /std:c11 /Iinclude core\rivet.c platform\platform.c tests\test_platform.c /Fe:build\test-platform-win32.exe",
+    "if errorlevel 1 exit /b %errorlevel%",
+    "cl /nologo /W4 /WX /TC /std:c11 /Iinclude core\rivet.c platform\platform.c platform\win32\platform_win32.c examples\r5_platform_proof.c /Fe:build\rivet-platform-win32.exe",
+    "if errorlevel 1 exit /b %errorlevel%"
 )
 
-foreach ($command in $commands) {
-    & cmd.exe /d /s /c $command
-    if ($LASTEXITCODE -ne 0) {
-        exit $LASTEXITCODE
-    }
+$cmdPath = Join-Path "build" "r5-win32-build.cmd"
+Set-Content -Path $cmdPath -Value $lines -Encoding Ascii
+
+& cmd.exe /d /c $cmdPath
+if ($LASTEXITCODE -ne 0) {
+    exit $LASTEXITCODE
 }
