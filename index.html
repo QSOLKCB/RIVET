@@ -18,7 +18,7 @@ a{color:var(--hot)}.muted{color:var(--muted)}footer{margin-top:56px;color:var(--
 <body>
 <main>
 <header>
-<div class="tag">R4 // NON-BROWSER PROOF</div>
+<div class="tag">R5 // PLATFORM SPLIT</div>
 <h1>RIVET</h1>
 <p class="lead"><strong>Resilient Interface, View &amp; Execution Toolkit.</strong> Lean application infrastructure for software that should remain useful after the fashionable stack is gone.</p>
 </header>
@@ -29,20 +29,21 @@ CONTAINER PASS       != TARGET-OS PASS
 RIVET TARGETS PIXELS != GPUs
 MENU ITEM            != COMMAND
 APPLICATION           != BROWSER
-PROOF FILE I/O        != FILESYSTEM ABI
+PLATFORM ABI          != APPLICATION SEMANTICS
+CONTAINER PASS        != TARGET-OS PASS
 "LIGHTWEIGHT"        != EVIDENCE</pre>
 <div class="grid">
 <div class="card"><strong>Minimal</strong><br><span class="muted">If equivalent behaviour can be implemented with materially less code and no loss of correctness, safety, readability or portability, the smaller implementation wins.</span></div>
-<div class="card"><strong>Bounded</strong><br><span class="muted">The R4 viewer keeps document bytes, line indexes and pixels caller-owned. Oversized inputs fail explicitly rather than growing hidden state.</span></div>
+<div class="card"><strong>Bounded</strong><br><span class="muted">Platform v1 reads into caller-owned buffers, exposes no hidden heap, and fails explicitly when capacity is exhausted.</span></div>
 <div class="card"><strong>Portable</strong><br><span class="muted">C99 baseline, stable C ABI direction, CPU/software raster rendering, no RIVET GPU API, no mandatory network or threads.</span></div>
 <div class="card"><strong>User-owned</strong><br><span class="muted">Capabilities survive UI fashion. State should remain inspectable. No telemetry or account requirement by default.</span></div>
 </div>
-<h2>The application proof</h2>
-<p>R4 is a bounded read-only text viewer with open, search, keyboard navigation and deterministic software rendering. It is intentionally not a browser and does not promote its application-specific text/file rules into framework authority.</p>
+<h2>The platform split</h2>
+<p>R5 earns one small shared ABI from two real backends: POSIX and Win32. Both expose bounded file reads and monotonic time while preserving identical application-visible fixture bytes.</p>
 <h2>The proof</h2>
 <p>The long-term demonstration is a lean RIVET Browser spanning modern systems and deliberately constrained historical targets. The browser is downstream of the framework: it must prove the architecture rather than infect it.</p>
 <h2>Start here</h2>
-<p><a href="README.md">README</a> · <a href="TEXTVIEW-v1.md">Text Viewer v1</a> · <a href="UI-v1.md">UI v1</a> · <a href="GFX-v1.md">GFX v1</a> · <a href="CORE-v1.md">Core v1</a> · <a href="CONSTITUTION-v2.md">Constitution</a> · <a href="ARCHITECTURE-v2.md">Architecture</a> · <a href="PORTABILITY-v2.md">Portability</a> · <a href="RENDERING-v1.md">Rendering</a> · <a href="ROADMAP.md">Roadmap</a> · <a href="RUNTIME-PLAN-v1.md">Runtime plan</a></p>
+<p><a href="README.md">README</a> · <a href="PLATFORM-v1.md">Platform v1</a> · <a href="TEXTVIEW-v1.md">Text Viewer v1</a> · <a href="UI-v1.md">UI v1</a> · <a href="GFX-v1.md">GFX v1</a> · <a href="CORE-v1.md">Core v1</a> · <a href="CONSTITUTION-v2.md">Constitution</a> · <a href="ARCHITECTURE-v2.md">Architecture</a> · <a href="PORTABILITY-v2.md">Portability</a> · <a href="RENDERING-v1.md">Rendering</a> · <a href="ROADMAP.md">Roadmap</a> · <a href="RUNTIME-PLAN-v1.md">Runtime plan</a></p>
 <footer>MPL-2.0 · static HTML/CSS · no framework · no analytics · no build step</footer>
 </main>
 </body>

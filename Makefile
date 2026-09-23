@@ -14,8 +14,12 @@ HEADLESS_PPM = platform/headless/ppm.c
 HEADLESS_PPM_HEADER = platform/headless/ppm.h
 HEADLESS_TEXT = platform/headless/text_file.c
 HEADLESS_TEXT_HEADER = platform/headless/text_file.h
+PLATFORM_COMMON = platform/platform.c
+PLATFORM_POSIX = platform/posix/platform_posix.c
+PLATFORM_WIN32 = platform/win32/platform_win32.c
+PLATFORM_HEADER = include/rivet/platform.h
 
-.PHONY: all gfx ui textview test test-gfx test-ui test-textview check-no-heap check-no-heap-gfx check-no-heap-ui check-no-heap-textview clean
+.PHONY: all gfx ui textview platform-posix test test-gfx test-ui test-textview test-platform check-no-heap check-no-heap-gfx check-no-heap-ui check-no-heap-textview check-no-heap-platform clean
 
 all: $(BUILD_DIR)/rivet-headless
 
@@ -24,6 +28,8 @@ gfx: $(BUILD_DIR)/rivet-gfx-proof
 ui: $(BUILD_DIR)/rivet-ui-proof
 
 textview: $(BUILD_DIR)/rivet-textview-proof
+
+platform-posix: $(BUILD_DIR)/rivet-platform-posix
 
 $(BUILD_DIR):
 	mkdir -p $(BUILD_DIR)
@@ -52,6 +58,12 @@ $(BUILD_DIR)/test-textview: $(GFX) $(GFX_HEADER) $(HEADER) $(TEXTVIEW) $(TEXTVIE
 $(BUILD_DIR)/rivet-textview-proof: $(CORE) $(HEADER) $(GFX) $(GFX_HEADER) $(UI) $(UI_HEADER) $(TEXTVIEW) $(TEXTVIEW_HEADER) $(HEADLESS_PPM) $(HEADLESS_PPM_HEADER) $(HEADLESS_TEXT) $(HEADLESS_TEXT_HEADER) examples/r4_textview_proof.c | $(BUILD_DIR)
 	$(CC) $(CPPFLAGS) -Iinclude -Iapps/textview -Iplatform/headless $(CFLAGS) $(CORE) $(GFX) $(UI) $(TEXTVIEW) $(HEADLESS_PPM) $(HEADLESS_TEXT) examples/r4_textview_proof.c -o $@
 
+$(BUILD_DIR)/test-platform: $(CORE) $(HEADER) $(PLATFORM_COMMON) $(PLATFORM_HEADER) tests/test_platform.c | $(BUILD_DIR)
+	$(CC) $(CPPFLAGS) -Iinclude $(CFLAGS) $(CORE) $(PLATFORM_COMMON) tests/test_platform.c -o $@
+
+$(BUILD_DIR)/rivet-platform-posix: $(CORE) $(HEADER) $(PLATFORM_COMMON) $(PLATFORM_HEADER) $(PLATFORM_POSIX) examples/r5_platform_proof.c | $(BUILD_DIR)
+	$(CC) $(CPPFLAGS) -Iinclude $(CFLAGS) $(CORE) $(PLATFORM_COMMON) $(PLATFORM_POSIX) examples/r5_platform_proof.c -o $@
+
 test: check-no-heap $(BUILD_DIR)/test-core
 	./$(BUILD_DIR)/test-core
 
@@ -63,6 +75,9 @@ test-ui: check-no-heap-ui $(BUILD_DIR)/test-ui
 
 test-textview: check-no-heap-textview $(BUILD_DIR)/test-textview
 	./$(BUILD_DIR)/test-textview
+
+test-platform: check-no-heap-platform $(BUILD_DIR)/test-platform
+	./$(BUILD_DIR)/test-platform
 
 check-no-heap:
 	@if grep -En '(malloc|calloc|realloc|free)[[:space:]]*\(' $(CORE) >/dev/null; then \
@@ -85,6 +100,12 @@ check-no-heap-ui:
 check-no-heap-textview:
 	@if grep -En '(malloc|calloc|realloc|free)[[:space:]]*\(' $(TEXTVIEW) >/dev/null; then \
 		echo "R4 text viewer must not require heap allocation"; \
+		exit 1; \
+	fi
+
+check-no-heap-platform:
+	@if grep -En '(malloc|calloc|realloc|free)[[:space:]]*\(' $(PLATFORM_COMMON) $(PLATFORM_POSIX) $(PLATFORM_WIN32) >/dev/null; then \
+		echo "R5 platform backends must not require heap allocation"; \
 		exit 1; \
 	fi
 

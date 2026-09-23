@@ -1,0 +1,121 @@
+{
+  "schema": "rivet.platform/v1",
+  "version": 1,
+  "authority": "PLATFORM-v1.md",
+  "abi_version": 1,
+  "language_baseline": "C99",
+  "public_header": "include/rivet/platform.h",
+  "common_implementation": "platform/platform.c",
+  "capabilities": [
+    "filesystem.read",
+    "timer.monotonic"
+  ],
+  "path_contract": {
+    "encoding": "numeric-7-bit-ascii-bytes",
+    "nul_terminated": true,
+    "max_bytes": 255,
+    "final_utf8_policy": false
+  },
+  "file_read": {
+    "caller_owned_buffer": true,
+    "heap": false,
+    "exact_capacity_success": true,
+    "oversize_result": "RIVET_ERR_CAPACITY",
+    "missing_result": "RIVET_ERR_NOT_FOUND",
+    "output_modified_only_on_success": true,
+    "zero_capacity_empty_file": {
+      "allowed": true,
+      "requires_non_null_buffer": true,
+      "result": "RIVET_OK",
+      "byte_count": 0
+    }
+  },
+  "monotonic_time": {
+    "unit": "nanoseconds",
+    "absolute_origin": "unspecified",
+    "required_property": "nondecreasing",
+    "output_modified_only_on_success": true,
+    "intermediate_overflow_must_not_reject_representable_result": true
+  },
+  "backends": [
+    {
+      "id": "posix-v1",
+      "path": "platform/posix/platform_posix.c",
+      "os_api": "POSIX",
+      "mechanisms": [
+        "open/read/close",
+        "clock_gettime(CLOCK_MONOTONIC)"
+      ]
+    },
+    {
+      "id": "win32-v1",
+      "path": "platform/win32/platform_win32.c",
+      "os_api": "Win32",
+      "mechanisms": [
+        "CreateFileA/ReadFile/CloseHandle",
+        "QueryPerformanceCounter/QueryPerformanceFrequency"
+      ]
+    }
+  ],
+  "reference_vector": {
+    "fixture": "fixtures/r4_textview.txt",
+    "fixture_bytes": 237,
+    "fixture_sha256": "8d4a34353106071386727b776fa3089801563708dc521e0d363a447e12bb791e",
+    "fixture_fnv1a64": "36aaff7f4aaa99ab",
+    "proof": "examples/r5_platform_proof.c",
+    "empty_fixture": {
+      "path": "fixtures/r5_empty.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  },
+  "evidence_requirements": [
+    "native-posix-gcc",
+    "native-posix-clang",
+    "native-win32-x64",
+    "win32-x86-process",
+    "container-gcc13.5.0-bookworm",
+    "container-gcc14.3.0-bookworm"
+  ],
+  "evidence_caveats": [
+    "container-pass-is-not-target-os-pass",
+    "win32-x86-process-is-not-physical-32-bit-hardware"
+  ],
+  "non_goals": [
+    "general-path-encoding",
+    "filesystem-write",
+    "directory-api",
+    "native-window",
+    "surface-presentation",
+    "native-input",
+    "clipboard",
+    "network",
+    "audio",
+    "threads",
+    "simd",
+    "gpu",
+    "dynamic-backend-loading",
+    "backend-registry"
+  ],
+  "observed_native_evidence": {
+    "posix": {
+      "gcc": true,
+      "clang": true
+    },
+    "win32": {
+      "x64_pointer_bits": 64,
+      "x86_pointer_bits": 32,
+      "endian": "little",
+      "fixture_bytes": 237,
+      "fixture_fnv1a64": "36aaff7f4aaa99ab"
+    }
+  },
+  "capability_set": {
+    "exact": true,
+    "ids": [
+      "filesystem.read",
+      "timer.monotonic"
+    ],
+    "additional_id_result": "RIVET_ERR_INVALID_ARGUMENT"
+  }
+}

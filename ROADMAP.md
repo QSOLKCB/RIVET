@@ -94,7 +94,7 @@ Success criterion: capability remains addressable even when a presentation eleme
 See [UI-v1.md](UI-v1.md).
 ## R4 — Non-browser proof application
 
-**Current phase.**
+**Complete in PR #6.**
 
 Implemented R4 proof application:
 
@@ -119,15 +119,29 @@ This proves RIVET can host a useful application that is not a browser while keep
 See [TEXTVIEW-v1.md](TEXTVIEW-v1.md).
 ## R5 — Platform split
 
-Establish at least two materially different platform backends.
+**Current phase.**
 
-Likely early targets:
+Implemented R5 platform slice:
 
-- modern POSIX;
-- Win32.
+- [x] shared Platform v1 ABI earned by two concrete backends;
+- [x] explicit `filesystem.read` and `timer.monotonic` capabilities;
+- [x] bounded caller-owned file reads with no heap;
+- [x] bounded numeric-ASCII proof path contract;
+- [x] POSIX backend using open/read/close + CLOCK_MONOTONIC;
+- [x] Win32 backend using CreateFileA/ReadFile/CloseHandle + QueryPerformanceCounter;
+- [x] native POSIX execution under GCC and Clang;
+- [x] native Win32 x64 execution;
+- [x] Win32 x86 32-bit process execution with pointer-width verification;
+- [x] GCC 13/14 Bookworm container toolchain evidence;
+- [x] identical frozen fixture identity across platform proofs;
+- [x] explicit evidence labels separating containers, OS execution and 32-bit process evidence;
+- [x] regression gate preserving R1–R4 contracts.
 
-Run containerised compiler/toolchain matrices and explicit 32/64-bit tests.
+The x86 Windows lane proves a 32-bit process on Windows; on a 64-bit runner it may use WOW64 and is not claimed as physical 32-bit hardware.
 
+Platform v1 intentionally does not add windows, native input, filesystem write, networking, audio, threads, or GPU machinery.
+
+See [PLATFORM-v1.md](PLATFORM-v1.md).
 ## R6 — Historical stress gate
 
 Add reproducible constrained execution:
