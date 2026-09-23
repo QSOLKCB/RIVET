@@ -40,7 +40,8 @@ qemu-img convert -p -O qcow2 "$SOURCE_IMAGE" "$GUEST"
 cat > "$FIRSTBOOT" <<'BAT'
 @echo off
 C:\rivet-r6\rivet-platform-win32.exe C:\rivet-r6\r4_textview.txt C:\rivet-r6\r5_empty.txt > C:\rivet-r6\receipt.txt 2>&1
-echo exit_code=%ERRORLEVEL%>> C:\rivet-r6\receipt.txt
+set "RIVET_EXIT=%ERRORLEVEL%"
+>>C:\rivet-r6\receipt.txt echo exit_code=%RIVET_EXIT%
 shutdown /s /t 5 /f
 exit /b 250
 BAT
@@ -50,9 +51,59 @@ export LIBGUESTFS_BACKEND=direct
 virt-customize   -a "$GUEST"   --mkdir /rivet-r6   --upload "$PAYLOAD:/rivet-r6/rivet-platform-win32.exe"   --upload fixtures/r4_textview.txt:/rivet-r6/r4_textview.txt   --upload fixtures/r5_empty.txt:/rivet-r6/r5_empty.txt   --firstboot "$FIRSTBOOT"
 
 virt-inspector -a "$GUEST" > "$INSPECTOR"
-grep -qi "<name>windows</name>" "$INSPECTOR"
-grep -q "<major_version>6</major_version>" "$INSPECTOR"
-grep -q "<minor_version>3</minor_version>" "$INSPECTOR"
+
+python3 - "$INSPECTOR" <<'PY'
+import sys
+import xml.etree.ElementTree as ET
+
+path = sys.argv[1]
+root = ET.parse(path).getroot()
+
+def values(name):
+    result = []
+    for element in root.iter():
+        if element.tag.split("}")[-1] == name and element.text is not None:
+            result.append(element.text.strip())
+    return result
+
+def require_one(name):
+    found = values(name)
+    if not found:
+        raise SystemExit(f"virt-inspector missing {name}")
+    return found[0]
+
+name = require_one("name").lower()
+distro = require_one("distro").lower()
+arch = require_one("arch").lower()
+major = require_one("major_version")
+minor = require_one("minor_version")
+product_name = require_one("product_name")
+product_variant = require_one("product_variant")
+
+allowed_products = {
+    "Windows Server 2012 R2 Datacenter Evaluation",
+    "Microsoft Windows Server 2012 R2 Datacenter Evaluation",
+}
+
+if name != "windows" or distro != "windows":
+    raise SystemExit(f"unexpected guest OS identity: name={name!r} distro={distro!r}")
+if arch not in {"x86_64", "x86-64", "amd64"}:
+    raise SystemExit(f"unexpected guest architecture: {arch!r}")
+if (major, minor) != ("6", "3"):
+    raise SystemExit(f"unexpected Windows version: {major}.{minor}")
+if product_variant.lower() != "server":
+    raise SystemExit(f"unexpected Windows product variant: {product_variant!r}")
+if product_name not in allowed_products:
+    raise SystemExit(f"unexpected Windows product name: {product_name!r}")
+
+print(
+    "validated guest:",
+    product_name,
+    product_variant,
+    f"{major}.{minor}",
+    arch,
+)
+PY
 
 ACCEL="tcg"
 CPU="Nehalem"
