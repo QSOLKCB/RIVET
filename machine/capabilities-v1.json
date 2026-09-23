@@ -1,0 +1,35 @@
+{
+  "schema": "rivet.capabilities/v1",
+  "version": 1,
+  "selection_model": "minimum-execution-substrate",
+  "implicit_inheritance": false,
+  "capabilities": [
+    {"id":"surface.raster","class":"presentation"},
+    {"id":"input.keyboard","class":"input"},
+    {"id":"input.pointer","class":"input"},
+    {"id":"filesystem.read","class":"storage"},
+    {"id":"filesystem.write","class":"storage"},
+    {"id":"clipboard","class":"platform"},
+    {"id":"timer.monotonic","class":"platform"},
+    {"id":"network.tcp","class":"network"},
+    {"id":"network.http","class":"network"},
+    {"id":"network.tls","class":"network"},
+    {"id":"audio.pcm","class":"media"},
+    {"id":"threads","class":"acceleration"},
+    {"id":"simd","class":"acceleration"},
+    {"id":"gpu","class":"acceleration"},
+    {"id":"document.html","class":"document"},
+    {"id":"document.css","class":"document"},
+    {"id":"script.javascript","class":"script"}
+  ],
+  "baseline_not_required": [
+    "threads",
+    "simd",
+    "gpu",
+    "network.tcp",
+    "network.http",
+    "network.tls",
+    "audio.pcm",
+    "script.javascript"
+  ]
+}
