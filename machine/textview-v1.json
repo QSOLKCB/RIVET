@@ -1,0 +1,74 @@
+{
+  "schema": "rivet.textview/v1",
+  "version": 1,
+  "authority": "TEXTVIEW-v1.md",
+  "role": "non-browser-proof-application",
+  "framework_abi": false,
+  "implementation": {
+    "header": "apps/textview/textview.h",
+    "source": "apps/textview/textview.c"
+  },
+  "dependencies": {
+    "core": "rivet.core/v1",
+    "gfx": "rivet.gfx/v1",
+    "ui": "rivet.ui/v1"
+  },
+  "input_bytes": {
+    "lf": "0x0a",
+    "space": "0x20",
+    "punctuation_digits": "0x2d-through-0x3a",
+    "uppercase": "0x41-through-0x5a",
+    "execution_character_set_independent": true
+  },
+  "memory": {
+    "heap": false,
+    "document_storage": "caller-owned",
+    "line_index_storage": "caller-owned",
+    "search_index": false
+  },
+  "operations": [
+    "bounded-open",
+    "line-up-down",
+    "page-up-down",
+    "exact-find-next-with-one-wrap",
+    "deterministic-read-only-render"
+  ],
+  "headless_open_adapter": {
+    "path": "platform/headless/text_file.c",
+    "caller_buffer": true,
+    "filesystem_contract": false
+  },
+  "reference_vector": {
+    "fixture": "fixtures/r4_textview.txt",
+    "program": "examples/r4_textview_proof.c",
+    "width": 192,
+    "height": 48,
+    "query_ascii_hex": "50 49 58 45 4c 53",
+    "fnv1a64": "pending-r4-ci",
+    "ppm_sha256": "pending-r4-ci"
+  },
+  "non_goals": [
+    "browser",
+    "network",
+    "html",
+    "css",
+    "generic-text-decoder",
+    "unicode",
+    "lowercase-rendering",
+    "text-editing",
+    "document-mutation",
+    "document-save-export",
+    "filesystem-abstraction",
+    "native-window",
+    "native-input",
+    "font-api",
+    "layout-engine",
+    "image-codec",
+    "heap",
+    "threads",
+    "simd",
+    "gpu",
+    "cache",
+    "search-index"
+  ]
+}
