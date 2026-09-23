@@ -1,0 +1,23 @@
+{
+  "schema": "rivet.project/v1",
+  "project": "RIVET",
+  "expanded_name": "Resilient Interface, View & Execution Toolkit",
+  "phase": "R0",
+  "status": "constitutional-foundation",
+  "license": "MPL-2.0",
+  "portable_language_baseline": "C99",
+  "public_abi_direction": "C",
+  "mission": "lean capability-driven application infrastructure with explicit portability, user control and long software lifetimes",
+  "browser_role": "downstream-proof-application",
+  "normative_human_sources": [
+    "CONSTITUTION.md",
+    "ARCHITECTURE.md",
+    "PORTABILITY.md"
+  ],
+  "machine_sources": [
+    "machine/invariants.json",
+    "machine/capabilities-v1.json",
+    "machine/project-v1.json"
+  ],
+  "r0_implementation_allowed": false
+}

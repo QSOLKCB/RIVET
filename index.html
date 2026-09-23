@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>RIVET — Resilient Interface, View &amp; Execution Toolkit</title>
+<meta name="description" content="Lean capability-driven application infrastructure for user control, low-resource hardware and long software lifetimes.">
+<style>
+:root{color-scheme:dark;--bg:#0b0d0e;--panel:#15191b;--line:#596166;--text:#e8ecee;--muted:#a8b0b4;--hot:#f0b44d}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:16px/1.55 ui-monospace,SFMono-Regular,Consolas,monospace}
+main{max-width:980px;margin:auto;padding:48px 22px 80px}header{border:1px solid var(--line);padding:28px;background:var(--panel)}
+h1{font-size:clamp(2rem,7vw,5rem);line-height:.95;letter-spacing:-.06em;margin:0 0 18px}h2{margin-top:42px;border-bottom:1px solid var(--line);padding-bottom:8px}
+.tag{color:var(--hot);font-weight:700}.lead{font-size:1.15rem;max-width:760px}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px;margin:24px 0}
+.card{border:1px solid var(--line);padding:18px;background:var(--panel)}code,pre{background:#090a0b}pre{padding:16px;overflow:auto;border-left:3px solid var(--hot)}
+a{color:var(--hot)}.muted{color:var(--muted)}footer{margin-top:56px;color:var(--muted)}
+</style>
+</head>
+<body>
+<main>
+<header>
+<div class="tag">R0 // CONSTITUTIONAL FOUNDATION</div>
+<h1>RIVET</h1>
+<p class="lead"><strong>Resilient Interface, View &amp; Execution Toolkit.</strong> Lean application infrastructure for software that should remain useful after the fashionable stack is gone.</p>
+</header>
+<h2>Thesis</h2>
+<pre>APPLICATION MEANING != EXECUTION MACHINERY
+BUTTON              != CAPABILITY
+CONTAINER PASS       != TARGET-OS PASS
+"LIGHTWEIGHT"        != EVIDENCE</pre>
+<div class="grid">
+<div class="card"><strong>Minimal</strong><br><span class="muted">If equivalent behaviour can be implemented with materially less code and no loss of correctness, safety, readability or portability, the smaller implementation wins.</span></div>
+<div class="card"><strong>Explicit</strong><br><span class="muted">Applications declare capabilities. Targets declare what they actually provide. Unsupported means unsupported.</span></div>
+<div class="card"><strong>Portable</strong><br><span class="muted">C99 baseline, stable C ABI direction, software rendering reference path, no mandatory GPU/network/threads.</span></div>
+<div class="card"><strong>User-owned</strong><br><span class="muted">Capabilities survive UI fashion. State should remain inspectable. No telemetry or account requirement by default.</span></div>
+</div>
+<h2>The proof</h2>
+<p>The long-term demonstration is a lean RIVET Browser spanning modern systems and deliberately constrained historical targets. The browser is downstream of the framework: it must prove the architecture rather than infect it.</p>
+<h2>Start here</h2>
+<p><a href="README.md">README</a> · <a href="CONSTITUTION.md">Constitution</a> · <a href="ARCHITECTURE.md">Architecture</a> · <a href="PORTABILITY.md">Portability</a> · <a href="ROADMAP.md">Roadmap</a></p>
+<footer>MPL-2.0 · static HTML/CSS · no framework · no analytics · no build step</footer>
+</main>
+</body>
+</html>
