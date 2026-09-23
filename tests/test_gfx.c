@@ -158,6 +158,34 @@ static int test_copy_overlap(void)
     return 0;
 }
 
+
+static int test_copy_vertical_overlap(void)
+{
+    unsigned char pixels[1u * 4u * 4u];
+    rivet_surface surface;
+    rivet_rect one = {0L, 0L, 1ul, 1ul};
+    rivet_rect source = {0L, 0L, 1ul, 3ul};
+    unsigned long y;
+
+    CHECK(rivet_surface_attach(
+        &surface, pixels, sizeof(pixels), 1ul, 4ul, 4u) == RIVET_OK);
+
+    for (y = 0ul; y < 4ul; ++y) {
+        rivet_rgba8 color = {
+            (unsigned char)(y + 1ul), 0u, 0u, 255u
+        };
+        one.y = (long)y;
+        CHECK(rivet_surface_fill_rect(&surface, one, color) == RIVET_OK);
+    }
+
+    CHECK(rivet_surface_copy_rect(&surface, source, 0L, 1L) == RIVET_OK);
+    CHECK(pixels[0] == 1u);
+    CHECK(pixels[4] == 1u);
+    CHECK(pixels[8] == 2u);
+    CHECK(pixels[12] == 3u);
+    return 0;
+}
+
 int main(void)
 {
     CHECK(RIVET_GFX_ABI_VERSION == 1u);
@@ -166,6 +194,7 @@ int main(void)
     CHECK(test_fill_and_clip() == 0);
     CHECK(test_mono_blit() == 0);
     CHECK(test_copy_overlap() == 0);
+    CHECK(test_copy_vertical_overlap() == 0);
 
     puts("rivet gfx tests: ok");
     return 0;
