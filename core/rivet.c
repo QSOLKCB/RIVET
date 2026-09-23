@@ -24,6 +24,23 @@ static int rivet_streq(const char *left, const char *right)
     return *left == *right;
 }
 
+static int rivet_registry_valid(const rivet_command_registry *registry)
+{
+    return registry != NULL &&
+           registry->slots != NULL &&
+           registry->capacity != 0u &&
+           registry->count <= registry->capacity;
+}
+
+static int rivet_loop_valid(const rivet_loop *loop)
+{
+    return loop != NULL &&
+           loop->events != NULL &&
+           loop->capacity != 0u &&
+           loop->head < loop->capacity &&
+           loop->count <= loop->capacity;
+}
+
 const char *rivet_result_name(rivet_result result)
 {
     switch (result) {
@@ -91,8 +108,7 @@ rivet_result rivet_commands_add(
 {
     size_t i;
 
-    if (registry == NULL || registry->slots == NULL ||
-        registry->capacity == 0u || !rivet_id_valid(id) || fn == NULL) {
+    if (!rivet_registry_valid(registry) || !rivet_id_valid(id) || fn == NULL) {
         return RIVET_ERR_INVALID_ARGUMENT;
     }
 
@@ -121,8 +137,7 @@ rivet_result rivet_commands_dispatch(
 {
     size_t i;
 
-    if (registry == NULL || registry->slots == NULL ||
-        registry->capacity == 0u || !rivet_id_valid(id)) {
+    if (!rivet_registry_valid(registry) || !rivet_id_valid(id)) {
         return RIVET_ERR_INVALID_ARGUMENT;
     }
 
@@ -161,8 +176,7 @@ rivet_result rivet_loop_post(
 {
     size_t tail;
 
-    if (loop == NULL || loop->events == NULL ||
-        loop->capacity == 0u || fn == NULL) {
+    if (!rivet_loop_valid(loop) || fn == NULL) {
         return RIVET_ERR_INVALID_ARGUMENT;
     }
     if (loop->stopped) {
@@ -172,7 +186,11 @@ rivet_result rivet_loop_post(
         return RIVET_ERR_CAPACITY;
     }
 
-    tail = (loop->head + loop->count) % loop->capacity;
+    if (loop->count >= loop->capacity - loop->head) {
+        tail = loop->count - (loop->capacity - loop->head);
+    } else {
+        tail = loop->head + loop->count;
+    }
     loop->events[tail].fn = fn;
     loop->events[tail].context = context;
     ++loop->count;
@@ -187,8 +205,7 @@ rivet_result rivet_loop_step(
 {
     rivet_event event;
 
-    if (loop == NULL || loop->events == NULL ||
-        loop->capacity == 0u || did_work == NULL) {
+    if (!rivet_loop_valid(loop) || did_work == NULL) {
         return RIVET_ERR_INVALID_ARGUMENT;
     }
 
@@ -211,7 +228,7 @@ rivet_result rivet_loop_step(
 
 rivet_result rivet_loop_stop(rivet_loop *loop)
 {
-    if (loop == NULL || loop->events == NULL || loop->capacity == 0u) {
+    if (!rivet_loop_valid(loop)) {
         return RIVET_ERR_INVALID_ARGUMENT;
     }
 

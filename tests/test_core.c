@@ -82,6 +82,10 @@ static int test_commands(void)
     CHECK(second == 0);
     CHECK(rivet_commands_dispatch(&registry, "missing") == RIVET_ERR_NOT_FOUND);
 
+    registry.count = registry.capacity + 1u;
+    CHECK(rivet_commands_dispatch(&registry, "first") == RIVET_ERR_INVALID_ARGUMENT);
+    registry.count = 2u;
+
     CHECK(rivet_commands_init(NULL, slots, 2u) == RIVET_ERR_INVALID_ARGUMENT);
     CHECK(rivet_commands_init(&registry, NULL, 2u) == RIVET_ERR_INVALID_ARGUMENT);
     CHECK(rivet_commands_init(&registry, slots, 0u) == RIVET_ERR_INVALID_ARGUMENT);
@@ -114,6 +118,9 @@ static int test_loop_fifo(void)
     CHECK(output[0] == 1 && output[1] == 2 && output[2] == 3);
 
     CHECK(rivet_loop_step(&loop, &did_work) == RIVET_OK && did_work == 0);
+
+    loop.head = loop.capacity;
+    CHECK(rivet_loop_step(&loop, &did_work) == RIVET_ERR_INVALID_ARGUMENT);
     return 0;
 }
 
