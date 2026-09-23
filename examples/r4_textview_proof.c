@@ -12,6 +12,14 @@
 #define PROOF_BYTES ((size_t)PROOF_WIDTH * (size_t)PROOF_HEIGHT * RIVET_GFX_PIXEL_BYTES)
 #define PROOF_FNV1A64 0ULL
 
+#define REQUIRE_OK(expr) do { \
+    rivet_result _result = (expr); \
+    if (_result != RIVET_OK) { \
+        fprintf(stderr, "proof failed: %s => %s\n", #expr, rivet_result_name(_result)); \
+        return 1; \
+    } \
+} while (0)
+
 typedef struct proof_context {
     rivet_textview *viewer;
     const unsigned char *query;
@@ -96,73 +104,87 @@ int main(int argc, char **argv)
             input_path,
             file_bytes,
             sizeof(file_bytes),
-            &file_count) ||
-        rivet_textview_open(
-            &viewer,
-            file_bytes,
-            file_count,
-            line_offsets,
-            sizeof(line_offsets) / sizeof(line_offsets[0])) != RIVET_OK ||
-        rivet_surface_attach(
-            &surface,
-            pixels,
-            sizeof(pixels),
-            PROOF_WIDTH,
-            PROOF_HEIGHT,
-            (size_t)PROOF_WIDTH * RIVET_GFX_PIXEL_BYTES) != RIVET_OK ||
-        rivet_surface_fill_rect(
-            &surface,
-            full,
-            clear) != RIVET_OK ||
-        rivet_commands_init(
-            &commands,
-            slots,
-            3u) != RIVET_OK) {
+            &file_count)) {
+        fprintf(stderr, "proof failed: read text file\n");
         return 1;
     }
+
+    REQUIRE_OK(rivet_textview_open(
+        &viewer,
+        file_bytes,
+        file_count,
+        line_offsets,
+        sizeof(line_offsets) / sizeof(line_offsets[0])));
+    REQUIRE_OK(rivet_surface_attach(
+        &surface,
+        pixels,
+        sizeof(pixels),
+        PROOF_WIDTH,
+        PROOF_HEIGHT,
+        (size_t)PROOF_WIDTH * RIVET_GFX_PIXEL_BYTES));
+    REQUIRE_OK(rivet_surface_fill_rect(
+        &surface,
+        full,
+        clear));
+    REQUIRE_OK(rivet_commands_init(
+        &commands,
+        slots,
+        3u));
 
     context.viewer = &viewer;
     context.query = query_pixels;
     context.query_length = sizeof(query_pixels);
 
-    if (rivet_commands_add(
-            &commands,
-            "view.down",
-            command_down,
-            &context) != RIVET_OK ||
-        rivet_commands_add(
-            &commands,
-            "view.up",
-            command_up,
-            &context) != RIVET_OK ||
-        rivet_commands_add(
-            &commands,
-            "view.find",
-            command_find,
-            &context) != RIVET_OK ||
-        rivet_keymap_validate(&keymap) != RIVET_OK ||
-        rivet_keymap_dispatch(
-            &keymap,
-            &commands,
-            down) != RIVET_OK ||
-        rivet_keymap_dispatch(
-            &keymap,
-            &commands,
-            down) != RIVET_OK ||
-        viewer.top_line != 2u ||
-        rivet_keymap_dispatch(
-            &keymap,
-            &commands,
-            find) != RIVET_OK ||
-        viewer.top_line != 4u ||
-        !viewer.has_match ||
-        rivet_textview_render(
-            &surface,
-            &viewer,
-            full,
-            style) != RIVET_OK) {
+    REQUIRE_OK(rivet_commands_add(
+        &commands,
+        "view.down",
+        command_down,
+        &context));
+    REQUIRE_OK(rivet_commands_add(
+        &commands,
+        "view.up",
+        command_up,
+        &context));
+    REQUIRE_OK(rivet_commands_add(
+        &commands,
+        "view.find",
+        command_find,
+        &context));
+    REQUIRE_OK(rivet_keymap_validate(&keymap));
+    REQUIRE_OK(rivet_keymap_dispatch(
+        &keymap,
+        &commands,
+        down));
+    REQUIRE_OK(rivet_keymap_dispatch(
+        &keymap,
+        &commands,
+        down));
+
+    if (viewer.top_line != 2u) {
+        fprintf(stderr, "proof failed: expected top line 2, got %lu\n",
+                (unsigned long)viewer.top_line);
         return 1;
     }
+
+    REQUIRE_OK(rivet_keymap_dispatch(
+        &keymap,
+        &commands,
+        find));
+
+    if (viewer.top_line != 4u || !viewer.has_match) {
+        fprintf(stderr,
+                "proof failed: search state top=%lu match=%d offset=%lu\n",
+                (unsigned long)viewer.top_line,
+                viewer.has_match,
+                (unsigned long)viewer.match_offset);
+        return 1;
+    }
+
+    REQUIRE_OK(rivet_textview_render(
+        &surface,
+        &viewer,
+        full,
+        style));
 
     hash = fnv1a64(pixels, sizeof(pixels));
 
