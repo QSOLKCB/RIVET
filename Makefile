@@ -1,5 +1,4 @@
 CC ?= cc
-CPPFLAGS ?= -Iinclude
 CFLAGS ?= -std=c99 -O2 -Wall -Wextra -Wpedantic
 BUILD_DIR ?= build
 
@@ -14,10 +13,10 @@ $(BUILD_DIR):
 	mkdir -p $(BUILD_DIR)
 
 $(BUILD_DIR)/rivet-headless: $(CORE) $(HEADER) examples/r1_headless.c | $(BUILD_DIR)
-	$(CC) $(CPPFLAGS) $(CFLAGS) $(CORE) examples/r1_headless.c -o $@
+	$(CC) $(CPPFLAGS) -Iinclude $(CFLAGS) $(CORE) examples/r1_headless.c -o $@
 
 $(BUILD_DIR)/test-core: $(CORE) $(HEADER) tests/test_core.c | $(BUILD_DIR)
-	$(CC) $(CPPFLAGS) $(CFLAGS) $(CORE) tests/test_core.c -o $@
+	$(CC) $(CPPFLAGS) -Iinclude $(CFLAGS) $(CORE) tests/test_core.c -o $@
 
 test: check-no-heap $(BUILD_DIR)/test-core
 	./$(BUILD_DIR)/test-core

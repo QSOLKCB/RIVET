@@ -10,7 +10,9 @@ extern "C" {
 
 #define RIVET_ABI_VERSION 1u
 
-typedef enum rivet_result {
+typedef int rivet_result;
+
+enum {
     RIVET_OK = 0,
     RIVET_ERR_INVALID_ARGUMENT = 1,
     RIVET_ERR_CAPACITY = 2,
@@ -18,7 +20,7 @@ typedef enum rivet_result {
     RIVET_ERR_DUPLICATE = 4,
     RIVET_ERR_STOPPED = 5,
     RIVET_ERR_UNSUPPORTED = 6
-} rivet_result;
+};
 
 const char *rivet_result_name(rivet_result result);
 
@@ -27,7 +29,11 @@ typedef struct rivet_capability_set {
     size_t count;
 } rivet_capability_set;
 
-int rivet_capability_has(const rivet_capability_set *set, const char *id);
+rivet_result rivet_capability_has(
+    const rivet_capability_set *set,
+    const char *id,
+    int *has
+);
 
 typedef rivet_result (*rivet_command_fn)(void *context);
 

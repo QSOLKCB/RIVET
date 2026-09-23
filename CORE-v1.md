@@ -22,7 +22,7 @@ RIVET_ABI_VERSION = 1
 language baseline  = C99
 ```
 
-The public structs are intentionally plain and inspectable. A future incompatible layout change requires a new ABI identity rather than silently changing ABI v1.
+The public structs are intentionally plain and inspectable. `rivet_result` is an explicit C `int`; result constants are integer constants rather than an implementation-sized enum type. A future incompatible public type/layout change requires a new ABI identity rather than silently changing ABI v1.
 
 ## Memory boundary
 
@@ -61,6 +61,14 @@ Core v1 exposes these stable values:
 
 `rivet_capability_has()` performs exact, case-sensitive membership against a caller-supplied capability set.
 
+The function returns a `rivet_result` and writes membership through an `int *has` output only after the complete supplied set has been validated.
+
+- present capability -> `RIVET_OK`, `has = 1`;
+- absent capability -> `RIVET_OK`, `has = 0`;
+- null/empty requested ID, null output pointer, impossible set storage, or null/empty set entry -> `RIVET_ERR_INVALID_ARGUMENT`.
+
+On invalid input the output value is left unchanged. Malformed input is therefore never collapsed into the valid "capability absent" state.
+
 It does not infer capabilities from OS, CPU, target age, or naming conventions. It also does not prove that a declaration is truthful; platform adapters and tests must establish that evidence.
 
 Canonical capability names remain governed by the current capability contract rather than this primitive.
@@ -75,6 +83,7 @@ The command registry:
 - rejects duplicate command IDs;
 - returns explicit capacity exhaustion;
 - dispatches by exact command identity;
+- rejects malformed or duplicate caller-mutated active slots;
 - preserves callback return values.
 
 Registration order does not redefine command identity.
@@ -89,7 +98,8 @@ It:
 - performs no hidden allocation;
 - processes at most one queued event per `rivet_loop_step()`;
 - reports an empty queue through `RIVET_OK` with `did_work = 0`;
-- consumes an event before invoking its callback;
+- rejects a malformed queued null callback without consuming it;
+- consumes a valid event before invoking its callback;
 - propagates the callback result;
 - rejects new work after `rivet_loop_stop()`.
 

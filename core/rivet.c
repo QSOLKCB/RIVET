@@ -26,10 +26,29 @@ static int rivet_streq(const char *left, const char *right)
 
 static int rivet_registry_valid(const rivet_command_registry *registry)
 {
-    return registry != NULL &&
-           registry->slots != NULL &&
-           registry->capacity != 0u &&
-           registry->count <= registry->capacity;
+    size_t i;
+    size_t j;
+
+    if (registry == NULL ||
+        registry->slots == NULL ||
+        registry->capacity == 0u ||
+        registry->count > registry->capacity) {
+        return 0;
+    }
+
+    for (i = 0u; i < registry->count; ++i) {
+        if (!rivet_id_valid(registry->slots[i].id) ||
+            registry->slots[i].fn == NULL) {
+            return 0;
+        }
+        for (j = i + 1u; j < registry->count; ++j) {
+            if (rivet_streq(registry->slots[i].id, registry->slots[j].id)) {
+                return 0;
+            }
+        }
+    }
+
+    return 1;
 }
 
 static int rivet_loop_valid(const rivet_loop *loop)
@@ -63,24 +82,33 @@ const char *rivet_result_name(rivet_result result)
     }
 }
 
-int rivet_capability_has(const rivet_capability_set *set, const char *id)
+rivet_result rivet_capability_has(
+    const rivet_capability_set *set,
+    const char *id,
+    int *has
+)
 {
     size_t i;
+    int found = 0;
 
-    if (set == NULL || !rivet_id_valid(id)) {
-        return 0;
+    if (set == NULL || !rivet_id_valid(id) || has == NULL) {
+        return RIVET_ERR_INVALID_ARGUMENT;
     }
     if (set->count != 0u && set->ids == NULL) {
-        return 0;
+        return RIVET_ERR_INVALID_ARGUMENT;
     }
 
     for (i = 0u; i < set->count; ++i) {
+        if (!rivet_id_valid(set->ids[i])) {
+            return RIVET_ERR_INVALID_ARGUMENT;
+        }
         if (rivet_streq(set->ids[i], id)) {
-            return 1;
+            found = 1;
         }
     }
 
-    return 0;
+    *has = found;
+    return RIVET_OK;
 }
 
 rivet_result rivet_commands_init(
@@ -219,6 +247,10 @@ rivet_result rivet_loop_step(
     }
 
     event = loop->events[loop->head];
+    if (event.fn == NULL) {
+        return RIVET_ERR_INVALID_ARGUMENT;
+    }
+
     loop->head = (loop->head + 1u) % loop->capacity;
     --loop->count;
     *did_work = 1;

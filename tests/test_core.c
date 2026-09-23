@@ -51,16 +51,40 @@ static int test_result_model(void)
 static int test_capabilities(void)
 {
     const char *const ids[] = {"alpha", "beta", "timer.monotonic"};
+    const char *const malformed_ids[] = {"alpha", NULL};
+    const char *const empty_id[] = {""};
     rivet_capability_set set = {ids, 3u};
     rivet_capability_set empty = {NULL, 0u};
+    rivet_capability_set malformed_array = {NULL, 1u};
+    rivet_capability_set malformed_entry = {malformed_ids, 2u};
+    rivet_capability_set malformed_empty_id = {empty_id, 1u};
+    int has = -1;
 
-    CHECK(rivet_capability_has(&set, "alpha") == 1);
-    CHECK(rivet_capability_has(&set, "timer.monotonic") == 1);
-    CHECK(rivet_capability_has(&set, "Alpha") == 0);
-    CHECK(rivet_capability_has(&set, "missing") == 0);
-    CHECK(rivet_capability_has(&empty, "alpha") == 0);
-    CHECK(rivet_capability_has(NULL, "alpha") == 0);
-    CHECK(rivet_capability_has(&set, NULL) == 0);
+    CHECK(rivet_capability_has(&set, "alpha", &has) == RIVET_OK);
+    CHECK(has == 1);
+    CHECK(rivet_capability_has(&set, "timer.monotonic", &has) == RIVET_OK);
+    CHECK(has == 1);
+    CHECK(rivet_capability_has(&set, "Alpha", &has) == RIVET_OK);
+    CHECK(has == 0);
+    CHECK(rivet_capability_has(&set, "missing", &has) == RIVET_OK);
+    CHECK(has == 0);
+    CHECK(rivet_capability_has(&empty, "alpha", &has) == RIVET_OK);
+    CHECK(has == 0);
+
+    has = 7;
+    CHECK(rivet_capability_has(NULL, "alpha", &has) == RIVET_ERR_INVALID_ARGUMENT);
+    CHECK(has == 7);
+    CHECK(rivet_capability_has(&set, NULL, &has) == RIVET_ERR_INVALID_ARGUMENT);
+    CHECK(has == 7);
+    CHECK(rivet_capability_has(&set, "", &has) == RIVET_ERR_INVALID_ARGUMENT);
+    CHECK(has == 7);
+    CHECK(rivet_capability_has(&set, "alpha", NULL) == RIVET_ERR_INVALID_ARGUMENT);
+    CHECK(rivet_capability_has(&malformed_array, "alpha", &has) == RIVET_ERR_INVALID_ARGUMENT);
+    CHECK(has == 7);
+    CHECK(rivet_capability_has(&malformed_entry, "alpha", &has) == RIVET_ERR_INVALID_ARGUMENT);
+    CHECK(has == 7);
+    CHECK(rivet_capability_has(&malformed_empty_id, "alpha", &has) == RIVET_ERR_INVALID_ARGUMENT);
+    CHECK(has == 7);
     return 0;
 }
 
@@ -85,6 +109,18 @@ static int test_commands(void)
     registry.count = registry.capacity + 1u;
     CHECK(rivet_commands_dispatch(&registry, "first") == RIVET_ERR_INVALID_ARGUMENT);
     registry.count = 2u;
+
+    registry.slots[0].id = NULL;
+    CHECK(rivet_commands_dispatch(&registry, "first") == RIVET_ERR_INVALID_ARGUMENT);
+    registry.slots[0].id = "first";
+
+    registry.slots[0].fn = NULL;
+    CHECK(rivet_commands_dispatch(&registry, "first") == RIVET_ERR_INVALID_ARGUMENT);
+    registry.slots[0].fn = increment;
+
+    registry.slots[1].id = "first";
+    CHECK(rivet_commands_dispatch(&registry, "first") == RIVET_ERR_INVALID_ARGUMENT);
+    registry.slots[1].id = "second";
 
     CHECK(rivet_commands_init(NULL, slots, 2u) == RIVET_ERR_INVALID_ARGUMENT);
     CHECK(rivet_commands_init(&registry, NULL, 2u) == RIVET_ERR_INVALID_ARGUMENT);
@@ -118,6 +154,13 @@ static int test_loop_fifo(void)
     CHECK(output[0] == 1 && output[1] == 2 && output[2] == 3);
 
     CHECK(rivet_loop_step(&loop, &did_work) == RIVET_OK && did_work == 0);
+
+    CHECK(rivet_loop_post(&loop, record_value, &contexts[0]) == RIVET_OK);
+    loop.events[loop.head].fn = NULL;
+    CHECK(rivet_loop_step(&loop, &did_work) == RIVET_ERR_INVALID_ARGUMENT);
+    CHECK(loop.count == 1u);
+    loop.events[loop.head].fn = record_value;
+    CHECK(rivet_loop_step(&loop, &did_work) == RIVET_OK && did_work == 1);
 
     loop.head = loop.capacity;
     CHECK(rivet_loop_step(&loop, &did_work) == RIVET_ERR_INVALID_ARGUMENT);

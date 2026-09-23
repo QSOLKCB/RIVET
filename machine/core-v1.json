@@ -54,5 +54,17 @@
     "scheduler",
     "async-runtime",
     "performance-claim"
-  ]
+  ],
+  "result_abi": "int",
+  "capability_query": {
+    "function": "rivet_capability_has",
+    "result": "rivet_result",
+    "membership_output": "int",
+    "matching": "exact-case-sensitive",
+    "invalid_input": "RIVET_ERR_INVALID_ARGUMENT",
+    "absent_capability_is_error": false,
+    "invalid_input_preserves_output": true
+  },
+  "command_registry_fail_closed_on_malformed_active_slots": true,
+  "event_loop_fail_closed_on_null_queued_callback": true
 }

@@ -32,6 +32,7 @@ int main(void)
     rivet_loop loop;
     demo state;
     int did_work = 0;
+    int has_capability = 0;
     rivet_result result;
 
     state.commands = &commands;
@@ -57,7 +58,8 @@ int main(void)
     if (result != RIVET_OK || did_work != 1 || state.count != 1) {
         return 1;
     }
-    if (!rivet_capability_has(&capabilities, "demo.headless")) {
+    result = rivet_capability_has(&capabilities, "demo.headless", &has_capability);
+    if (result != RIVET_OK || !has_capability) {
         return 1;
     }
 
