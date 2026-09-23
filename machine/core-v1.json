@@ -1,0 +1,58 @@
+{
+  "schema": "rivet.core/v1",
+  "version": 1,
+  "authority": "CORE-v1.md",
+  "abi_version": 1,
+  "language_baseline": "C99",
+  "public_header": "include/rivet/rivet.h",
+  "reference_implementation": "core/rivet.c",
+  "claim_boundary": "portable-core-bring-up-only-no-platform-or-performance-claim",
+  "services": [
+    "explicit-result-model",
+    "exact-capability-membership-query",
+    "fixed-capacity-command-registry",
+    "single-thread-fixed-capacity-event-loop"
+  ],
+  "memory": {
+    "mandatory_heap": false,
+    "caller_owned_storage": [
+      "command-slots",
+      "event-queue",
+      "command-id-bytes",
+      "callback-contexts"
+    ],
+    "capacity_exhaustion_result": "RIVET_ERR_CAPACITY",
+    "allocator_vtable": false
+  },
+  "result_codes": {
+    "RIVET_OK": 0,
+    "RIVET_ERR_INVALID_ARGUMENT": 1,
+    "RIVET_ERR_CAPACITY": 2,
+    "RIVET_ERR_NOT_FOUND": 3,
+    "RIVET_ERR_DUPLICATE": 4,
+    "RIVET_ERR_STOPPED": 5,
+    "RIVET_ERR_UNSUPPORTED": 6
+  },
+  "event_order": "fifo-post-order",
+  "threading": "single-threaded",
+  "tests": [
+    "tests/test_core.c",
+    "examples/r1_headless.c"
+  ],
+  "non_goals": [
+    "dynamic-allocation",
+    "allocator-vtable",
+    "gui",
+    "rendering",
+    "network",
+    "filesystem",
+    "threads",
+    "simd",
+    "gpu",
+    "scripting",
+    "plugins",
+    "scheduler",
+    "async-runtime",
+    "performance-claim"
+  ]
+}

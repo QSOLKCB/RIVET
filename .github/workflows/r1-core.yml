@@ -1,0 +1,68 @@
+name: R1 Core
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  frozen-contracts:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Verify immutable v0.1.0 authorities
+        run: |
+          git diff --exit-code v0.1.0 -- \
+            CONSTITUTION.md \
+            ARCHITECTURE.md \
+            PORTABILITY.md \
+            CONSTITUTION-v2.md \
+            ARCHITECTURE-v2.md \
+            PORTABILITY-v2.md \
+            RENDERING-v1.md \
+            RUNTIME-PLAN-v1.md \
+            DONORS-v1.md \
+            machine/project-v1.json \
+            machine/project-v2.json \
+            machine/invariants.json \
+            machine/invariants-v2.json \
+            machine/capabilities-v1.json \
+            machine/capabilities-v2.json \
+            machine/rendering-v1.json \
+            machine/runtime-plan-v1.json
+
+      - name: Validate machine JSON
+        run: |
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+
+          for path in sorted(Path("machine").rglob("*.json")):
+              json.loads(path.read_text(encoding="utf-8"))
+              print(path)
+          PY
+
+  c99:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        cc: [gcc, clang]
+    env:
+      CC: ${{ matrix.cc }}
+      CFLAGS: -std=c99 -O2 -Wall -Wextra -Wpedantic -Werror
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Unit tests
+        run: |
+          make clean
+          make test
+
+      - name: Headless proof
+        run: |
+          make clean
+          make
+          ./build/rivet-headless
+          wc -c build/rivet-headless

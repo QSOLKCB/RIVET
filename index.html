@@ -18,7 +18,7 @@ a{color:var(--hot)}.muted{color:var(--muted)}footer{margin-top:56px;color:var(--
 <body>
 <main>
 <header>
-<div class="tag">R0 // CONSTITUTIONAL FOUNDATION</div>
+<div class="tag">R1 // PORTABLE CORE</div>
 <h1>RIVET</h1>
 <p class="lead"><strong>Resilient Interface, View &amp; Execution Toolkit.</strong> Lean application infrastructure for software that should remain useful after the fashionable stack is gone.</p>
 </header>
@@ -30,14 +30,14 @@ RIVET TARGETS PIXELS != GPUs
 "LIGHTWEIGHT"        != EVIDENCE</pre>
 <div class="grid">
 <div class="card"><strong>Minimal</strong><br><span class="muted">If equivalent behaviour can be implemented with materially less code and no loss of correctness, safety, readability or portability, the smaller implementation wins.</span></div>
-<div class="card"><strong>Explicit</strong><br><span class="muted">Applications declare capabilities. Targets declare what they actually provide. Unsupported means unsupported.</span></div>
+<div class="card"><strong>Bounded</strong><br><span class="muted">Core v1 uses caller-owned fixed-capacity command and event storage. No mandatory heap, worker pool or scheduler.</span></div>
 <div class="card"><strong>Portable</strong><br><span class="muted">C99 baseline, stable C ABI direction, CPU/software raster rendering, no RIVET GPU API, no mandatory network or threads.</span></div>
 <div class="card"><strong>User-owned</strong><br><span class="muted">Capabilities survive UI fashion. State should remain inspectable. No telemetry or account requirement by default.</span></div>
 </div>
-<h2>The proof</h2>
+<h2>The core</h2>\n<p>R1 adds the first executable substrate: explicit result codes, exact capability membership, a bounded command registry and a single-threaded FIFO event loop. It deliberately stops before GUI, rendering, networking, threads or generic allocation machinery.</p>\n<h2>The proof</h2>
 <p>The long-term demonstration is a lean RIVET Browser spanning modern systems and deliberately constrained historical targets. The browser is downstream of the framework: it must prove the architecture rather than infect it.</p>
 <h2>Start here</h2>
-<p><a href="README.md">README</a> · <a href="CONSTITUTION-v2.md">Constitution</a> · <a href="ARCHITECTURE-v2.md">Architecture</a> · <a href="PORTABILITY-v2.md">Portability</a> · <a href="RENDERING-v1.md">Rendering</a> · <a href="ROADMAP.md">Roadmap</a> · <a href="RUNTIME-PLAN-v1.md">Runtime plan</a></p>
+<p><a href="README.md">README</a> · <a href="CORE-v1.md">Core v1</a> · <a href="CONSTITUTION-v2.md">Constitution</a> · <a href="ARCHITECTURE-v2.md">Architecture</a> · <a href="PORTABILITY-v2.md">Portability</a> · <a href="RENDERING-v1.md">Rendering</a> · <a href="ROADMAP.md">Roadmap</a> · <a href="RUNTIME-PLAN-v1.md">Runtime plan</a></p>
 <footer>MPL-2.0 · static HTML/CSS · no framework · no analytics · no build step</footer>
 </main>
 </body>

@@ -1,0 +1,57 @@
+{
+  "schema": "rivet.project/v3",
+  "version": 3,
+  "supersedes": "rivet.project/v2",
+  "project": "RIVET",
+  "expanded_name": "Resilient Interface, View & Execution Toolkit",
+  "phase": "R1",
+  "status": "portable-core",
+  "license": "MPL-2.0",
+  "portable_language_baseline": "C99",
+  "public_abi_direction": "C",
+  "mission": "lean capability-driven application infrastructure with explicit portability, user control and long software lifetimes",
+  "browser_role": "downstream-proof-application",
+  "core_contract": "rivet.core/v1",
+  "core_contract_path": "machine/core-v1.json",
+  "capability_contract": "rivet.capabilities/v2",
+  "capability_contract_path": "machine/capabilities-v2.json",
+  "invariant_contract": "rivet.invariants/v2",
+  "invariant_contract_path": "machine/invariants-v2.json",
+  "rendering_contract": "rivet.rendering/v1",
+  "rendering_contract_path": "machine/rendering-v1.json",
+  "release_baseline": {
+    "version": "v0.1.0",
+    "commit": "1095ad76f6a65552cc137dc6b12909dc308c55dd",
+    "immutable": true
+  },
+  "normative_human_sources": [
+    "CONSTITUTION-v2.md",
+    "ARCHITECTURE-v2.md",
+    "PORTABILITY-v2.md",
+    "RENDERING-v1.md",
+    "CORE-v1.md"
+  ],
+  "machine_sources": [
+    "machine/invariants-v2.json",
+    "machine/capabilities-v2.json",
+    "machine/rendering-v1.json",
+    "machine/core-v1.json",
+    "machine/project-v3.json"
+  ],
+  "historical_machine_contracts": [
+    "machine/project-v1.json",
+    "machine/project-v2.json",
+    "machine/invariants.json",
+    "machine/capabilities-v1.json"
+  ],
+  "historical_human_contracts": [
+    "CONSTITUTION.md",
+    "ARCHITECTURE.md",
+    "PORTABILITY.md"
+  ],
+  "planning_sources": [
+    "RUNTIME-PLAN-v1.md",
+    "DONORS-v1.md",
+    "machine/runtime-plan-v1.json"
+  ]
+}

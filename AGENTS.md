@@ -130,8 +130,10 @@ Do not duplicate large rule sets in many files; link to the authority.
 
 Published versioned machine contracts and the versioned human authority paths they name are immutable. Frozen legacy authority paths such as `CONSTITUTION.md`, `ARCHITECTURE.md`, and `PORTABILITY.md` must also remain byte-stable for the contract identities that name them. Breaking semantic changes require new contract identities and new versioned authority paths rather than rewriting an existing version in place.
 
-## R0 boundary
+## Phase boundary
 
-During R0, do not add framework/runtime implementation code.
+R0 is frozen in immutable `v0.1.0`.
 
-The static Pages site is documentation, not runtime implementation.
+R1 may add only the portable-core surface described by [CORE-v1.md](CORE-v1.md): result semantics, exact capability membership, bounded command registration/dispatch, and a single-threaded bounded event loop.
+
+Do not pull R2 rendering primitives, platform window/message integration, networking, threads, SIMD, caches, schedulers, or other later-phase machinery into R1.

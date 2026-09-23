@@ -4,7 +4,7 @@ The roadmap is deliberately staged so architecture is earned before complexity a
 
 ## R0 — Constitutional foundation
 
-**Complete in PR #1.**
+**Complete and frozen in immutable v0.1.0.**
 
 - freeze project mission and invariants;
 - define capability and Minimum Execution Substrate concepts;
@@ -17,6 +17,8 @@ No application/runtime implementation belongs in R0.
 
 ## R1 — Portable core
 
+**Current phase.**
+
 R1 follows [RUNTIME-PLAN-v1.md](RUNTIME-PLAN-v1.md):
 
 - the second implementation earns the abstraction;
@@ -26,18 +28,23 @@ R1 follows [RUNTIME-PLAN-v1.md](RUNTIME-PLAN-v1.md):
 - benchmark observations do not enter correctness identity;
 - reuse/cache requires complete effective-input binding.
 
-Implement the smallest useful C99 core:
+Implemented R1 core slice:
 
-- byte/string helpers only where needed;
-- allocator boundary;
-- event loop skeleton;
-- command registry;
-- capability query;
-- explicit error model;
-- deterministic unit tests.
+- [x] explicit result/error model;
+- [x] exact capability membership query;
+- [x] fixed-capacity command registry;
+- [x] single-threaded fixed-capacity FIFO event loop;
+- [x] caller-owned bounded storage with no mandatory heap;
+- [x] deterministic unit tests;
+- [x] tiny headless proof host;
+- [x] GCC/Clang C99 CI;
+- [x] immutable-v0.1.0 authority regression gate.
+
+The original generic allocator-boundary idea is deliberately deferred. R1 has no dynamic allocation requirement, so a general allocator abstraction would be machinery without a second real allocation policy.
 
 Success criterion: one tiny host program exercises the core with no GUI dependency.
 
+See [CORE-v1.md](CORE-v1.md).
 ## R2 — Software surface
 
 Add the smallest raster contract needed for a real application:

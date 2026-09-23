@@ -12,11 +12,27 @@ The eventual RIVET Browser is a proof application, not the definition of the fra
 
 ## Status
 
-**R0 — constitutional foundation.**
+**R1 — portable core.**
 
-R0 defines the invariants, architecture, portability model, roadmap, donor boundaries, and machine-readable project contracts before implementation begins.
+The immutable `v0.1.0` release freezes R0. R1 adds the first executable C99 substrate: an explicit result model, exact capability membership query, fixed-capacity command registry, and single-threaded FIFO event loop.
 
-No browser engine, widget toolkit, scripting engine, accelerator, or platform backend is canonical yet.
+Core v1 requires **no heap allocation**. Registry and queue storage are supplied by the caller with explicit capacities.
+
+No GUI, renderer, platform backend, network stack, worker pool, scheduler, scripting engine, SIMD path, or GPU API is part of R1.
+
+## R1 quick proof
+
+```sh
+make test
+make
+./build/rivet-headless
+```
+
+The proof host exercises the public core with no GUI dependency.
+
+The implementation deliberately uses caller-owned bounded storage instead of inventing a generic allocator abstraction before a second allocation policy exists.
+
+See [CORE-v1.md](CORE-v1.md).
 
 ## Mission
 
@@ -117,6 +133,7 @@ The GitHub Pages site is intentionally static HTML/CSS with no framework, analyt
 
 ## Repository guide
 
+- [CORE-v1.md](CORE-v1.md) — executable R1 core/ABI contract.
 - [CONSTITUTION-v2.md](CONSTITUTION-v2.md) — current non-negotiable project invariants.
 - [CONSTITUTION.md](CONSTITUTION.md) — frozen v1 authority retained for compatibility.
 - [ARCHITECTURE-v2.md](ARCHITECTURE-v2.md) — current layer, runtime, rendering, and authority model.
@@ -128,7 +145,8 @@ The GitHub Pages site is intentionally static HTML/CSS with no framework, analyt
 - [RUNTIME-PLAN-v1.md](RUNTIME-PLAN-v1.md) — donor-derived runtime and memory plan for R1+.
 - [DONORS-v1.md](DONORS-v1.md) — frozen donor/provenance map for runtime-plan v1.
 - [AGENTS.md](AGENTS.md) — rules for coding agents and contributors.
-- [machine/project-v2.json](machine/project-v2.json) — current compact machine entrypoint; merged v1 contracts remain preserved for compatibility.
+- [machine/project-v3.json](machine/project-v3.json) — current machine entrypoint for R1.
+- [machine/project-v2.json](machine/project-v2.json) — frozen R0 project contract.
 - [machine/](machine/) — versioned machine-readable project contracts.
 
 ## Licence
