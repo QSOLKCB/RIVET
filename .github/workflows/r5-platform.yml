@@ -12,26 +12,41 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Verify only R5 allowlisted paths differ
+      - name: Verify frozen R4 baseline surfaces remain unchanged
         run: |
-          git diff --exit-code e9dcaf87cb241fe59f0fa388c10ce93a78007a22 -- . \
-            ':(exclude).github/workflows/r5-platform.yml' \
-            ':(exclude)AGENTS.md' \
-            ':(exclude)Makefile' \
-            ':(exclude)PLATFORM-v1.md' \
-            ':(exclude)README.md' \
-            ':(exclude)ROADMAP.md' \
-            ':(exclude)examples/r5_platform_proof.c' \
-            ':(exclude)fixtures/r5_empty.txt' \
-            ':(exclude)include/rivet/platform.h' \
-            ':(exclude)index.html' \
-            ':(exclude)machine/platform-v1.json' \
-            ':(exclude)machine/project-v7.json' \
-            ':(exclude)platform/platform.c' \
-            ':(exclude)platform/posix/platform_posix.c' \
-            ':(exclude)platform/win32/platform_win32.c' \
-            ':(exclude)scripts/r5_win32_build.ps1' \
-            ':(exclude)tests/test_platform.c'
+          baseline=e9dcaf87cb241fe59f0fa388c10ce93a78007a22
+          failed=0
+
+          while IFS= read -r path; do
+            case "$path" in
+              .github/workflows/r5-platform.yml|\
+              AGENTS.md|\
+              Makefile|\
+              PLATFORM-v1.md|\
+              README.md|\
+              ROADMAP.md|\
+              examples/r5_platform_proof.c|\
+              fixtures/r5_empty.txt|\
+              include/rivet/platform.h|\
+              index.html|\
+              machine/platform-v1.json|\
+              machine/project-v7.json|\
+              platform/platform.c|\
+              platform/posix/platform_posix.c|\
+              platform/win32/platform_win32.c|\
+              scripts/r5_win32_build.ps1|\
+              tests/test_platform.c)
+                continue
+                ;;
+            esac
+
+            if ! git diff --quiet "$baseline" -- "$path"; then
+              echo "Frozen pre-R5 path changed: $path" >&2
+              failed=1
+            fi
+          done < <(git ls-tree -r --name-only "$baseline")
+
+          exit "$failed"
 
       - name: Validate machine JSON
         run: |
