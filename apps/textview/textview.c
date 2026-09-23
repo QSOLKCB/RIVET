@@ -362,7 +362,15 @@ rivet_result rivet_textview_find_next(
 
     for (passes = 0u; passes < 2u; ++passes) {
         size_t begin = passes == 0u ? start : 0u;
-        size_t end = passes == 0u ? viewer->byte_count : start;
+        size_t end;
+
+        if (passes == 0u) {
+            end = viewer->byte_count;
+        } else if (viewer->has_match) {
+            end = viewer->match_offset;
+        } else {
+            end = start;
+        }
 
         if (end >= query_length) {
             size_t last = end - query_length;
