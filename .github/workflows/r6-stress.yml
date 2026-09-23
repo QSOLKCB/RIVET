@@ -55,8 +55,6 @@ jobs:
 
   i386:
     runs-on: ubuntu-24.04
-    env:
-      SOURCE_REVISION: ${{ github.event.pull_request.head.sha || github.sha }}
     steps:
       - uses: actions/checkout@v4
 
@@ -74,11 +72,12 @@ jobs:
           bash scripts/r6_i386.sh
           compiler="$(gcc --version | head -n1)"
           emulator="$(qemu-i386 --version | head -n1)"
+          source_revision="$(git rev-parse HEAD)"
 
           python3 scripts/r6_receipt.py \
             --proof-output build/r6-i386/native-proof.txt \
             --output build/r6-i386/receipt-native.json \
-            --source-revision "$SOURCE_REVISION" \
+            --source-revision "$source_revision" \
             --target-profile linux-i386-native-process \
             --evidence-class native-32bit-process \
             --cpu i386 \
@@ -92,7 +91,7 @@ jobs:
           python3 scripts/r6_receipt.py \
             --proof-output build/r6-i386/qemu-proof.txt \
             --output build/r6-i386/receipt-qemu.json \
-            --source-revision "$SOURCE_REVISION" \
+            --source-revision "$source_revision" \
             --target-profile linux-i386-qemu-user \
             --evidence-class E2 \
             --cpu i386 \
@@ -111,8 +110,6 @@ jobs:
 
   powerpc-big-endian:
     runs-on: ubuntu-24.04
-    env:
-      SOURCE_REVISION: ${{ github.event.pull_request.head.sha || github.sha }}
     steps:
       - uses: actions/checkout@v4
 
@@ -130,11 +127,12 @@ jobs:
           bash scripts/r6_ppc_be.sh
           compiler="$(powerpc-linux-gnu-gcc --version | head -n1)"
           emulator="$(qemu-ppc --version | head -n1)"
+          source_revision="$(git rev-parse HEAD)"
 
           python3 scripts/r6_receipt.py \
             --proof-output build/r6-ppc-be/qemu-proof.txt \
             --output build/r6-ppc-be/receipt-qemu.json \
-            --source-revision "$SOURCE_REVISION" \
+            --source-revision "$source_revision" \
             --target-profile linux-powerpc32-big-endian-qemu-user \
             --evidence-class E2 \
             --cpu powerpc32 \
