@@ -58,12 +58,15 @@ jobs:
           make clean
           make test-textview CPPFLAGS=-DRIVET_EXTERNAL_CPPFLAGS=1
 
-      - name: Measure deterministic proof
+      - name: Deterministic text-viewer proof
         run: |
           make clean
           make textview CPPFLAGS=-DRIVET_EXTERNAL_CPPFLAGS=1
+          fixture_sha="$(python3 -c 'import json; print(json.load(open("machine/textview-v1.json"))["reference_vector"]["fixture_sha256"])')"
+          ppm_sha="$(python3 -c 'import json; print(json.load(open("machine/textview-v1.json"))["reference_vector"]["ppm_sha256"])')"
+          echo "$fixture_sha  fixtures/r4_textview.txt" | sha256sum -c -
           ./build/rivet-textview-proof fixtures/r4_textview.txt build/rivet-textview-proof.ppm
-          sha256sum build/rivet-textview-proof.ppm
+          echo "$ppm_sha  build/rivet-textview-proof.ppm" | sha256sum -c -
           wc -c build/rivet-textview-proof fixtures/r4_textview.txt build/rivet-textview-proof.ppm
 
   sanitizers:

@@ -130,7 +130,21 @@ It:
 8. renders the viewer and highlighted match through GFX v1;
 9. writes a PPM evidence frame.
 
-The exact pixel/PPM identities are measured by branch CI before PR publication and then frozen into this v1 contract.
+Reference identity:
+
+```text
+fixture bytes    = 237
+fixture SHA-256  = 8d4a34353106071386727b776fa3089801563708dc521e0d363a447e12bb791e
+line count       = 9
+search query     = PIXELS (50 49 58 45 4c 53)
+top line         = 4
+match byte offset= 120
+surface          = 192 x 48 RGBA8888
+pixel FNV-1a64   = c64fb52b456cde58
+PPM SHA-256      = 89a92f0fdfb2966a06b91ab50c3d2c905cf4eb340782d2df001dfe6cb369b95a
+```
+
+The fixture, pixel bytes and PPM output are deterministic conformance evidence, not performance claims.
 
 ## Non-goals
 

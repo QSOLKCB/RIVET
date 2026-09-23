@@ -40,12 +40,17 @@
   },
   "reference_vector": {
     "fixture": "fixtures/r4_textview.txt",
+    "fixture_bytes": 237,
+    "fixture_sha256": "8d4a34353106071386727b776fa3089801563708dc521e0d363a447e12bb791e",
     "program": "examples/r4_textview_proof.c",
     "width": 192,
     "height": 48,
     "query_ascii_hex": "50 49 58 45 4c 53",
-    "fnv1a64": "pending-r4-ci",
-    "ppm_sha256": "pending-r4-ci"
+    "line_count": 9,
+    "top_line": 4,
+    "match_offset": 120,
+    "fnv1a64": "c64fb52b456cde58",
+    "ppm_sha256": "89a92f0fdfb2966a06b91ab50c3d2c905cf4eb340782d2df001dfe6cb369b95a"
   },
   "non_goals": [
     "browser",

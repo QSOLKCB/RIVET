@@ -12,32 +12,34 @@ The eventual RIVET Browser is a proof application, not the definition of the fra
 
 ## Status
 
-**R3 — input + lean UI.**
+**R4 — non-browser proof application.**
 
-R2 is merged at `07ed7b1d37f7e09d40d8bd01c27788e205544dfe`. R3 adds portable logical keyboard events plus two command projections: exact key bindings and one lean menu.
+R3 is merged at `1ecdaad1cac1532124dae906d43070a6c7059806`. R4 adds a bounded read-only text viewer under `apps/textview/` without changing Core v1, GFX v1, or UI v1.
 
-The menu uses caller-owned items and a tiny built-in uppercase 5x7 bitmap alphabet. It renders through GFX v1 and requires no heap allocation.
+The viewer opens caller-owned bytes into a caller-owned line index, supports exact search plus line/page navigation, renders through GFX v1, and projects navigation/search commands through UI v1 key bindings.
 
-## R3 quick proof
+## R4 quick proof
 
 ```sh
-make test-ui
-make ui
-./build/rivet-ui-proof build/rivet-ui-proof.ppm
+make test-textview
+make textview
+./build/rivet-textview-proof fixtures/r4_textview.txt build/rivet-textview-proof.ppm
 ```
 
-The deterministic proof must produce:
+Frozen evidence:
 
 ```text
-FNV-1a64    8e022a6d842ff8e5
-PPM SHA-256 c7feae9354c6934df1b199aa869845e0bae2cf46bb0cabce4e78930095fb21fd
-open/save   1 / 1
-menu final  hidden
+fixture bytes  237
+lines          9
+search         PIXELS
+top / match    4 / 120
+FNV-1a64       c64fb52b456cde58
+PPM SHA-256    89a92f0fdfb2966a06b91ab50c3d2c905cf4eb340782d2df001dfe6cb369b95a
 ```
 
-The proof activates SAVE through the menu, removes the menu presentation, then still activates OPEN through `CTRL+O` using the same command registry.
+The headless file reader is proof/application infrastructure only; it is not a RIVET filesystem or native platform backend.
 
-See [UI-v1.md](UI-v1.md).
+See [TEXTVIEW-v1.md](TEXTVIEW-v1.md).
 ## Mission
 
 RIVET exists to make it practical to build software that is:
@@ -137,7 +139,8 @@ The GitHub Pages site is intentionally static HTML/CSS with no framework, analyt
 
 ## Repository guide
 
-- [UI-v1.md](UI-v1.md) — R3 logical keyboard, command projection, and lean-menu contract.
+- [TEXTVIEW-v1.md](TEXTVIEW-v1.md) — R4 bounded non-browser text-viewer proof contract.
+- [UI-v1.md](UI-v1.md) — frozen R3 logical keyboard, command projection, and lean-menu contract.
 - [GFX-v1.md](GFX-v1.md) — frozen R2 software-surface ABI and deterministic raster contract.
 - [CORE-v1.md](CORE-v1.md) — frozen R1 core/ABI contract.
 - [CONSTITUTION-v2.md](CONSTITUTION-v2.md) — current non-negotiable project invariants.
@@ -151,7 +154,8 @@ The GitHub Pages site is intentionally static HTML/CSS with no framework, analyt
 - [RUNTIME-PLAN-v1.md](RUNTIME-PLAN-v1.md) — donor-derived runtime and memory plan for R1+.
 - [DONORS-v1.md](DONORS-v1.md) — frozen donor/provenance map for runtime-plan v1.
 - [AGENTS.md](AGENTS.md) — rules for coding agents and contributors.
-- [machine/project-v5.json](machine/project-v5.json) — current machine entrypoint for R3.
+- [machine/project-v6.json](machine/project-v6.json) — current machine entrypoint for R4.
+- [machine/project-v5.json](machine/project-v5.json) — frozen R3 project contract.
 - [machine/project-v4.json](machine/project-v4.json) — frozen R2 project contract.
 - [machine/project-v3.json](machine/project-v3.json) — frozen R1 project contract.
 - [machine/project-v2.json](machine/project-v2.json) — frozen R0 project contract.

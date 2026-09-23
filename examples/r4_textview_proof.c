@@ -10,7 +10,7 @@
 #define PROOF_WIDTH 192ul
 #define PROOF_HEIGHT 48ul
 #define PROOF_BYTES ((size_t)PROOF_WIDTH * (size_t)PROOF_HEIGHT * RIVET_GFX_PIXEL_BYTES)
-#define PROOF_FNV1A64 0ULL
+#define PROOF_FNV1A64 0xc64fb52b456cde58ULL
 
 #define REQUIRE_OK(expr) do { \
     rivet_result _result = (expr); \
@@ -202,8 +202,11 @@ int main(int argc, char **argv)
         output_path
     );
 
-    if (PROOF_FNV1A64 != 0ULL &&
-        hash != PROOF_FNV1A64) {
+    if (hash != PROOF_FNV1A64) {
+        fprintf(stderr,
+                "proof failed: expected fnv1a64=%016llx got %016llx\n",
+                PROOF_FNV1A64,
+                hash);
         return 1;
     }
 

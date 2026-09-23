@@ -71,7 +71,7 @@ No GPU API or GPU rendering path. The CPU/software surface is the rendering arch
 See [GFX-v1.md](GFX-v1.md).
 ## R3 — Input + lean UI
 
-**Current phase.**
+**Complete in PR #5.**
 
 Implemented R3 slice:
 
@@ -94,12 +94,29 @@ Success criterion: capability remains addressable even when a presentation eleme
 See [UI-v1.md](UI-v1.md).
 ## R4 — Non-browser proof application
 
-Build a small useful application that is **not a browser**.
+**Current phase.**
 
-Candidate: document/text viewer with open, search, save/export where appropriate, keyboard navigation, user configuration, and low-resource evidence.
+Implemented R4 proof application:
 
-This proves RIVET is an application substrate rather than a browser project wearing a framework hat.
+- [x] bounded open from caller-owned document bytes;
+- [x] caller-owned line-index storage with explicit capacity failure;
+- [x] numeric-ASCII application byte contract independent of execution character set;
+- [x] line and page navigation;
+- [x] exact find-next with one wrap and preserved previous match on miss;
+- [x] keyboard command projection through frozen UI v1;
+- [x] deterministic read-only rendering through frozen GFX v1;
+- [x] caller-configurable viewer colors;
+- [x] bounded headless file reader for proof only;
+- [x] no-heap application state;
+- [x] deterministic fixture, pixel FNV and PPM SHA-256 evidence;
+- [x] GCC/Clang, ASan/UBSan and IBM1047 coverage;
+- [x] regression gate preserving Core v1, GFX v1 and UI v1.
 
+The viewer is intentionally read-only, so document save/export is not applicable to this proof. The headless stdio reader is not promoted into a RIVET filesystem abstraction before R5.
+
+This proves RIVET can host a useful application that is not a browser while keeping application semantics outside the framework contracts.
+
+See [TEXTVIEW-v1.md](TEXTVIEW-v1.md).
 ## R5 — Platform split
 
 Establish at least two materially different platform backends.
