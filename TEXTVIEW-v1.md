@@ -82,7 +82,7 @@ Rules:
 - query is non-empty;
 - query bytes must belong to the supported non-newline display subset;
 - search begins after the current match, otherwise at the current top line;
-- one wrap to the beginning is permitted;
+- one wrap to the beginning is permitted, but the current match is not reported again when it is the only occurrence;
 - a found match records exact byte offset/length and moves `top_line` to the containing line;
 - a miss returns `RIVET_ERR_NOT_FOUND` and preserves the previous match.
 
