@@ -21,7 +21,8 @@ static int rivet_surface_shape_valid(
         return 0;
     }
 
-    if (width > (unsigned long)(size_max / RIVET_GFX_PIXEL_BYTES)) {
+    if (width > (unsigned long)size_max ||
+        (size_t)width > size_max / RIVET_GFX_PIXEL_BYTES) {
         return 0;
     }
     row_bytes = (size_t)width * RIVET_GFX_PIXEL_BYTES;
@@ -29,7 +30,8 @@ static int rivet_surface_shape_valid(
     if (stride_bytes < row_bytes || stride_bytes == 0u) {
         return 0;
     }
-    if (height > (unsigned long)(size_max / stride_bytes)) {
+    if (height > (unsigned long)size_max ||
+        (size_t)height > size_max / stride_bytes) {
         return 0;
     }
     if (stride_bytes * (size_t)height > buffer_bytes) {
@@ -368,9 +370,10 @@ rivet_result rivet_surface_blit_mono1(
 
     minimum_stride = width / 8ul + (width % 8ul != 0ul ? 1ul : 0ul);
     if (minimum_stride > (unsigned long)size_max ||
-        bit_stride_bytes < (size_t)minimum_stride ||
         bit_stride_bytes == 0u ||
-        height > (unsigned long)(size_max / bit_stride_bytes) ||
+        bit_stride_bytes < (size_t)minimum_stride ||
+        height > (unsigned long)size_max ||
+        (size_t)height > size_max / bit_stride_bytes ||
         bit_stride_bytes * (size_t)height > bits_bytes) {
         return RIVET_ERR_INVALID_ARGUMENT;
     }
