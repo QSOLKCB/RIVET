@@ -25,7 +25,7 @@
   },
   "normative_human_sources": [
     "CONSTITUTION-v2.md",
-    "ARCHITECTURE.md",
+    "ARCHITECTURE-v2.md",
     "PORTABILITY.md",
     "RENDERING.md"
   ],
@@ -42,7 +42,8 @@
   ],
   "r0_implementation_allowed": false,
   "historical_human_contracts": [
-    "CONSTITUTION.md"
+    "CONSTITUTION.md",
+    "ARCHITECTURE.md"
   ],
   "planning_sources": [
     "RUNTIME-PLAN.md",

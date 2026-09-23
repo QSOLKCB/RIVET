@@ -1,4 +1,4 @@
-# RIVET Architecture
+# RIVET Architecture v2
 
 ## Core idea
 
@@ -91,7 +91,6 @@ network.tls
 audio.pcm
 threads
 simd
-gpu
 document.html
 document.css
 script.javascript
@@ -116,13 +115,21 @@ The same CPU family may host very different platform capabilities.
 
 ## Graphics
 
-The normative graphics baseline is a software surface.
+The canonical graphics architecture is a CPU-produced software surface.
+
+RIVET targets pixels, not GPUs. There is no RIVET GPU capability and no planned OpenGL, Vulkan, Direct3D, Metal, WebGL, WebGPU, shader, or GPU-compute rendering backend.
+
+The host OS/window system is free to accelerate the final blit or compositing operation internally. That implementation detail is below the RIVET boundary.
 
 Initial primitives should stay small: surface attachment/allocation, clipping, fill, line where justified, bitmap/glyph blit, image blit, and copy/scroll region.
 
 UI widgets should generally draw onto this surface instead of requiring every platform port to implement an entire native widget family.
 
+Performance work starts by reducing repaint/layout/materialisation work. SIMD or bounded threading may be considered only after measurement and reference-path conformance.
+
 Optional native dialogs/services may exist behind capabilities.
+
+See [RENDERING.md](RENDERING.md).
 
 ## UI
 
@@ -147,6 +154,30 @@ The baseline runtime is single-threaded and event-driven.
 Minimum event classes: startup/shutdown, keyboard, pointer when provided, resize/expose, timer, explicit service completion, and application-defined events.
 
 Concurrency may improve throughput but may not be required merely to open a window and respond to input.
+
+## Runtime and memory doctrine
+
+RIVET separates **result identity** from **execution-plan identity**.
+
+Where declared semantics are invariant, correctness must not change merely because a target uses a different worker count, chunk size, memory budget, cache shape, or optional CPU optimization.
+
+```text
+RESULT IDENTITY != EXECUTION PLAN IDENTITY
+BENCHMARK OBSERVATION != CORRECTNESS IDENTITY
+```
+
+Runtime work should prefer:
+
+- explicit resident-memory budgets rather than allocate-until-failure behaviour;
+- deterministic bounded chunking when work exceeds the resident budget;
+- procedural regeneration instead of retaining reconstructible state;
+- stream -> consume/reduce -> discard for transient representations;
+- reference-path parity before optimized-path promotion;
+- reusable state only when bound to complete effective-input identity.
+
+The runtime does **not** pre-create scheduler, executor, cache, plugin, or backend hierarchies for hypothetical future use. A second real implementation must create the need before a general abstraction is introduced.
+
+Exact donor sources and adoption boundaries are recorded in [RUNTIME-PLAN.md](RUNTIME-PLAN.md) and [DONORS.md](DONORS.md).
 
 ## Storage
 

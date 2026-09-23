@@ -119,7 +119,8 @@ The GitHub Pages site is intentionally static HTML/CSS with no framework, analyt
 
 - [CONSTITUTION-v2.md](CONSTITUTION-v2.md) — current non-negotiable project invariants.
 - [CONSTITUTION.md](CONSTITUTION.md) — frozen v1 authority retained for compatibility.
-- [ARCHITECTURE.md](ARCHITECTURE.md) — layer and authority model.
+- [ARCHITECTURE-v2.md](ARCHITECTURE-v2.md) — current layer, runtime, rendering, and authority model.
+- [ARCHITECTURE.md](ARCHITECTURE.md) — frozen v1 project authority retained for compatibility.
 - [PORTABILITY.md](PORTABILITY.md) — MES, target identity, containers, emulation, and evidence.
 - [RENDERING.md](RENDERING.md) — CPU/software rendering contract and GPU exclusion boundary.
 - [ROADMAP.md](ROADMAP.md) — staged implementation plan.
