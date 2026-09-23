@@ -12,7 +12,7 @@
   },
   "input": {
     "model": "logical-key-event",
-    "printable_keys": "ascii-0x20-through-0x7e",
+    "printable_keys": "numeric-ascii-0x20-through-0x7e-independent-of-execution-character-set",
     "navigation_keys": [
       "RIVET_KEY_UP",
       "RIVET_KEY_DOWN",
@@ -35,10 +35,11 @@
     "caller_owned_items": true,
     "heap": false,
     "row_height_pixels": 11,
-    "glyphs": "uppercase-A-Z-and-space-5x7",
+    "glyphs": "numeric-ascii-0x41-through-0x5a-and-0x20-space-5x7",
     "unsupported_glyph_result": "RIVET_ERR_UNSUPPORTED",
     "insufficient_bounds_result": "RIVET_ERR_CAPACITY",
-    "hidden_render": "successful-no-op"
+    "hidden_render": "successful-no-op",
+    "execution_character_set_independent": true
   },
   "presentation_independence": {
     "same_command_registry": true,

@@ -11,6 +11,11 @@
     } \
 } while (0)
 
+static const char ascii_open[] = {0x4f,0x50,0x45,0x4e,0x00};
+static const char ascii_save[] = {0x53,0x41,0x56,0x45,0x00};
+static const char ascii_quit[] = {0x51,0x55,0x49,0x54,0x00};
+static const char ascii_bad_lowercase[] = {0x4f,0x70,0x65,0x6e,0x00};
+
 static rivet_result increment(void *context)
 {
     int *value = (int *)context;
@@ -23,11 +28,11 @@ static int test_keymap(void)
     rivet_command_slot slots[2];
     rivet_command_registry commands;
     rivet_key_binding bindings[2] = {
-        {'O', RIVET_MOD_CTRL, "demo.open"},
-        {'S', RIVET_MOD_CTRL, "demo.save"}
+        {0x4fu, RIVET_MOD_CTRL, "demo.open"},
+        {0x53u, RIVET_MOD_CTRL, "demo.save"}
     };
     rivet_keymap keymap = {bindings, 2u};
-    rivet_key_event event = {'O', RIVET_MOD_CTRL, 1};
+    rivet_key_event event = {0x4fu, RIVET_MOD_CTRL, 1};
     int opened = 0;
     int saved = 0;
 
@@ -47,16 +52,16 @@ static int test_keymap(void)
     CHECK(opened == 1);
 
     event.pressed = 1;
-    event.key = 'Q';
+    event.key = 0x51u;
     CHECK(rivet_keymap_dispatch(
         &keymap, &commands, event) == RIVET_ERR_NOT_FOUND);
 
-    bindings[1].key = 'O';
+    bindings[1].key = 0x4fu;
     bindings[1].modifiers = RIVET_MOD_CTRL;
     CHECK(rivet_keymap_validate(&keymap) == RIVET_ERR_DUPLICATE);
 
-    bindings[1].key = 'S';
-    event.key = 'O';
+    bindings[1].key = 0x53u;
+    event.key = 0x4fu;
     event.modifiers = RIVET_MOD_ALL << 1;
     CHECK(rivet_keymap_dispatch(
         &keymap, &commands, event) == RIVET_ERR_INVALID_ARGUMENT);
@@ -68,19 +73,19 @@ static int test_menu_projection_independence(void)
     rivet_command_slot slots[3];
     rivet_command_registry commands;
     const rivet_menu_item items[3] = {
-        {"OPEN", "demo.open"},
-        {"SAVE", "demo.save"},
-        {"QUIT", "demo.quit"}
+        {ascii_open, "demo.open"},
+        {ascii_save, "demo.save"},
+        {ascii_quit, "demo.quit"}
     };
     rivet_key_binding bindings[1] = {
-        {'O', RIVET_MOD_CTRL, "demo.open"}
+        {0x4fu, RIVET_MOD_CTRL, "demo.open"}
     };
     rivet_keymap keymap = {bindings, 1u};
     rivet_menu menu;
     rivet_key_event down = {RIVET_KEY_DOWN, 0u, 1};
     rivet_key_event enter = {RIVET_KEY_ENTER, 0u, 1};
     rivet_key_event escape = {RIVET_KEY_ESCAPE, 0u, 1};
-    rivet_key_event ctrl_o = {'O', RIVET_MOD_CTRL, 1};
+    rivet_key_event ctrl_o = {0x4fu, RIVET_MOD_CTRL, 1};
     int opened = 0;
     int saved = 0;
     int quit = 0;
@@ -124,11 +129,11 @@ static int test_menu_validation_and_render(void)
     rivet_surface surface;
     rivet_menu menu;
     const rivet_menu_item items[2] = {
-        {"OPEN", "demo.open"},
-        {"SAVE", "demo.save"}
+        {ascii_open, "demo.open"},
+        {ascii_save, "demo.save"}
     };
     const rivet_menu_item unsupported[1] = {
-        {"Open", "demo.open"}
+        {ascii_bad_lowercase, "demo.open"}
     };
     rivet_rect bounds = {4L, 3L, 50ul, 22ul};
     rivet_menu_style style = {

@@ -33,7 +33,7 @@ static int rivet_ui_event_valid(rivet_key_event event)
 }
 
 static int rivet_ui_glyph_rows(
-    char ch,
+    unsigned char code,
     unsigned char rows[7]
 )
 {
@@ -71,19 +71,21 @@ static int rivet_ui_glyph_rows(
         return 0;
     }
 
-    if (ch == ' ') {
+    if (code == 0x20u) {
         for (i = 0u; i < 7u; ++i) {
             rows[i] = 0u;
         }
         return 1;
     }
 
-    if (ch < 'A' || ch > 'Z') {
+    if (code < 0x41u || code > 0x5au) {
         return 0;
     }
 
     for (i = 0u; i < 7u; ++i) {
-        rows[i] = (unsigned char)(glyphs[(unsigned int)(ch - 'A')][i] << 3);
+        rows[i] = (unsigned char)(
+            glyphs[(unsigned int)(code - 0x41u)][i] << 3
+        );
     }
     return 1;
 }
@@ -101,7 +103,7 @@ static rivet_result rivet_ui_label_measure(
     }
 
     while (label[count] != '\0') {
-        if (!rivet_ui_glyph_rows(label[count], rows)) {
+        if (!rivet_ui_glyph_rows((unsigned char)label[count], rows)) {
             return RIVET_ERR_UNSUPPORTED;
         }
         if (count == (size_t)-1) {
@@ -132,7 +134,7 @@ static rivet_result rivet_ui_draw_label(
     unsigned char rows[7];
 
     while (label[index] != '\0') {
-        if (!rivet_ui_glyph_rows(label[index], rows)) {
+        if (!rivet_ui_glyph_rows((unsigned char)label[index], rows)) {
             return RIVET_ERR_UNSUPPORTED;
         }
 

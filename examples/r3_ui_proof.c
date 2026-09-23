@@ -10,6 +10,10 @@
 #define PROOF_BYTES ((size_t)PROOF_WIDTH * (size_t)PROOF_HEIGHT * RIVET_GFX_PIXEL_BYTES)
 #define PROOF_FNV1A64 0x8e022a6d842ff8e5ULL
 
+static const char ascii_open[] = {0x4f,0x50,0x45,0x4e,0x00};
+static const char ascii_save[] = {0x53,0x41,0x56,0x45,0x00};
+static const char ascii_quit[] = {0x51,0x55,0x49,0x54,0x00};
+
 typedef struct proof_state {
     int opened;
     int saved;
@@ -60,14 +64,14 @@ int main(int argc, char **argv)
     rivet_command_slot command_slots[3];
     rivet_command_registry commands;
     const rivet_menu_item menu_items[3] = {
-        {"OPEN", "demo.open"},
-        {"SAVE", "demo.save"},
-        {"QUIT", "demo.quit"}
+        {ascii_open, "demo.open"},
+        {ascii_save, "demo.save"},
+        {ascii_quit, "demo.quit"}
     };
     const rivet_key_binding bindings[3] = {
-        {'O', RIVET_MOD_CTRL, "demo.open"},
-        {'S', RIVET_MOD_CTRL, "demo.save"},
-        {'Q', RIVET_MOD_CTRL, "demo.quit"}
+        {0x4fu, RIVET_MOD_CTRL, "demo.open"},
+        {0x53u, RIVET_MOD_CTRL, "demo.save"},
+        {0x51u, RIVET_MOD_CTRL, "demo.quit"}
     };
     rivet_keymap keymap = {bindings, 3u};
     rivet_menu menu;
@@ -82,7 +86,7 @@ int main(int argc, char **argv)
     rivet_rgba8 background = {0x08u,0x0cu,0x10u,0xffu};
     rivet_key_event down = {RIVET_KEY_DOWN,0u,1};
     rivet_key_event enter = {RIVET_KEY_ENTER,0u,1};
-    rivet_key_event ctrl_o = {'O',RIVET_MOD_CTRL,1};
+    rivet_key_event ctrl_o = {0x4fu,RIVET_MOD_CTRL,1};
     proof_state state = {0,0,0};
     const char *output_path =
         argc > 1 ? argv[1] : "build/rivet-ui-proof.ppm";

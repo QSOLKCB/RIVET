@@ -81,3 +81,16 @@ jobs:
           make clean
           make ui CPPFLAGS=-DRIVET_SANITIZED=1
           ./build/rivet-ui-proof build/rivet-ui-proof.ppm
+
+  execution-charset:
+    runs-on: ubuntu-latest
+    env:
+      CC: gcc
+      CFLAGS: -std=c99 -O1 -g -Wall -Wextra -Wpedantic -Werror -fexec-charset=IBM1047
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: UI contract uses frozen ASCII bytes
+        run: |
+          make clean
+          make test-ui CPPFLAGS=-DRIVET_EXEC_CHARSET_REGRESSION=1

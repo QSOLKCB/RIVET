@@ -36,7 +36,7 @@ A key event contains:
 - exact modifier bitset;
 - press/release state.
 
-Printable command keys use ASCII identities from 0x20 through 0x7e.
+Printable command keys use numeric ASCII identities from 0x20 through 0x7e, independent of the C implementation's execution character set.
 
 UI v1 also freezes these logical navigation keys:
 
@@ -128,10 +128,12 @@ Each row is 11 pixels high:
 
 The built-in glyph contract is deliberately narrow:
 
-- uppercase ASCII `A` through `Z`;
-- space.
+- ASCII byte values `0x41` through `0x5a` (uppercase A through Z);
+- ASCII byte value `0x20` (space).
 
-Unsupported label glyphs return `RIVET_ERR_UNSUPPORTED`.
+These are frozen numeric ASCII byte identities and do not depend on the C implementation's execution character set. Callers on non-ASCII C implementations must still supply these contract bytes rather than execution-set letter literals.
+
+Unsupported label bytes return `RIVET_ERR_UNSUPPORTED`.
 
 This is a tiny bitmap presentation aid, not a general font engine.
 
