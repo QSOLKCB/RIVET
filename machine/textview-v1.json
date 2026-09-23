@@ -81,10 +81,13 @@
     "restart": "after-full-current-match-range",
     "wrap": "once-to-byte-zero-excluding-current-match",
     "oversized_supported_query": "RIVET_ERR_NOT_FOUND",
-    "miss_preserves_previous_match": true
+    "miss_preserves_previous_match": true,
+    "query_change": "restart-from-current-top-line"
   },
   "rendering": {
     "viewport_write_boundary": "strict",
-    "match_background_clipped_to_viewport": true
+    "match_background_clipped_to_viewport": true,
+    "active_clip": "must-fully-cover-viewport",
+    "visible_rows": "1-plus-floor((viewport-height-7)/8)"
   }
 }

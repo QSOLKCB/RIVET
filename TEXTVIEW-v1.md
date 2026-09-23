@@ -81,7 +81,8 @@ Rules:
 
 - query is non-empty;
 - query bytes must belong to the supported non-newline display subset;
-- search begins after the full current matched range, otherwise at the current top line;
+- when the supplied query bytes/length are identical to the current match, search begins after the full matched range;
+- when the query changes, search restarts from the current top line and wraps normally;
 - one wrap to the beginning is permitted, but the current match is not reported again when it is the only occurrence;
 - a found match records exact byte offset/length and moves `top_line` to the containing line;
 - a supported query longer than the document is a normal miss and returns `RIVET_ERR_NOT_FOUND`;
@@ -98,8 +99,9 @@ It uses an application-owned 5x7 glyph table for the bounded R4 byte vocabulary.
 Rendering:
 
 - requires the viewport bounds to be wholly inside the validated surface;
+- requires the active GFX clip to fully cover the declared viewport, otherwise rendering fails with `RIVET_ERR_INVALID_ARGUMENT`;
 - fills the viewport background;
-- draws rows at an 8-pixel pitch;
+- draws 7-pixel glyph rows at an 8-pixel pitch and renders every row whose full glyph height fits inside the viewport;
 - truncates horizontally at the viewport edge;
 - highlights matched bytes using caller-supplied colors without writing outside the declared viewport.
 

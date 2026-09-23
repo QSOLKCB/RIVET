@@ -339,6 +339,7 @@ rivet_result rivet_textview_find_next(
     size_t i;
     size_t start;
     size_t passes;
+    int same_query = 0;
 
     if (rivet_textview_validate(viewer) != RIVET_OK ||
         query == NULL ||
@@ -356,7 +357,18 @@ rivet_result rivet_textview_find_next(
         return RIVET_ERR_NOT_FOUND;
     }
 
-    if (viewer->has_match) {
+    if (viewer->has_match &&
+        viewer->match_length == query_length) {
+        same_query = 1;
+        for (i = 0u; i < query_length; ++i) {
+            if (viewer->bytes[viewer->match_offset + i] != query[i]) {
+                same_query = 0;
+                break;
+            }
+        }
+    }
+
+    if (same_query) {
         start = viewer->match_offset + viewer->match_length;
     } else {
         start = viewer->line_offsets[viewer->top_line];
@@ -368,7 +380,7 @@ rivet_result rivet_textview_find_next(
 
         if (passes == 0u) {
             end = viewer->byte_count;
-        } else if (viewer->has_match) {
+        } else if (same_query) {
             end = viewer->match_offset;
         } else {
             end = start;
@@ -461,15 +473,38 @@ rivet_result rivet_textview_render(
         return RIVET_ERR_CAPACITY;
     }
 
+    {
+        unsigned long bounds_x = (unsigned long)bounds.x;
+        unsigned long bounds_y = (unsigned long)bounds.y;
+        unsigned long clip_x = (unsigned long)surface->clip.x;
+        unsigned long clip_y = (unsigned long)surface->clip.y;
+        unsigned long x_delta;
+        unsigned long y_delta;
+
+        if (bounds_x < clip_x || bounds_y < clip_y) {
+            return RIVET_ERR_INVALID_ARGUMENT;
+        }
+
+        x_delta = bounds_x - clip_x;
+        y_delta = bounds_y - clip_y;
+
+        if (x_delta > surface->clip.width ||
+            y_delta > surface->clip.height ||
+            bounds.width > surface->clip.width - x_delta ||
+            bounds.height > surface->clip.height - y_delta) {
+            return RIVET_ERR_INVALID_ARGUMENT;
+        }
+    }
+
     if (rivet_surface_fill_rect(
             surface, bounds, style.background) != RIVET_OK) {
         return RIVET_ERR_INVALID_ARGUMENT;
     }
 
-    visible_rows = (size_t)(bounds.height / TV_ROW_HEIGHT);
-    if (visible_rows == 0u) {
-        visible_rows = 1u;
-    }
+    visible_rows =
+        1u +
+        (size_t)((bounds.height - TV_GLYPH_HEIGHT) /
+                 TV_ROW_HEIGHT);
 
     for (row_index = 0u;
          row_index < visible_rows &&

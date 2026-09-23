@@ -190,6 +190,38 @@ static int test_search_skips_overlap_inside_current_match(void)
     return 0;
 }
 
+
+static int test_changed_query_resets_search_boundary(void)
+{
+    static const unsigned char bytes[] = {0x41u,0x42u};
+    static const unsigned char query_b[] = {0x42u};
+    static const unsigned char query_ab[] = {0x41u,0x42u};
+    rivet_textview viewer;
+    size_t offsets[1];
+
+    CHECK(rivet_textview_open(
+        &viewer,
+        bytes,
+        sizeof(bytes),
+        offsets,
+        1u) == RIVET_OK);
+    CHECK(rivet_textview_find_next(
+        &viewer,
+        query_b,
+        sizeof(query_b)) == RIVET_OK);
+    CHECK(viewer.match_offset == 1u);
+    CHECK(viewer.match_length == 1u);
+
+    CHECK(rivet_textview_find_next(
+        &viewer,
+        query_ab,
+        sizeof(query_ab)) == RIVET_OK);
+    CHECK(viewer.match_offset == 0u);
+    CHECK(viewer.match_length == 2u);
+    CHECK(viewer.top_line == 0u);
+    return 0;
+}
+
 static int test_oversized_query_is_miss(void)
 {
     static const unsigned char bytes[] = {0x41u};
@@ -331,6 +363,109 @@ static int test_match_background_stays_inside_viewport(void)
     return 0;
 }
 
+
+static int test_render_rejects_partial_surface_clip(void)
+{
+    static const unsigned char bytes[] = {0x41u};
+    unsigned char pixels[8u * 8u * 4u];
+    rivet_surface surface;
+    rivet_textview viewer;
+    size_t offsets[1];
+    rivet_rect bounds = {0L,0L,8ul,8ul};
+    rivet_rect partial_clip = {0L,0L,4ul,8ul};
+    rivet_rect empty_clip = {0L,0L,0ul,0ul};
+    rivet_textview_style style = {
+        {0x01u,0x02u,0x03u,0xffu},
+        {0x10u,0x20u,0x30u,0xffu},
+        {0x40u,0x50u,0x60u,0xffu},
+        {0x70u,0x80u,0x90u,0xffu}
+    };
+
+    CHECK(rivet_surface_attach(
+        &surface,
+        pixels,
+        sizeof(pixels),
+        8ul,
+        8ul,
+        32u) == RIVET_OK);
+    CHECK(rivet_textview_open(
+        &viewer,
+        bytes,
+        sizeof(bytes),
+        offsets,
+        1u) == RIVET_OK);
+
+    CHECK(rivet_surface_set_clip(
+        &surface,
+        partial_clip) == RIVET_OK);
+    CHECK(rivet_textview_render(
+        &surface,
+        &viewer,
+        bounds,
+        style) == RIVET_ERR_INVALID_ARGUMENT);
+
+    CHECK(rivet_surface_set_clip(
+        &surface,
+        empty_clip) == RIVET_OK);
+    CHECK(rivet_textview_render(
+        &surface,
+        &viewer,
+        bounds,
+        style) == RIVET_ERR_INVALID_ARGUMENT);
+
+    CHECK(rivet_surface_reset_clip(&surface) == RIVET_OK);
+    CHECK(rivet_textview_render(
+        &surface,
+        &viewer,
+        bounds,
+        style) == RIVET_OK);
+    return 0;
+}
+
+static int test_render_counts_every_fitting_glyph_row(void)
+{
+    static const unsigned char bytes[] = {0x41u,0x0au,0x42u};
+    unsigned char pixels[5u * 15u * 4u];
+    rivet_surface surface;
+    rivet_textview viewer;
+    size_t offsets[2];
+    rivet_rect bounds = {0L,0L,5ul,15ul};
+    rivet_textview_style style = {
+        {0x01u,0x02u,0x03u,0xffu},
+        {0x10u,0x20u,0x30u,0xffu},
+        {0x40u,0x50u,0x60u,0xffu},
+        {0x70u,0x80u,0x90u,0xffu}
+    };
+    const unsigned char *second_row_first_pixel;
+
+    CHECK(rivet_surface_attach(
+        &surface,
+        pixels,
+        sizeof(pixels),
+        5ul,
+        15ul,
+        20u) == RIVET_OK);
+    CHECK(rivet_textview_open(
+        &viewer,
+        bytes,
+        sizeof(bytes),
+        offsets,
+        2u) == RIVET_OK);
+    CHECK(viewer.line_count == 2u);
+    CHECK(rivet_textview_render(
+        &surface,
+        &viewer,
+        bounds,
+        style) == RIVET_OK);
+
+    second_row_first_pixel = pixels + 8u * 20u;
+    CHECK(second_row_first_pixel[0] == style.foreground.r);
+    CHECK(second_row_first_pixel[1] == style.foreground.g);
+    CHECK(second_row_first_pixel[2] == style.foreground.b);
+    CHECK(second_row_first_pixel[3] == style.foreground.a);
+    return 0;
+}
+
 static int test_trailing_newline_render(void)
 {
     static const unsigned char bytes[] = {0x41u,0x0au};
@@ -376,9 +511,12 @@ int main(void)
     CHECK(test_search() == 0);
     CHECK(test_single_byte_search_wrap() == 0);
     CHECK(test_search_skips_overlap_inside_current_match() == 0);
+    CHECK(test_changed_query_resets_search_boundary() == 0);
     CHECK(test_oversized_query_is_miss() == 0);
     CHECK(test_render() == 0);
     CHECK(test_match_background_stays_inside_viewport() == 0);
+    CHECK(test_render_rejects_partial_surface_clip() == 0);
+    CHECK(test_render_counts_every_fitting_glyph_row() == 0);
     CHECK(test_trailing_newline_render() == 0);
 
 #ifndef RIVET_EXEC_CHARSET_REGRESSION
