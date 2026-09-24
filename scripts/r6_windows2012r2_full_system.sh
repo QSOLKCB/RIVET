@@ -14,6 +14,7 @@ PAYLOAD="$OUT_DIR/rivet-platform-win32.exe"
 FIRSTBOOT="$OUT_DIR/r6-firstboot.bat"
 RECEIPT="$OUT_DIR/receipt.txt"
 INSPECTOR="$OUT_DIR/inspector.xml"
+EXECUTION_ENV="$OUT_DIR/execution-environment.json"
 
 for command in   qemu-img   qemu-system-x86_64   virt-customize   virt-inspector   virt-cat   x86_64-w64-mingw32-gcc   timeout
 do
@@ -57,9 +58,28 @@ python3 scripts/r6_validate_windows_inspector.py "$INSPECTOR"
 ACCEL="tcg"
 CPU="Nehalem"
 if [[ -r /dev/kvm && -w /dev/kvm ]]; then
-  ACCEL="kvm:tcg"
+  ACCEL="kvm"
   CPU="host"
 fi
+
+python3 - "$EXECUTION_ENV" "$ACCEL" "$CPU" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+path, accelerator, cpu_model = sys.argv[1:4]
+Path(path).write_text(
+    json.dumps(
+        {
+            "accelerator": accelerator,
+            "cpu_model": cpu_model,
+        },
+        indent=2,
+        sort_keys=True,
+    ) + "\n",
+    encoding="utf-8",
+)
+PY
 
 set +e
 timeout --signal=TERM --kill-after=30 "$TIMEOUT_SECONDS"   qemu-system-x86_64     -machine "pc,accel=$ACCEL"     -cpu "$CPU"     -m 2048     -smp 2     -drive "file=$GUEST,format=qcow2,if=ide"     -boot c     -nic none     -display none     -serial "file:$OUT_DIR/serial.log"     -no-reboot
