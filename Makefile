@@ -20,8 +20,9 @@ PLATFORM_WIN32 = platform/win32/platform_win32.c
 PLATFORM_HEADER = include/rivet/platform.h
 DOCUMENT = web/stream_url_utf8.c web/html_css.c web/layout_image.c
 DOCUMENT_HEADER = include/rivet/document.h
+DOCUMENT_ABI_OBJECTS = $(BUILD_DIR)/r7-abi-stream.o $(BUILD_DIR)/r7-abi-html.o $(BUILD_DIR)/r7-abi-layout.o
 
-.PHONY: all gfx ui textview platform-posix document test test-gfx test-ui test-textview test-platform test-document test-document-charset check-no-heap check-no-heap-gfx check-no-heap-ui check-no-heap-textview check-no-heap-platform check-no-heap-document clean
+.PHONY: all gfx ui textview platform-posix document test test-gfx test-ui test-textview test-platform test-document test-document-charset test-document-abi check-no-heap check-no-heap-gfx check-no-heap-ui check-no-heap-textview check-no-heap-platform check-no-heap-document clean
 
 all: $(BUILD_DIR)/rivet-headless
 
@@ -74,6 +75,18 @@ $(BUILD_DIR)/test-document: $(DOCUMENT) $(DOCUMENT_HEADER) $(HEADER) tests/test_
 $(BUILD_DIR)/test-document-charset: $(CORE) $(DOCUMENT) $(DOCUMENT_HEADER) $(HEADER) tests/test_document_charset.c | $(BUILD_DIR)
 	$(CC) $(CPPFLAGS) -Iinclude $(CFLAGS) $(CORE) $(DOCUMENT) tests/test_document_charset.c -o $@
 
+$(BUILD_DIR)/r7-abi-stream.o: web/stream_url_utf8.c $(DOCUMENT_HEADER) $(HEADER) | $(BUILD_DIR)
+	$(CC) $(CPPFLAGS) -Iinclude $(CFLAGS) -c web/stream_url_utf8.c -o $@
+
+$(BUILD_DIR)/r7-abi-html.o: web/html_css.c $(DOCUMENT_HEADER) $(HEADER) | $(BUILD_DIR)
+	$(CC) $(CPPFLAGS) -Iinclude $(CFLAGS) -c web/html_css.c -o $@
+
+$(BUILD_DIR)/r7-abi-layout.o: web/layout_image.c $(DOCUMENT_HEADER) $(HEADER) | $(BUILD_DIR)
+	$(CC) $(CPPFLAGS) -Iinclude $(CFLAGS) -c web/layout_image.c -o $@
+
+$(BUILD_DIR)/test-document-abi: $(DOCUMENT_ABI_OBJECTS) $(DOCUMENT_HEADER) $(HEADER) tests/test_document_abi.c | $(BUILD_DIR)
+	$(CC) $(CPPFLAGS) -Iinclude $(CFLAGS) -fshort-enums tests/test_document_abi.c $(DOCUMENT_ABI_OBJECTS) -o $@
+
 $(BUILD_DIR)/rivet-document-proof: $(DOCUMENT) $(DOCUMENT_HEADER) $(HEADER) examples/r7_document_proof.c | $(BUILD_DIR)
 	$(CC) $(CPPFLAGS) -Iinclude $(CFLAGS) $(DOCUMENT) examples/r7_document_proof.c -o $@
 
@@ -97,6 +110,9 @@ test-document: check-no-heap-document $(BUILD_DIR)/test-document
 
 test-document-charset: check-no-heap-document $(BUILD_DIR)/test-document-charset
 	./$(BUILD_DIR)/test-document-charset
+
+test-document-abi: check-no-heap-document $(BUILD_DIR)/test-document-abi
+	./$(BUILD_DIR)/test-document-abi
 
 check-no-heap:
 	@if grep -En '(malloc|calloc|realloc|free)[[:space:]]*\(' $(CORE) >/dev/null; then \
