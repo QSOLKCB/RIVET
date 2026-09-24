@@ -16,7 +16,7 @@ The eventual RIVET Browser is a proof application, not the definition of the fra
 
 R5 is merged at `9528ce8cf2d089f9895970e0b8563a459afbab7e`. R6 reuses the frozen Platform v1 proof under constrained and non-native execution rather than adding another framework ABI.
 
-Every PR now exercises a 32-bit i386 build directly and through `qemu-i386`, plus a 32-bit **big-endian PowerPC** build through `qemu-ppc`.
+Every PR now exercises a 32-bit i686-baseline x86 build directly and through `qemu-i386`, plus a 32-bit **big-endian PowerPC** build through `qemu-ppc`.
 
 The first full-system historical Windows target is **Windows Server 2012 R2 Datacenter Evaluation x64**. Its E3 workflow is manual/release-gated because Microsoft evaluation media requires registration and is not redistributed by RIVET.
 
