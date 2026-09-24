@@ -30,6 +30,8 @@ with tempfile.TemporaryDirectory() as temporary:
             "--execution", "qemu-user",
             "--compiler", "test-compiler",
             "--emulator", "test-emulator",
+            "--accelerator", "tcg",
+            "--cpu-model", "Nehalem",
             "--expected-backend", "posix-v1",
             "--expected-os", "POSIX",
             "--expected-pointer-bits", "32",
@@ -42,5 +44,7 @@ with tempfile.TemporaryDirectory() as temporary:
     assert data["result"] == "pass"
     assert data["proof"]["endian"] == "big"
     assert data["proof"]["empty"] == 0
+    assert data["accelerator"] == "tcg"
+    assert data["cpu_model"] == "Nehalem"
 
 print("r6 receipt self-test: ok")
