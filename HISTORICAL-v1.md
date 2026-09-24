@@ -32,12 +32,12 @@ The semantic proof remains:
 
 ## 32-bit x86 gate
 
-Automated PR execution builds the frozen Platform v1 POSIX proof as a static 32-bit i386 ELF.
+Automated PR execution builds the frozen Platform v1 POSIX proof as a static 32-bit x86 ELF with an explicit GCC `-march=i686` baseline. Ubuntu's multilib runtime is i686-oriented, so R6 does not claim an i386 instruction floor.
 
 The same binary is executed twice:
 
 1. directly as a 32-bit process on the Ubuntu x86-64 runner;
-2. through qemu-i386 user-mode CPU emulation.
+2. through qemu-i686 user-mode CPU emulation.
 
 Required proof identity:
 
@@ -48,7 +48,7 @@ Required proof identity:
 
 The direct execution is 32-bit process evidence. It is not physical historical x86 hardware.
 
-The qemu-i386 execution is E2 user-mode CPU-emulation evidence. It is not a full historical operating-system image.
+The qemu-i686 execution is E2 user-mode CPU-emulation evidence. It is not a full historical operating-system image.
 
 ## Big-endian gate
 
@@ -118,7 +118,7 @@ Required guest proof identity:
 
 Evidence class: E3 full-system emulation/VM.
 
-The workflow additionally records the supplied guest-media SHA-256, QEMU identity, compiler identity, and libguestfs inspector output.
+The workflow additionally records the supplied guest-media SHA-256, QEMU identity, compiler identity, selected QEMU accelerator, selected CPU model, and libguestfs inspector output. TCG/Nehalem and KVM/host therefore produce distinguishable E3 receipts.
 
 ## Why Windows Server 2012 R2
 
@@ -147,6 +147,8 @@ A receipt records:
 - CPU identity;
 - compiler;
 - emulator when present;
+- accelerator when applicable;
+- CPU model when applicable;
 - backend/OS identity;
 - pointer width;
 - byte order;
@@ -159,8 +161,8 @@ Every PR runs:
 
 - receipt parser self-test;
 - R5 freeze regression gate;
-- 32-bit i386 direct-process execution;
-- i386 qemu-user E2 execution;
+- 32-bit i686 direct-process execution;
+- i686 qemu-user E2 execution;
 - PowerPC big-endian qemu-user E2 execution;
 - Win64 historical-guest payload cross-build;
 - historical Windows harness syntax validation.
