@@ -9,8 +9,8 @@
 #define PROOF_WIDTH 120ul
 #define PROOF_HEIGHT 64ul
 #define PROOF_PIXELS ((size_t)PROOF_WIDTH * (size_t)PROOF_HEIGHT * RIVET_GFX_PIXEL_BYTES)
-#define EXPECTED_DOCUMENT_FNV1A64 0ULL
-#define EXPECTED_SOURCE_FNV1A64 0ULL
+#define EXPECTED_DOCUMENT_FNV1A64 0x75be6cc92698ac1aULL
+#define EXPECTED_SOURCE_FNV1A64 0x5cf7c63a1fa3d9b4ULL
 
 typedef struct proof_resource {
     const unsigned char *url;
