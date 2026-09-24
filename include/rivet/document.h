@@ -3,6 +3,7 @@
 #define RIVET_DOCUMENT_H
 
 #include <stddef.h>
+#include <stdint.h>
 
 #include "rivet/rivet.h"
 
@@ -76,21 +77,21 @@ rivet_result rivet_utf8_decode(
     size_t *codepoint_count
 );
 
-typedef enum rivet_doc_node_kind {
-    RIVET_DOC_NODE_HTML = 1,
-    RIVET_DOC_NODE_HEAD = 2,
-    RIVET_DOC_NODE_BODY = 3,
-    RIVET_DOC_NODE_P = 4,
-    RIVET_DOC_NODE_H1 = 5,
-    RIVET_DOC_NODE_H2 = 6,
-    RIVET_DOC_NODE_A = 7,
-    RIVET_DOC_NODE_FORM = 8,
-    RIVET_DOC_NODE_INPUT = 9,
-    RIVET_DOC_NODE_IMG = 10,
-    RIVET_DOC_NODE_BR = 11,
-    RIVET_DOC_NODE_STYLE = 12,
-    RIVET_DOC_NODE_TEXT = 13
-} rivet_doc_node_kind;
+typedef uint32_t rivet_doc_node_kind;
+
+#define RIVET_DOC_NODE_HTML ((rivet_doc_node_kind)1u)
+#define RIVET_DOC_NODE_HEAD ((rivet_doc_node_kind)2u)
+#define RIVET_DOC_NODE_BODY ((rivet_doc_node_kind)3u)
+#define RIVET_DOC_NODE_P ((rivet_doc_node_kind)4u)
+#define RIVET_DOC_NODE_H1 ((rivet_doc_node_kind)5u)
+#define RIVET_DOC_NODE_H2 ((rivet_doc_node_kind)6u)
+#define RIVET_DOC_NODE_A ((rivet_doc_node_kind)7u)
+#define RIVET_DOC_NODE_FORM ((rivet_doc_node_kind)8u)
+#define RIVET_DOC_NODE_INPUT ((rivet_doc_node_kind)9u)
+#define RIVET_DOC_NODE_IMG ((rivet_doc_node_kind)10u)
+#define RIVET_DOC_NODE_BR ((rivet_doc_node_kind)11u)
+#define RIVET_DOC_NODE_STYLE ((rivet_doc_node_kind)12u)
+#define RIVET_DOC_NODE_TEXT ((rivet_doc_node_kind)13u)
 
 typedef struct rivet_doc_node {
     rivet_doc_node_kind kind;
@@ -168,11 +169,11 @@ rivet_result rivet_css_parse(
     size_t *rule_count
 );
 
-typedef enum rivet_layout_box_kind {
-    RIVET_LAYOUT_TEXT = 1,
-    RIVET_LAYOUT_IMAGE = 2,
-    RIVET_LAYOUT_INPUT = 3
-} rivet_layout_box_kind;
+typedef uint32_t rivet_layout_box_kind;
+
+#define RIVET_LAYOUT_TEXT ((rivet_layout_box_kind)1u)
+#define RIVET_LAYOUT_IMAGE ((rivet_layout_box_kind)2u)
+#define RIVET_LAYOUT_INPUT ((rivet_layout_box_kind)3u)
 
 typedef struct rivet_layout_box {
     rivet_layout_box_kind kind;
