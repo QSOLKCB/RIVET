@@ -19,7 +19,11 @@ jobs:
 
           while IFS= read -r path; do
             case "$path" in
-              .gitattributes|AGENTS.md|Makefile|README.md|ROADMAP.md|index.html)
+              .gitattributes|\
+              .github/workflows/r5-platform.yml|\
+              .github/workflows/r6-stress.yml|\
+              .github/workflows/r6-windows2012r2.yml|\
+              AGENTS.md|Makefile|README.md|ROADMAP.md|index.html)
                 continue
                 ;;
             esac
