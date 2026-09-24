@@ -22,15 +22,40 @@ jobs:
     timeout-minutes: 120
     env:
       RIVET_WIN2012R2_VHD_URL: ${{ secrets.RIVET_WIN2012R2_VHD_URL }}
+      RIVET_INPUT_IMAGE_SHA256: ${{ inputs.image_sha256 }}
+      RIVET_INPUT_TIMEOUT_SECONDS: ${{ inputs.timeout_seconds }}
     steps:
       - uses: actions/checkout@v4
 
-      - name: Require registered Microsoft evaluation-media URL
+      - name: Validate dispatch inputs and media URL
+        shell: bash
         run: |
+          set -euo pipefail
+
           if [[ -z "${RIVET_WIN2012R2_VHD_URL:-}" ]]; then
             echo "Set repository secret RIVET_WIN2012R2_VHD_URL to a registered Microsoft Evaluation Center VHD/VHDX download URL." >&2
             exit 2
           fi
+
+          if [[ ! "${RIVET_INPUT_IMAGE_SHA256:-}" =~ ^[0-9A-Fa-f]{64}$ ]]; then
+            echo "image_sha256 must be exactly 64 hexadecimal characters." >&2
+            exit 2
+          fi
+
+          if [[ ! "${RIVET_INPUT_TIMEOUT_SECONDS:-}" =~ ^[0-9]+$ ]]; then
+            echo "timeout_seconds must contain decimal digits only." >&2
+            exit 2
+          fi
+
+          timeout_seconds=$((10#${RIVET_INPUT_TIMEOUT_SECONDS}))
+          if (( timeout_seconds < 300 || timeout_seconds > 6000 )); then
+            echo "timeout_seconds must be between 300 and 6000 seconds." >&2
+            exit 2
+          fi
+
+          image_sha256="${RIVET_INPUT_IMAGE_SHA256,,}"
+          printf 'RIVET_VALIDATED_IMAGE_SHA256=%s\n' "$image_sha256" >> "$GITHUB_ENV"
+          printf 'RIVET_VALIDATED_TIMEOUT_SECONDS=%s\n' "$timeout_seconds" >> "$GITHUB_ENV"
 
       - name: Install full-system harness dependencies
         run: |
@@ -53,7 +78,7 @@ jobs:
             "$RIVET_WIN2012R2_VHD_URL" \
             -o build/r6-media/download.bin
 
-          echo "${{ inputs.image_sha256 }}  build/r6-media/download.bin" | sha256sum -c -
+          printf '%s  %s\n' "$RIVET_VALIDATED_IMAGE_SHA256" build/r6-media/download.bin | sha256sum -c -
 
           if file build/r6-media/download.bin | grep -qi "Zip archive"; then
             mkdir -p build/r6-media/unpacked
@@ -76,7 +101,7 @@ jobs:
           bash scripts/r6_windows2012r2_full_system.sh \
             "${{ steps.media.outputs.image }}" \
             build/r6-windows2012r2 \
-            "${{ inputs.timeout_seconds }}"
+            "$RIVET_VALIDATED_TIMEOUT_SECONDS"
 
       - name: Validate E3 receipt
         run: |
@@ -112,7 +137,7 @@ jobs:
           data["guest_media"] = {
               "product": "Windows Server 2012 R2 Datacenter Evaluation",
               "source": "Microsoft Evaluation Center",
-              "sha256": "${{ inputs.image_sha256 }}",
+              "sha256": __import__("os").environ["RIVET_VALIDATED_IMAGE_SHA256"],
               "redistributed_by_rivet": False,
           }
           data["full_system"] = True
