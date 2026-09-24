@@ -69,6 +69,8 @@ jobs:
           make test-document
           make clean
           make test-document CPPFLAGS=-DRIVET_EXTERNAL_CPPFLAGS=1
+          make clean
+          make test-document-abi
 
       - name: Deterministic document proof
         run: |
