@@ -873,12 +873,15 @@ static rivet_result layout_validate_document(
                         node->parent].kind)) {
                 return RIVET_ERR_INVALID_ARGUMENT;
             }
-            if (depth >=
-                RIVET_DOCUMENT_MAX_DEPTH) {
-                return RIVET_ERR_CAPACITY;
+            if (!layout_leaf_kind(
+                    node->kind)) {
+                if (depth >=
+                    RIVET_DOCUMENT_MAX_DEPTH) {
+                    return RIVET_ERR_CAPACITY;
+                }
+                stack[depth] = i;
+                ++depth;
             }
-            stack[depth] = i;
-            ++depth;
         }
 
         if (node->kind ==
@@ -962,8 +965,7 @@ rivet_result rivet_document_layout(
     if (result != RIVET_OK ||
         box_count == NULL ||
         document_height == NULL ||
-        viewport_width <
-            DOC_GLYPH_WIDTH ||
+        viewport_width == 0ul ||
         (rule_count != 0u &&
          rules == NULL)) {
         return RIVET_ERR_INVALID_ARGUMENT;
@@ -1044,7 +1046,8 @@ static rivet_result ppm_skip(
         if (*cursor < byte_count &&
             bytes[*cursor] == 0x23u) {
             while (*cursor < byte_count &&
-                   bytes[*cursor] != 0x0au) {
+                   bytes[*cursor] != 0x0au &&
+                   bytes[*cursor] != 0x0du) {
                 unsigned char byte =
                     bytes[*cursor];
                 if (byte < 0x20u &&
