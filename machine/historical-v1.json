@@ -87,7 +87,9 @@
         "minimum": 300,
         "maximum": 6000
       },
-      "transport": "environment-variables-not-source-interpolation"
+      "transport": "environment-variables-not-source-interpolation",
+      "validator": "scripts/r6_validate_dispatch_inputs.py",
+      "pr_selftest": "tests/r6_dispatch_input_selftest.py"
     }
   },
   "receipt_schema": "rivet.historical-receipt/v1",
