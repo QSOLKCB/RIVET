@@ -1421,10 +1421,18 @@ static rivet_result browser_render_text_box(
     int pending_space = 0;
     long x = origin_x + (long)box->x;
     long y;
-    rivet_rgba8 foreground =
-        box->foreground;
-    rivet_rgba8 background =
-        box->background;
+    rivet_rgba8 foreground = {
+        box->foreground.r,
+        box->foreground.g,
+        box->foreground.b,
+        box->foreground.a
+    };
+    rivet_rgba8 background = {
+        box->background.r,
+        box->background.g,
+        box->background.b,
+        box->background.a
+    };
     int has_background =
         box->has_background;
     rivet_rect rect;
