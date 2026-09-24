@@ -101,16 +101,21 @@ static rivet_result browser_line(
 
 static rivet_result browser_validate_css(
     const unsigned char *bytes,
-    size_t byte_count
+    size_t byte_count,
+    size_t *total_rule_count
 )
 {
     size_t start = 0u;
     size_t i;
     size_t rule_count = 0u;
+    size_t total = 0u;
     rivet_css_rule rule;
     rivet_result result;
 
     if (byte_count == 0u) {
+        if (total_rule_count != NULL) {
+            *total_rule_count = 0u;
+        }
         return RIVET_OK;
     }
     if (bytes == NULL) {
@@ -141,6 +146,10 @@ static rivet_result browser_validate_css(
         if (rule_count != 1u) {
             return RIVET_ERR_UNSUPPORTED;
         }
+        if (total == (size_t)-1) {
+            return RIVET_ERR_CAPACITY;
+        }
+        ++total;
         start = i + 1u;
     }
 
@@ -154,9 +163,14 @@ static rivet_result browser_validate_css(
     if (result != RIVET_OK) {
         return result;
     }
-    return rule_count == 0u ?
-        RIVET_OK :
-        RIVET_ERR_UNSUPPORTED;
+    if (rule_count != 0u) {
+        return RIVET_ERR_UNSUPPORTED;
+    }
+
+    if (total_rule_count != NULL) {
+        *total_rule_count = total;
+    }
+    return RIVET_OK;
 }
 
 rivet_result rivet_browser_config_parse(
@@ -268,7 +282,8 @@ rivet_result rivet_browser_config_parse(
 
     result = browser_validate_css(
         bytes + candidate.user_css.offset,
-        candidate.user_css.length
+        candidate.user_css.length,
+        NULL
     );
     if (result != RIVET_OK) {
         return result;
@@ -293,9 +308,11 @@ static rivet_result browser_copy_url(
     rivet_url parsed;
 
     if (target == NULL || url == NULL ||
-        url_length == 0u ||
-        url_length > RIVET_BROWSER_URL_MAX) {
+        url_length == 0u) {
         return RIVET_ERR_INVALID_ARGUMENT;
+    }
+    if (url_length > RIVET_BROWSER_URL_MAX) {
+        return RIVET_ERR_CAPACITY;
     }
 
     if (rivet_url_parse(
@@ -391,7 +408,8 @@ static rivet_result browser_config_validate(
 
     return browser_validate_css(
         config->source + config->user_css.offset,
-        config->user_css.length
+        config->user_css.length,
+        NULL
     );
 }
 
@@ -403,12 +421,17 @@ rivet_result rivet_browser_init(
     unsigned long viewport_width
 )
 {
+    size_t user_rule_count = 0u;
     rivet_result result;
 
     if (browser == NULL || io == NULL ||
         io->fetch == NULL ||
         viewport_width == 0ul) {
         return RIVET_ERR_INVALID_ARGUMENT;
+    }
+    if (viewport_width >
+        (unsigned long)LONG_MAX) {
+        return RIVET_ERR_CAPACITY;
     }
 
     result = browser_config_validate(config);
@@ -422,6 +445,18 @@ rivet_result rivet_browser_init(
     result = browser_storage_validate(storage);
     if (result != RIVET_OK) {
         return result;
+    }
+    result = browser_validate_css(
+        config->source + config->user_css.offset,
+        config->user_css.length,
+        &user_rule_count
+    );
+    if (result != RIVET_OK) {
+        return result;
+    }
+    if (user_rule_count >
+        storage->rule_capacity) {
+        return RIVET_ERR_CAPACITY;
     }
 
     memset(browser, 0, sizeof(*browser));
@@ -640,8 +675,8 @@ static rivet_result browser_load(
 
     result = browser->io.fetch(
         browser->io.context,
-        url,
-        url_length,
+        candidate_url.bytes,
+        candidate_url.length,
         browser->storage.document_bytes,
         browser->storage.document_capacity,
         &byte_count
@@ -650,10 +685,14 @@ static rivet_result browser_load(
         browser_invalidate_loaded(browser);
         return result;
     }
-    if (byte_count == 0u ||
-        byte_count >
-            browser->storage.document_capacity) {
+    if (byte_count == 0u) {
+        browser_invalidate_loaded(browser);
         return RIVET_ERR_UNSUPPORTED;
+    }
+    if (byte_count >
+        browser->storage.document_capacity) {
+        browser_invalidate_loaded(browser);
+        return RIVET_ERR_CAPACITY;
     }
 
     result = rivet_html_parse(
@@ -865,11 +904,15 @@ rivet_result rivet_browser_open_selected_link(
     rivet_browser *browser
 )
 {
-    const rivet_doc_node *link =
-        browser_selected_link(browser);
+    const rivet_doc_node *link;
     unsigned char url[RIVET_BROWSER_URL_MAX];
     size_t length;
 
+    if (browser == NULL) {
+        return RIVET_ERR_INVALID_ARGUMENT;
+    }
+
+    link = browser_selected_link(browser);
     if (link == NULL) {
         return RIVET_ERR_NOT_FOUND;
     }
@@ -1005,19 +1048,84 @@ rivet_result rivet_browser_toggle_source(
     return RIVET_OK;
 }
 
+static unsigned long browser_source_height(
+    const rivet_browser *browser
+)
+{
+    size_t offset = 0u;
+    unsigned long column = 0ul;
+    unsigned long row = 0ul;
+    unsigned long rows_used = 0ul;
+    unsigned long columns;
+
+    if (browser->viewport_width <
+        BROWSER_GLYPH_ADVANCE) {
+        return 0ul;
+    }
+    columns =
+        browser->viewport_width /
+        BROWSER_GLYPH_ADVANCE;
+
+    while (offset <
+           browser->document.source_bytes) {
+        unsigned int codepoint;
+        size_t used;
+        rivet_result result =
+            browser_utf8_one(
+                browser->document.source,
+                browser->document.source_bytes,
+                offset,
+                &codepoint,
+                &used
+            );
+
+        if (result != RIVET_OK) {
+            return ULONG_MAX;
+        }
+
+        if (codepoint == 0x0au ||
+            codepoint == 0x0du) {
+            column = 0ul;
+            if (row == ULONG_MAX) {
+                return ULONG_MAX;
+            }
+            ++row;
+            offset += used;
+            continue;
+        }
+
+        if (column == columns) {
+            column = 0ul;
+            if (row == ULONG_MAX) {
+                return ULONG_MAX;
+            }
+            ++row;
+        }
+
+        if (row == ULONG_MAX) {
+            return ULONG_MAX;
+        }
+        if (row + 1ul > rows_used) {
+            rows_used = row + 1ul;
+        }
+
+        ++column;
+        offset += used;
+    }
+
+    if (rows_used >
+        ULONG_MAX / BROWSER_LINE_HEIGHT) {
+        return ULONG_MAX;
+    }
+    return rows_used * BROWSER_LINE_HEIGHT;
+}
+
 static unsigned long browser_scroll_limit(
     const rivet_browser *browser
 )
 {
     if (browser->source_mode) {
-        if (browser->document_bytes >
-            (size_t)(ULONG_MAX /
-                     BROWSER_LINE_HEIGHT)) {
-            return ULONG_MAX;
-        }
-        return (unsigned long)
-            browser->document_bytes *
-            BROWSER_LINE_HEIGHT;
+        return browser_source_height(browser);
     }
     return browser->document_height;
 }
@@ -1517,6 +1625,40 @@ static int browser_box_selected_link(
     return 0;
 }
 
+static rivet_result browser_scrolled_y(
+    long origin_y,
+    unsigned long content_y,
+    unsigned long scroll_y,
+    long *translated_y
+)
+{
+    unsigned long delta;
+
+    if (translated_y == NULL ||
+        origin_y < 0L ||
+        content_y > (unsigned long)LONG_MAX ||
+        scroll_y > (unsigned long)LONG_MAX) {
+        return RIVET_ERR_CAPACITY;
+    }
+
+    if (content_y >= scroll_y) {
+        delta = content_y - scroll_y;
+        if (delta >
+            (unsigned long)LONG_MAX -
+            (unsigned long)origin_y) {
+            return RIVET_ERR_CAPACITY;
+        }
+        *translated_y =
+            origin_y + (long)delta;
+    } else {
+        delta = scroll_y - content_y;
+        *translated_y =
+            origin_y - (long)delta;
+    }
+
+    return RIVET_OK;
+}
+
 static rivet_result browser_render_text_box(
     rivet_surface *surface,
     const rivet_browser *browser,
@@ -1531,7 +1673,7 @@ static rivet_result browser_render_text_box(
     unsigned long target_glyphs;
     unsigned long emitted = 0ul;
     int pending_space = 0;
-    long x = origin_x + (long)box->x;
+    long x;
     long y;
     rivet_rgba8 foreground = {
         box->foreground.r,
@@ -1555,15 +1697,21 @@ static rivet_result browser_render_text_box(
             browser->document.source_bytes -
             box->source.offset ||
         box->width % BROWSER_GLYPH_ADVANCE != 0ul ||
-        box->y > (unsigned long)LONG_MAX ||
-        browser->scroll_y >
-            (unsigned long)LONG_MAX) {
+        box->x > (unsigned long)LONG_MAX ||
+        box->x >
+            (unsigned long)LONG_MAX -
+            (unsigned long)origin_x) {
         return RIVET_ERR_INVALID_ARGUMENT;
     }
 
-    y = origin_y +
-        (long)box->y -
-        (long)browser->scroll_y;
+    x = origin_x + (long)box->x;
+    if (browser_scrolled_y(
+            origin_y,
+            box->y,
+            browser->scroll_y,
+            &y) != RIVET_OK) {
+        return RIVET_ERR_CAPACITY;
+    }
     target_glyphs =
         box->width / BROWSER_GLYPH_ADVANCE;
     end = box->source.offset +
@@ -1725,11 +1873,20 @@ static rivet_result browser_render_document(
             continue;
         }
 
+        if (box->x >
+            (unsigned long)LONG_MAX -
+            (unsigned long)bounds.x) {
+            return RIVET_ERR_CAPACITY;
+        }
         rect.x = bounds.x +
                  (long)box->x;
-        rect.y = origin_y +
-                 (long)box->y -
-                 (long)browser->scroll_y;
+        if (browser_scrolled_y(
+                origin_y,
+                box->y,
+                browser->scroll_y,
+                &rect.y) != RIVET_OK) {
+            return RIVET_ERR_CAPACITY;
+        }
         rect.width = box->width;
         rect.height = box->height;
 
@@ -1745,20 +1902,34 @@ static rivet_result browser_render_document(
             }
         } else if (box->kind ==
                    RIVET_LAYOUT_IMAGE) {
+            rivet_rgba8 fill =
+                style.image_placeholder;
+            if (box->has_background) {
+                fill.r = box->background.r;
+                fill.g = box->background.g;
+                fill.b = box->background.b;
+                fill.a = box->background.a;
+            }
             if (rivet_surface_fill_rect(
                     surface,
                     rect,
-                    style.image_placeholder) !=
-                RIVET_OK) {
+                    fill) != RIVET_OK) {
                 return RIVET_ERR_INVALID_ARGUMENT;
             }
         } else if (box->kind ==
                    RIVET_LAYOUT_INPUT) {
+            rivet_rgba8 fill =
+                style.input_background;
+            if (box->has_background) {
+                fill.r = box->background.r;
+                fill.g = box->background.g;
+                fill.b = box->background.b;
+                fill.a = box->background.a;
+            }
             if (rivet_surface_fill_rect(
                     surface,
                     rect,
-                    style.input_background) !=
-                RIVET_OK) {
+                    fill) != RIVET_OK) {
                 return RIVET_ERR_INVALID_ARGUMENT;
             }
         }
@@ -1831,15 +2002,21 @@ static rivet_result browser_render_source(
         }
 
         if (row <=
-                (unsigned long)LONG_MAX /
-                BROWSER_LINE_HEIGHT &&
-            browser->scroll_y <=
-                (unsigned long)LONG_MAX) {
-            long y =
-                origin_y +
-                (long)(row *
-                       BROWSER_LINE_HEIGHT) -
-                (long)browser->scroll_y;
+            (unsigned long)LONG_MAX /
+            BROWSER_LINE_HEIGHT) {
+            long y;
+            unsigned long content_y =
+                row * BROWSER_LINE_HEIGHT;
+
+            result = browser_scrolled_y(
+                origin_y,
+                content_y,
+                browser->scroll_y,
+                &y
+            );
+            if (result != RIVET_OK) {
+                return result;
+            }
             result = browser_draw_glyph(
                 surface,
                 bounds.x +
@@ -1890,6 +2067,71 @@ static rivet_result browser_draw_word(
     return RIVET_OK;
 }
 
+static rivet_result browser_surface_clip_to(
+    rivet_surface *target,
+    const rivet_surface *source,
+    rivet_rect requested
+)
+{
+    rivet_rect current;
+    rivet_rect clip;
+    unsigned long left;
+    unsigned long top;
+    unsigned long right;
+    unsigned long bottom;
+    unsigned long requested_right;
+    unsigned long requested_bottom;
+    unsigned long current_right;
+    unsigned long current_bottom;
+
+    if (target == NULL || source == NULL ||
+        requested.x < 0L ||
+        requested.y < 0L) {
+        return RIVET_ERR_INVALID_ARGUMENT;
+    }
+
+    current = source->clip;
+    left = (unsigned long)requested.x >
+           (unsigned long)current.x ?
+        (unsigned long)requested.x :
+        (unsigned long)current.x;
+    top = (unsigned long)requested.y >
+          (unsigned long)current.y ?
+        (unsigned long)requested.y :
+        (unsigned long)current.y;
+
+    requested_right =
+        (unsigned long)requested.x +
+        requested.width;
+    requested_bottom =
+        (unsigned long)requested.y +
+        requested.height;
+    current_right =
+        (unsigned long)current.x +
+        current.width;
+    current_bottom =
+        (unsigned long)current.y +
+        current.height;
+
+    right = requested_right < current_right ?
+        requested_right : current_right;
+    bottom = requested_bottom < current_bottom ?
+        requested_bottom : current_bottom;
+
+    clip.x = (long)left;
+    clip.y = (long)top;
+    clip.width =
+        right > left ? right - left : 0ul;
+    clip.height =
+        bottom > top ? bottom - top : 0ul;
+
+    *target = *source;
+    return rivet_surface_set_clip(
+        target,
+        clip
+    );
+}
+
 rivet_result rivet_browser_render(
     rivet_surface *surface,
     const rivet_browser *browser,
@@ -1899,17 +2141,8 @@ rivet_result rivet_browser_render(
 {
     rivet_rect chrome;
     rivet_rect content;
-    rivet_rect current_clip;
-    rivet_rect content_clip;
+    rivet_surface chrome_surface;
     rivet_surface content_surface;
-    unsigned long left;
-    unsigned long top;
-    unsigned long right;
-    unsigned long bottom;
-    unsigned long current_right;
-    unsigned long current_bottom;
-    unsigned long content_right;
-    unsigned long content_bottom;
     rivet_result result;
 
     if (surface == NULL || browser == NULL ||
@@ -1956,8 +2189,17 @@ rivet_result rivet_browser_render(
         return result;
     }
 
-    result = browser_draw_word(
+    result = browser_surface_clip_to(
+        &chrome_surface,
         surface,
+        chrome
+    );
+    if (result != RIVET_OK) {
+        return result;
+    }
+
+    result = browser_draw_word(
+        &chrome_surface,
         bounds.x + 2L,
         bounds.y + 1L,
         browser->source_mode ?
@@ -1975,43 +2217,10 @@ rivet_result rivet_browser_render(
     content.height -=
         RIVET_BROWSER_CHROME_HEIGHT;
 
-    current_clip = surface->clip;
-    left = (unsigned long)content.x >
-           (unsigned long)current_clip.x ?
-        (unsigned long)content.x :
-        (unsigned long)current_clip.x;
-    top = (unsigned long)content.y >
-          (unsigned long)current_clip.y ?
-        (unsigned long)content.y :
-        (unsigned long)current_clip.y;
-    content_right =
-        (unsigned long)content.x +
-        content.width;
-    content_bottom =
-        (unsigned long)content.y +
-        content.height;
-    current_right =
-        (unsigned long)current_clip.x +
-        current_clip.width;
-    current_bottom =
-        (unsigned long)current_clip.y +
-        current_clip.height;
-    right = content_right < current_right ?
-        content_right : current_right;
-    bottom = content_bottom < current_bottom ?
-        content_bottom : current_bottom;
-
-    content_clip.x = (long)left;
-    content_clip.y = (long)top;
-    content_clip.width =
-        right > left ? right - left : 0ul;
-    content_clip.height =
-        bottom > top ? bottom - top : 0ul;
-
-    content_surface = *surface;
-    result = rivet_surface_set_clip(
+    result = browser_surface_clip_to(
         &content_surface,
-        content_clip
+        surface,
+        content
     );
     if (result != RIVET_OK) {
         return result;
