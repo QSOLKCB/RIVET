@@ -18,7 +18,7 @@ a{color:var(--hot)}.muted{color:var(--muted)}footer{margin-top:56px;color:var(--
 <body>
 <main>
 <header>
-<div class="tag">R6 // HISTORICAL STRESS</div>
+<div class="tag">R7 // DOCUMENT ENGINE</div>
 <h1>RIVET</h1>
 <p class="lead"><strong>Resilient Interface, View &amp; Execution Toolkit.</strong> Lean application infrastructure for software that should remain useful after the fashionable stack is gone.</p>
 </header>
@@ -31,20 +31,21 @@ MENU ITEM            != COMMAND
 APPLICATION           != BROWSER
 PLATFORM ABI          != APPLICATION SEMANTICS
 QEMU USER             != FULL-SYSTEM GUEST
+DOCUMENT PARSE        != BROWSER RECOVERY
 EMULATION             != PHYSICAL HARDWARE
 "LIGHTWEIGHT"        != EVIDENCE</pre>
 <div class="grid">
 <div class="card"><strong>Minimal</strong><br><span class="muted">If equivalent behaviour can be implemented with materially less code and no loss of correctness, safety, readability or portability, the smaller implementation wins.</span></div>
-<div class="card"><strong>Bounded</strong><br><span class="muted">R6 changes the execution environment, not the semantic contract: the same bounded Platform v1 proof runs across 32-bit and big-endian stress targets.</span></div>
+<div class="card"><strong>Bounded</strong><br><span class="muted">R7 parses hostile bytes into caller-owned nodes, rules, layout boxes and pixels. Depth, dimensions, margins and capacities are explicit.</span></div>
 <div class="card"><strong>Portable</strong><br><span class="muted">C99 baseline, stable C ABI direction, CPU/software raster rendering, no RIVET GPU API, no mandatory network or threads.</span></div>
 <div class="card"><strong>User-owned</strong><br><span class="muted">Capabilities survive UI fashion. State should remain inspectable. No telemetry or account requirement by default.</span></div>
 </div>
-<h2>The historical stress gate</h2>
-<p>R6 executes frozen Platform v1 semantics as i686-baseline 32-bit x86, big-endian PowerPC under qemu-user, and through a release-gated full-system Windows Server 2012 R2 harness with explicit evidence labels.</p>
+<h2>The document engine</h2>
+<p>R7 adds strict bounded URL, stream, UTF-8, HTML, CSS, layout and PPM image semantics. Links and forms remain separate capabilities, and malformed input fails explicitly instead of invoking browser-style recovery.</p>
 <h2>The proof</h2>
 <p>The long-term demonstration is a lean RIVET Browser spanning modern systems and deliberately constrained historical targets. The browser is downstream of the framework: it must prove the architecture rather than infect it.</p>
 <h2>Start here</h2>
-<p><a href="README.md">README</a> · <a href="HISTORICAL-v1.md">Historical v1</a> · <a href="PLATFORM-v1.md">Platform v1</a> · <a href="TEXTVIEW-v1.md">Text Viewer v1</a> · <a href="UI-v1.md">UI v1</a> · <a href="GFX-v1.md">GFX v1</a> · <a href="CORE-v1.md">Core v1</a> · <a href="CONSTITUTION-v2.md">Constitution</a> · <a href="ARCHITECTURE-v2.md">Architecture</a> · <a href="PORTABILITY-v2.md">Portability</a> · <a href="RENDERING-v1.md">Rendering</a> · <a href="ROADMAP.md">Roadmap</a> · <a href="RUNTIME-PLAN-v1.md">Runtime plan</a></p>
+<p><a href="README.md">README</a> · <a href="DOCUMENT-v1.md">Document v1</a> · <a href="HISTORICAL-v1.md">Historical v1</a> · <a href="PLATFORM-v1.md">Platform v1</a> · <a href="TEXTVIEW-v1.md">Text Viewer v1</a> · <a href="UI-v1.md">UI v1</a> · <a href="GFX-v1.md">GFX v1</a> · <a href="CORE-v1.md">Core v1</a> · <a href="CONSTITUTION-v2.md">Constitution</a> · <a href="ARCHITECTURE-v2.md">Architecture</a> · <a href="PORTABILITY-v2.md">Portability</a> · <a href="RENDERING-v1.md">Rendering</a> · <a href="ROADMAP.md">Roadmap</a> · <a href="RUNTIME-PLAN-v1.md">Runtime plan</a></p>
 <footer>MPL-2.0 · static HTML/CSS · no framework · no analytics · no build step</footer>
 </main>
 </body>

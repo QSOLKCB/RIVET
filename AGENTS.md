@@ -134,8 +134,10 @@ Published versioned machine contracts and the versioned human authority paths th
 
 R0 remains frozen in immutable `v0.1.0`.
 
-R1 Core v1, R2 GFX v1, R3 UI v1, R4 Text Viewer v1 and R5 Platform v1 are merged and must not be redefined by R6.
+R1 Core v1, R2 GFX v1, R3 UI v1, R4 Text Viewer v1, R5 Platform v1 and R6 Historical v1 implementation are merged and must not be redefined by R7. R6's full-system Windows E3 receipt remains release-gated evidence rather than a reason to rewrite R6 contracts.
 
-R6 may add only historical/constrained execution harnesses, receipts, evidence workflows, and target metadata described by [HISTORICAL-v1.md](HISTORICAL-v1.md). It must reuse frozen RIVET semantics rather than create an emulator/runtime abstraction.
+R7 may add only the bounded document machinery described by [DOCUMENT-v1.md](DOCUMENT-v1.md): URL/byte-stream/UTF-8 primitives, strict HTML/CSS subsets, bounded layout, the reference PPM decoder, explicit document capability identities, tests and deterministic evidence.
 
-Do not claim qemu-user as full-system evidence, do not claim full-system emulation as physical hardware, and do not redistribute proprietary Windows guest media. Do not pull R7 document/encoding/HTML machinery forward.
+Treat document bytes as hostile input. Fail closed on malformed syntax, invalid UTF-8, overflow, excessive nesting, unsupported grammar and caller-capacity exhaustion. Do not add browser-style recovery heuristics in R7.
+
+Do not pull R8 browser transport, HTTP/TLS, navigation/history/bookmarks/downloads, JavaScript, generic PNG/JPEG stacks, dynamic DOM mutation, networking, threads, GPU APIs or speculative caches into R7.

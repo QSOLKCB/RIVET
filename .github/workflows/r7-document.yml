@@ -1,0 +1,132 @@
+name: R7 Document Engine
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  frozen-r6:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Verify frozen pre-R7 baseline surfaces remain unchanged
+        run: |
+          baseline=e6dd743286f8c7c7691bd554fa0e42382b18b8d1
+          failed=0
+
+          while IFS= read -r path; do
+            case "$path" in
+              .gitattributes|AGENTS.md|Makefile|README.md|ROADMAP.md|index.html)
+                continue
+                ;;
+            esac
+
+            if ! git diff --quiet "$baseline" -- "$path"; then
+              echo "Frozen pre-R7 path changed: $path" >&2
+              failed=1
+            fi
+          done < <(git ls-tree -r --name-only "$baseline")
+
+          exit "$failed"
+
+      - name: Verify R7 fixture checkout policy
+        run: |
+          test "$(git check-attr eol -- fixtures/r7_document.html)" = "fixtures/r7_document.html: eol: lf"
+          test "$(git check-attr text -- fixtures/r7_image.ppm)" = "fixtures/r7_image.ppm: text: unset"
+
+      - name: Validate machine JSON
+        run: |
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+
+          for path in sorted(Path("machine").rglob("*.json")):
+              json.loads(path.read_text(encoding="utf-8"))
+              print(path)
+          PY
+
+  c99:
+    runs-on: ubuntu-24.04
+    strategy:
+      matrix:
+        cc: [gcc, clang]
+    env:
+      CC: ${{ matrix.cc }}
+      CFLAGS: -std=c99 -O2 -Wall -Wextra -Wpedantic -Werror
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Document unit and hostile-input tests
+        run: |
+          make clean
+          make test-document
+          make clean
+          make test-document CPPFLAGS=-DRIVET_EXTERNAL_CPPFLAGS=1
+
+      - name: Measure deterministic document proof
+        run: |
+          make clean
+          make document CPPFLAGS=-DRIVET_EXTERNAL_CPPFLAGS=1
+          ./build/rivet-document-proof fixtures/r7_document.html fixtures/r7_image.ppm
+          sha256sum fixtures/r7_document.html fixtures/r7_image.ppm
+          wc -c fixtures/r7_document.html fixtures/r7_image.ppm build/rivet-document-proof
+
+  sanitizers:
+    runs-on: ubuntu-24.04
+    env:
+      CC: clang
+      CFLAGS: -std=c99 -O1 -g -Wall -Wextra -Wpedantic -Werror -fsanitize=address,undefined -fno-omit-frame-pointer
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Sanitized document tests
+        run: |
+          make clean
+          make test-document CPPFLAGS=-DRIVET_SANITIZED=1
+
+      - name: Sanitized deterministic proof
+        run: |
+          make clean
+          make document CPPFLAGS=-DRIVET_SANITIZED=1
+          ./build/rivet-document-proof fixtures/r7_document.html fixtures/r7_image.ppm
+
+  execution-charset:
+    runs-on: ubuntu-24.04
+    env:
+      CC: gcc
+      CFLAGS: -std=c99 -O1 -g -Wall -Wextra -Wpedantic -Werror -fexec-charset=IBM1047
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Numeric-ASCII parser regression
+        run: |
+          make clean
+          make test-document-charset CPPFLAGS=-DRIVET_EXEC_CHARSET_REGRESSION=1
+
+  powerpc-big-endian:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install PowerPC cross-toolchain and qemu-user
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends             file             gcc-powerpc-linux-gnu             libc6-dev-powerpc-cross             qemu-user
+
+      - name: Build and execute document tests on big-endian PowerPC
+        run: |
+          mkdir -p build/r7-ppc
+
+          powerpc-linux-gnu-gcc             -static             -std=c99             -O2             -Wall             -Wextra             -Wpedantic             -Werror             -Iinclude             web/stream_url_utf8.c             web/html_css.c             web/layout_image.c             tests/test_document.c             -o build/r7-ppc/test-document
+
+          powerpc-linux-gnu-gcc             -static             -std=c99             -O2             -Wall             -Wextra             -Wpedantic             -Werror             -Iinclude             web/stream_url_utf8.c             web/html_css.c             web/layout_image.c             examples/r7_document_proof.c             -o build/r7-ppc/rivet-document-proof
+
+          file build/r7-ppc/test-document build/r7-ppc/rivet-document-proof | tee build/r7-ppc/file.txt
+          grep -F "ELF 32-bit MSB" build/r7-ppc/file.txt
+          grep -F "PowerPC" build/r7-ppc/file.txt
+
+          qemu-ppc build/r7-ppc/test-document
+          qemu-ppc build/r7-ppc/rivet-document-proof fixtures/r7_document.html fixtures/r7_image.ppm

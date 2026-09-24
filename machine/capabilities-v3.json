@@ -1,0 +1,121 @@
+{
+  "schema": "rivet.capabilities/v3",
+  "version": 3,
+  "supersedes": "rivet.capabilities/v2",
+  "breaking_changes": [],
+  "additive_changes": [
+    "document URL, stream, UTF-8 text, layout, links and forms capabilities added",
+    "PPM image decode capability added for the R7 reference image codec"
+  ],
+  "selection_model": "minimum-execution-substrate",
+  "implicit_inheritance": false,
+  "capabilities": [
+    {
+      "id": "surface.raster",
+      "class": "presentation"
+    },
+    {
+      "id": "input.keyboard",
+      "class": "input"
+    },
+    {
+      "id": "input.pointer",
+      "class": "input"
+    },
+    {
+      "id": "filesystem.read",
+      "class": "storage"
+    },
+    {
+      "id": "filesystem.write",
+      "class": "storage"
+    },
+    {
+      "id": "clipboard",
+      "class": "platform"
+    },
+    {
+      "id": "timer.monotonic",
+      "class": "platform"
+    },
+    {
+      "id": "network.tcp",
+      "class": "network"
+    },
+    {
+      "id": "network.http",
+      "class": "network"
+    },
+    {
+      "id": "network.tls",
+      "class": "network"
+    },
+    {
+      "id": "audio.pcm",
+      "class": "media"
+    },
+    {
+      "id": "threads",
+      "class": "acceleration"
+    },
+    {
+      "id": "simd",
+      "class": "acceleration"
+    },
+    {
+      "id": "document.url",
+      "class": "document"
+    },
+    {
+      "id": "document.stream",
+      "class": "document"
+    },
+    {
+      "id": "document.text.utf8",
+      "class": "document"
+    },
+    {
+      "id": "document.html",
+      "class": "document"
+    },
+    {
+      "id": "document.css",
+      "class": "document"
+    },
+    {
+      "id": "document.layout",
+      "class": "document"
+    },
+    {
+      "id": "document.links",
+      "class": "document"
+    },
+    {
+      "id": "document.forms",
+      "class": "document"
+    },
+    {
+      "id": "image.ppm",
+      "class": "media"
+    },
+    {
+      "id": "script.javascript",
+      "class": "script"
+    }
+  ],
+  "explicit_non_capabilities": [
+    {
+      "id": "gpu",
+      "reason": "RIVET rendering terminates at a CPU-produced software pixel surface; GPU APIs are outside the RIVET rendering contract"
+    }
+  ],
+  "baseline_not_required": [
+    "threads",
+    "simd",
+    "network.tcp",
+    "network.http",
+    "network.tls",
+    "audio.pcm",
+    "script.javascript"
+  ]
+}

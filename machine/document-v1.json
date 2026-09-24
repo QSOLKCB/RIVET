@@ -1,0 +1,176 @@
+{
+  "schema": "rivet.document/v1",
+  "version": 1,
+  "authority": "DOCUMENT-v1.md",
+  "abi_version": 1,
+  "language_baseline": "C99",
+  "public_header": "include/rivet/document.h",
+  "reference_sources": [
+    "web/stream_url_utf8.c",
+    "web/html_css.c",
+    "web/layout_image.c"
+  ],
+  "memory": {
+    "heap": false,
+    "ownership": "caller-owned",
+    "bounded_outputs": [
+      "utf8-codepoints",
+      "html-nodes",
+      "css-rules",
+      "layout-boxes",
+      "image-pixels"
+    ]
+  },
+  "limits": {
+    "html_depth": 32,
+    "html_image_dimension": 4096,
+    "css_margin_pixels": 1024,
+    "ppm_dimension": 4096,
+    "layout_glyph_advance": 6,
+    "layout_line_height": 8,
+    "layout_input_width": 80,
+    "layout_input_height": 12
+  },
+  "url": {
+    "schemes": [
+      "http",
+      "https"
+    ],
+    "input": "visible-numeric-ascii-0x21-through-0x7e",
+    "percent_escape_validation": true,
+    "unsupported": [
+      "userinfo",
+      "ipv6-literal",
+      "idna",
+      "relative-resolution",
+      "percent-decoding"
+    ]
+  },
+  "utf8": {
+    "strict": true,
+    "rejects": [
+      "overlong",
+      "surrogate",
+      "truncated",
+      "above-u+10ffff"
+    ]
+  },
+  "html": {
+    "supported_elements": [
+      "html",
+      "head",
+      "body",
+      "p",
+      "h1",
+      "h2",
+      "a",
+      "form",
+      "input",
+      "img",
+      "br",
+      "style",
+      "text"
+    ],
+    "semantic_attributes": {
+      "a": [
+        "href"
+      ],
+      "form": [
+        "action"
+      ],
+      "input": [
+        "name",
+        "value"
+      ],
+      "img": [
+        "src",
+        "width",
+        "height"
+      ]
+    },
+    "quoted_attributes": "double-only",
+    "strict_nesting": true,
+    "recovery": false,
+    "entities": false
+  },
+  "content_capabilities": [
+    "document.html",
+    "document.css",
+    "document.links",
+    "document.forms",
+    "image.ppm"
+  ],
+  "css": {
+    "selectors": [
+      "body",
+      "p",
+      "h1",
+      "h2",
+      "a",
+      "form",
+      "input",
+      "img"
+    ],
+    "properties": [
+      "color",
+      "background-color",
+      "margin-top",
+      "margin-bottom"
+    ],
+    "color": "#RRGGBB",
+    "margins": "0..1024px",
+    "comments": false
+  },
+  "layout": {
+    "mode": "bounded-reference-flow",
+    "boxes": [
+      "text",
+      "image",
+      "input"
+    ],
+    "whitespace": "ascii-collapse-for-measurement",
+    "scalar_reference": true
+  },
+  "image": {
+    "codec": "Netpbm-P6",
+    "capability": "image.ppm",
+    "output": "RGBA8888",
+    "alpha": 255,
+    "max_dimension": 4096
+  },
+  "reference_vector": {
+    "html_fixture": "fixtures/r7_document.html",
+    "image_fixture": "fixtures/r7_image.ppm",
+    "proof": "examples/r7_document_proof.c",
+    "html_fnv1a64": "pending-r7-ci",
+    "layout_fnv1a64": "pending-r7-ci",
+    "image_rgba_fnv1a64": "pending-r7-ci"
+  },
+  "non_goals": [
+    "network",
+    "http",
+    "tls",
+    "browser-ui",
+    "history",
+    "bookmarks",
+    "downloads",
+    "relative-url-resolution",
+    "html-recovery",
+    "html-entities",
+    "dom-mutation",
+    "full-css",
+    "font-engine",
+    "png",
+    "jpeg",
+    "gif",
+    "svg",
+    "form-submit",
+    "javascript",
+    "accessibility-tree",
+    "incremental-layout",
+    "cache",
+    "threads",
+    "simd",
+    "gpu"
+  ]
+}
