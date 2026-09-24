@@ -150,7 +150,7 @@ Implemented R6 stress-gate machinery:
 
 - [x] static 32-bit x86 Platform v1 proof with explicit i686 baseline;
 - [x] direct 32-bit i686-baseline x86 process execution on the Ubuntu runner;
-- [x] E2 `qemu-i386` execution of the i686-baseline binary of the same 32-bit binary;
+- [x] E2 `qemu-i386` execution of the same i686-baseline 32-bit binary;
 - [x] static PowerPC32 cross-build;
 - [x] E2 `qemu-ppc` big-endian execution with `pointer_bits=32` and `endian=big`;
 - [x] machine-readable historical receipt schema and artifact capture;
