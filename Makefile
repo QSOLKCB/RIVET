@@ -71,8 +71,8 @@ $(BUILD_DIR)/rivet-platform-posix: $(CORE) $(HEADER) $(PLATFORM_COMMON) $(PLATFO
 $(BUILD_DIR)/test-document: $(DOCUMENT) $(DOCUMENT_HEADER) $(HEADER) tests/test_document.c | $(BUILD_DIR)
 	$(CC) $(CPPFLAGS) -Iinclude $(CFLAGS) $(DOCUMENT) tests/test_document.c -o $@
 
-$(BUILD_DIR)/test-document-charset: $(DOCUMENT) $(DOCUMENT_HEADER) $(HEADER) tests/test_document_charset.c | $(BUILD_DIR)
-	$(CC) $(CPPFLAGS) -Iinclude $(CFLAGS) $(DOCUMENT) tests/test_document_charset.c -o $@
+$(BUILD_DIR)/test-document-charset: $(CORE) $(DOCUMENT) $(DOCUMENT_HEADER) $(HEADER) tests/test_document_charset.c | $(BUILD_DIR)
+	$(CC) $(CPPFLAGS) -Iinclude $(CFLAGS) $(CORE) $(DOCUMENT) tests/test_document_charset.c -o $@
 
 $(BUILD_DIR)/rivet-document-proof: $(DOCUMENT) $(DOCUMENT_HEADER) $(HEADER) examples/r7_document_proof.c | $(BUILD_DIR)
 	$(CC) $(CPPFLAGS) -Iinclude $(CFLAGS) $(DOCUMENT) examples/r7_document_proof.c -o $@
