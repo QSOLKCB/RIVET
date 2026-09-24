@@ -333,6 +333,12 @@ static int test_strict_structure_and_layout_state(void)
     static const unsigned char whitespace_between_links[] =
         "<html><body><p><a>A</a> <a>B</a></p>"
         "</body></html>";
+    static const unsigned char body_whitespace_between_links[] =
+        "<html><body><a>A</a> <a>B</a></body></html>";
+    static const unsigned char direct_root_content[] =
+        "<html><p>X</p><body></body></html>";
+    static const unsigned char control_text[] =
+        "<html><body><p>\x01</p></body></html>";
     static const unsigned char bad_attribute_separator[] =
         "<html><body><p id=\"a\"title=\"b\">X</p>"
         "</body></html>";
@@ -457,11 +463,73 @@ static int test_strict_structure_and_layout_state(void)
         sizeof(visible_head) - 1u,
         nodes,
         32u) == RIVET_ERR_INVALID_ARGUMENT);
+    CHECK(rivet_html_parse(
+        &document,
+        direct_root_content,
+        sizeof(direct_root_content) - 1u,
+        nodes,
+        32u) == RIVET_ERR_INVALID_ARGUMENT);
+    CHECK(rivet_html_parse(
+        &document,
+        control_text,
+        sizeof(control_text) - 1u,
+        nodes,
+        32u) == RIVET_ERR_UNSUPPORTED);
 
     CHECK(rivet_html_parse(
         &document,
         whitespace_between_links,
         sizeof(whitespace_between_links) - 1u,
+        nodes,
+        32u) == RIVET_OK);
+    second_link_text_index = document.node_count;
+    for (i = 0u; i < document.node_count; ++i) {
+        if (document.nodes[i].kind !=
+            RIVET_DOC_NODE_TEXT) {
+            continue;
+        }
+        if (document.nodes[i].text.length == 1u &&
+            document.source[
+                document.nodes[i].text.offset] == 0x20u) {
+            saw_space_node = 1;
+        }
+        if (document.nodes[i].text.length == 1u &&
+            document.source[
+                document.nodes[i].text.offset] == 0x42u) {
+            second_link_text_index = i;
+        }
+    }
+    CHECK(saw_space_node);
+    CHECK(second_link_text_index <
+          document.node_count);
+    CHECK(rivet_document_layout(
+        &document,
+        NULL,
+        0u,
+        24ul,
+        boxes,
+        16u,
+        &box_count,
+        &document_height) == RIVET_OK);
+    for (i = 0u; i < box_count; ++i) {
+        if (boxes[i].node_index ==
+                second_link_text_index &&
+            boxes[i].kind ==
+                RIVET_LAYOUT_TEXT) {
+            saw_second_link = 1;
+            CHECK(boxes[i].x == 12ul);
+        }
+    }
+    CHECK(saw_second_link);
+
+    saw_space_node = 0;
+    saw_second_link = 0;
+    second_link_text_index = 0u;
+
+    CHECK(rivet_html_parse(
+        &document,
+        body_whitespace_between_links,
+        sizeof(body_whitespace_between_links) - 1u,
         nodes,
         32u) == RIVET_OK);
     second_link_text_index = document.node_count;
