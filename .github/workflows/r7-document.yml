@@ -66,12 +66,18 @@ jobs:
           make clean
           make test-document CPPFLAGS=-DRIVET_EXTERNAL_CPPFLAGS=1
 
-      - name: Measure deterministic document proof
+      - name: Deterministic document proof
         run: |
           make clean
           make document CPPFLAGS=-DRIVET_EXTERNAL_CPPFLAGS=1
+
+          html_sha="$(python3 -c 'import json; print(json.load(open("machine/document-v1.json"))["reference_vector"]["html_fixture_sha256"])')"
+          image_sha="$(python3 -c 'import json; print(json.load(open("machine/document-v1.json"))["reference_vector"]["image_fixture_sha256"])')"
+
+          printf '%s  %s\n' "$html_sha" fixtures/r7_document.html | sha256sum -c -
+          printf '%s  %s\n' "$image_sha" fixtures/r7_image.ppm | sha256sum -c -
+
           ./build/rivet-document-proof fixtures/r7_document.html fixtures/r7_image.ppm
-          sha256sum fixtures/r7_document.html fixtures/r7_image.ppm
           wc -c fixtures/r7_document.html fixtures/r7_image.ppm build/rivet-document-proof
 
   sanitizers:

@@ -277,7 +277,28 @@ bounded bytes
  -> PPM RGBA decode
 ```
 
-The exact fixture, layout and image identities are measured by branch CI before PR publication and then frozen into this contract.
+Reference identity:
+
+```text
+HTML bytes          = 428
+HTML SHA-256        = 0e39a26117b5a8774e3a06e76d00053362ddfacf280f1304df938619e06b0484
+HTML FNV-1a64       = 3987ce4034e4f3fc
+HTML nodes          = 15
+CSS rules           = 5
+content capabilities= 5
+UTF-8 sample scalars= 12
+layout viewport     = 120 px
+layout boxes        = 6
+document height     = 46 px
+layout FNV-1a64     = 0209c1501da9396c
+PPM bytes           = 23
+PPM SHA-256         = 69d84c9c40bbfe1bfa0519120af54a299af34be4eebb31bb6a34b67aaae22f00
+RGBA FNV-1a64       = 8a4318bc590ba10d
+link secure         = 1
+link port           = 443
+```
+
+The fixture hashes bind checkout bytes; the canonical layout hash serializes box fields explicitly rather than hashing native struct padding, so it remains comparable across 32-bit/64-bit and endian targets.
 
 ## Non-goals
 

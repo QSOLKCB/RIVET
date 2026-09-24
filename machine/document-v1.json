@@ -140,11 +140,25 @@
   },
   "reference_vector": {
     "html_fixture": "fixtures/r7_document.html",
+    "html_fixture_bytes": 428,
+    "html_fixture_sha256": "0e39a26117b5a8774e3a06e76d00053362ddfacf280f1304df938619e06b0484",
+    "html_fnv1a64": "3987ce4034e4f3fc",
+    "node_count": 15,
+    "css_rule_count": 5,
+    "content_capability_count": 5,
+    "utf8_sample_codepoints": 12,
+    "layout_viewport_width": 120,
+    "layout_box_count": 6,
+    "document_height": 46,
+    "layout_fnv1a64": "0209c1501da9396c",
     "image_fixture": "fixtures/r7_image.ppm",
+    "image_fixture_bytes": 23,
+    "image_fixture_sha256": "69d84c9c40bbfe1bfa0519120af54a299af34be4eebb31bb6a34b67aaae22f00",
+    "image_rgba_fnv1a64": "8a4318bc590ba10d",
+    "link_secure": true,
+    "link_port": 443,
     "proof": "examples/r7_document_proof.c",
-    "html_fnv1a64": "pending-r7-ci",
-    "layout_fnv1a64": "pending-r7-ci",
-    "image_rgba_fnv1a64": "pending-r7-ci"
+    "layout_hash_encoding": "explicit-little-endian-u64-fields-plus-byte-colors"
   },
   "non_goals": [
     "network",

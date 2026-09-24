@@ -11,8 +11,17 @@
 #define BOX_CAPACITY 128u
 #define PIXEL_CAPACITY 256u
 
-#define EXPECTED_LAYOUT_FNV1A64 0ULL
-#define EXPECTED_IMAGE_FNV1A64 0ULL
+#define EXPECTED_HTML_BYTES 428u
+#define EXPECTED_HTML_FNV1A64 0x3987ce4034e4f3fcULL
+#define EXPECTED_NODE_COUNT 15u
+#define EXPECTED_CSS_RULE_COUNT 5u
+#define EXPECTED_CAPABILITY_COUNT 5u
+#define EXPECTED_UTF8_CODEPOINT_COUNT 12u
+#define EXPECTED_BOX_COUNT 6u
+#define EXPECTED_DOCUMENT_HEIGHT 46ul
+#define EXPECTED_LAYOUT_FNV1A64 0x0209c1501da9396cULL
+#define EXPECTED_IMAGE_BYTES 23u
+#define EXPECTED_IMAGE_FNV1A64 0x8a4318bc590ba10dULL
 
 static unsigned long long fnv1a64(
     const unsigned char *bytes,
@@ -297,7 +306,7 @@ int main(int argc, char **argv)
             sizeof(codepoints) /
                 sizeof(codepoints[0]),
             &codepoint_count) != RIVET_OK ||
-        codepoint_count != 12u ||
+        codepoint_count != EXPECTED_UTF8_CODEPOINT_COUNT ||
         codepoints[6] != 0x2013u ||
         codepoints[11] != 0xe9u) {
         return 1;
@@ -349,7 +358,7 @@ int main(int argc, char **argv)
             sizeof(required) /
                 sizeof(required[0]),
             &required_count) != RIVET_OK ||
-        required_count != 5u) {
+        required_count != EXPECTED_CAPABILITY_COUNT) {
         return 1;
     }
 
@@ -415,12 +424,19 @@ int main(int argc, char **argv)
         link_url.port
     );
 
-    if (EXPECTED_LAYOUT_FNV1A64 != 0ULL &&
-        boxes_hash != EXPECTED_LAYOUT_FNV1A64) {
-        return 1;
-    }
-    if (EXPECTED_IMAGE_FNV1A64 != 0ULL &&
-        image_hash != EXPECTED_IMAGE_FNV1A64) {
+    if (html_count != EXPECTED_HTML_BYTES ||
+        direct_html_hash != EXPECTED_HTML_FNV1A64 ||
+        document.node_count != EXPECTED_NODE_COUNT ||
+        rule_count != EXPECTED_CSS_RULE_COUNT ||
+        required_count != EXPECTED_CAPABILITY_COUNT ||
+        codepoint_count != EXPECTED_UTF8_CODEPOINT_COUNT ||
+        box_count != EXPECTED_BOX_COUNT ||
+        document_height != EXPECTED_DOCUMENT_HEIGHT ||
+        boxes_hash != EXPECTED_LAYOUT_FNV1A64 ||
+        image_count != EXPECTED_IMAGE_BYTES ||
+        image_hash != EXPECTED_IMAGE_FNV1A64 ||
+        link_url.secure != 1 ||
+        link_url.port != 443u) {
         return 1;
     }
 
