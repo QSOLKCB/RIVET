@@ -160,7 +160,7 @@ document-mode FNV-1a64 = 75be6cc92698ac1a
 source-mode   FNV-1a64 = 5cf7c63a1fa3d9b4
 ```
 
-The first x86-64 hosted proof observation records `sizeof(rivet_browser) = 848` bytes and 62,288 bytes of explicitly allocated proof-resident state including the 120 × 64 RGBA surface. These measurements are environment evidence rather than portable ABI-size requirements.
+The first x86-64 hosted proof observation records `sizeof(rivet_browser) = 848` bytes. The proof's `proof_resident_bytes` total explicitly sums every simultaneously live proof-owned buffer, state structure, command/render object, counter, event and pointer, including the 120 × 64 RGBA surface. These measurements are environment evidence rather than portable ABI-size requirements.
 
 ## Non-goals
 

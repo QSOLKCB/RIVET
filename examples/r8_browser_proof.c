@@ -437,7 +437,14 @@ int main(int argc, char **argv)
     }
 
     resident_bytes =
-        sizeof(browser) +
+        sizeof(home_bytes) +
+        sizeof(about_bytes) +
+        sizeof(download_bytes) +
+        sizeof(config_bytes) +
+        sizeof(home_count) +
+        sizeof(about_count) +
+        sizeof(download_count) +
+        sizeof(config_count) +
         sizeof(document_bytes) +
         sizeof(scratch_bytes) +
         sizeof(nodes) +
@@ -445,8 +452,28 @@ int main(int argc, char **argv)
         sizeof(boxes) +
         sizeof(history) +
         sizeof(bookmarks) +
+        sizeof(storage) +
+        sizeof(config) +
+        sizeof(browser) +
+        sizeof(io_state) +
+        sizeof(io) +
         sizeof(slots) +
-        sizeof(pixels);
+        sizeof(commands) +
+        sizeof(keymap) +
+        sizeof(pixels) +
+        sizeof(surface) +
+        sizeof(bounds) +
+        sizeof(style) +
+        sizeof(next_link) +
+        sizeof(enter) +
+        sizeof(download) +
+        sizeof(back) +
+        sizeof(bookmark) +
+        sizeof(source) +
+        sizeof(document_hash) +
+        sizeof(source_hash) +
+        sizeof(resident_bytes) +
+        sizeof(output_path);
 
     printf(
         "rivet-r8: document_fnv1a64=%016llx source_fnv1a64=%016llx "

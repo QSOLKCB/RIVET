@@ -99,6 +99,66 @@ static rivet_result browser_line(
     return RIVET_OK;
 }
 
+static rivet_result browser_validate_css(
+    const unsigned char *bytes,
+    size_t byte_count
+)
+{
+    size_t start = 0u;
+    size_t i;
+    size_t rule_count = 0u;
+    rivet_css_rule rule;
+    rivet_result result;
+
+    if (byte_count == 0u) {
+        return RIVET_OK;
+    }
+    if (bytes == NULL) {
+        return RIVET_ERR_INVALID_ARGUMENT;
+    }
+
+    /*
+     * Document v1 CSS has no strings, comments, nested rules or
+     * declaration values containing '}'. Validate one complete rule
+     * at a time through the frozen R7 parser so WEB1 does not duplicate
+     * the CSS grammar or require unbounded temporary rule storage.
+     */
+    for (i = 0u; i < byte_count; ++i) {
+        if (bytes[i] != 0x7du) {
+            continue;
+        }
+
+        result = rivet_css_parse(
+            bytes + start,
+            i + 1u - start,
+            &rule,
+            1u,
+            &rule_count
+        );
+        if (result != RIVET_OK) {
+            return result;
+        }
+        if (rule_count != 1u) {
+            return RIVET_ERR_UNSUPPORTED;
+        }
+        start = i + 1u;
+    }
+
+    result = rivet_css_parse(
+        bytes + start,
+        byte_count - start,
+        NULL,
+        0u,
+        &rule_count
+    );
+    if (result != RIVET_OK) {
+        return result;
+    }
+    return rule_count == 0u ?
+        RIVET_OK :
+        RIVET_ERR_UNSUPPORTED;
+}
+
 rivet_result rivet_browser_config_parse(
     rivet_browser_config *config,
     const unsigned char *bytes,
@@ -160,6 +220,10 @@ rivet_result rivet_browser_config_parse(
         start + sizeof(home);
     candidate.home_url.length =
         length - sizeof(home);
+    if (candidate.home_url.length >
+        RIVET_BROWSER_URL_MAX) {
+        return RIVET_ERR_CAPACITY;
+    }
 
     result = rivet_url_parse(
         &parsed,
@@ -201,6 +265,14 @@ rivet_result rivet_browser_config_parse(
         start + sizeof(user_css);
     candidate.user_css.length =
         length - sizeof(user_css);
+
+    result = browser_validate_css(
+        bytes + candidate.user_css.offset,
+        candidate.user_css.length
+    );
+    if (result != RIVET_OK) {
+        return result;
+    }
 
     if (cursor != byte_count) {
         return RIVET_ERR_UNSUPPORTED;
@@ -283,6 +355,7 @@ static rivet_result browser_config_validate(
 )
 {
     rivet_url parsed;
+    rivet_result result;
 
     if (config == NULL ||
         config->source == NULL ||
@@ -302,10 +375,23 @@ static rivet_result browser_config_validate(
         return RIVET_ERR_INVALID_ARGUMENT;
     }
 
-    return rivet_url_parse(
+    if (config->home_url.length >
+        RIVET_BROWSER_URL_MAX) {
+        return RIVET_ERR_CAPACITY;
+    }
+
+    result = rivet_url_parse(
         &parsed,
         config->source + config->home_url.offset,
         config->home_url.length
+    );
+    if (result != RIVET_OK) {
+        return result;
+    }
+
+    return browser_validate_css(
+        config->source + config->user_css.offset,
+        config->user_css.length
     );
 }
 
@@ -328,6 +414,10 @@ rivet_result rivet_browser_init(
     result = browser_config_validate(config);
     if (result != RIVET_OK) {
         return result;
+    }
+    if (config->downloads_enabled &&
+        io->download == NULL) {
+        return RIVET_ERR_INVALID_ARGUMENT;
     }
     result = browser_storage_validate(storage);
     if (result != RIVET_OK) {
@@ -557,6 +647,7 @@ static rivet_result browser_load(
         &byte_count
     );
     if (result != RIVET_OK) {
+        browser_invalidate_loaded(browser);
         return result;
     }
     if (byte_count == 0u ||
@@ -1393,16 +1484,37 @@ static int browser_box_selected_link(
     const rivet_layout_box *box
 )
 {
+    size_t node_index;
+    size_t remaining;
+
     if (browser->selected_link_node ==
             RIVET_DOCUMENT_NO_PARENT ||
+        browser->selected_link_node >=
+            browser->document.node_count ||
         box->node_index >=
             browser->document.node_count) {
         return 0;
     }
 
-    return browser->document.nodes[
-        box->node_index].parent ==
-        browser->selected_link_node;
+    node_index = box->node_index;
+    remaining = browser->document.node_count;
+    while (remaining != 0u) {
+        if (node_index ==
+            browser->selected_link_node) {
+            return 1;
+        }
+        node_index = browser->document.nodes[
+            node_index].parent;
+        if (node_index ==
+            RIVET_DOCUMENT_NO_PARENT ||
+            node_index >=
+                browser->document.node_count) {
+            return 0;
+        }
+        --remaining;
+    }
+
+    return 0;
 }
 
 static rivet_result browser_render_text_box(
@@ -1786,6 +1898,18 @@ rivet_result rivet_browser_render(
 )
 {
     rivet_rect chrome;
+    rivet_rect content;
+    rivet_rect current_clip;
+    rivet_rect content_clip;
+    rivet_surface content_surface;
+    unsigned long left;
+    unsigned long top;
+    unsigned long right;
+    unsigned long bottom;
+    unsigned long current_right;
+    unsigned long current_bottom;
+    unsigned long content_right;
+    unsigned long content_bottom;
     rivet_result result;
 
     if (surface == NULL || browser == NULL ||
@@ -1845,9 +1969,57 @@ rivet_result rivet_browser_render(
         return result;
     }
 
+    content = bounds;
+    content.y +=
+        (long)RIVET_BROWSER_CHROME_HEIGHT;
+    content.height -=
+        RIVET_BROWSER_CHROME_HEIGHT;
+
+    current_clip = surface->clip;
+    left = (unsigned long)content.x >
+           (unsigned long)current_clip.x ?
+        (unsigned long)content.x :
+        (unsigned long)current_clip.x;
+    top = (unsigned long)content.y >
+          (unsigned long)current_clip.y ?
+        (unsigned long)content.y :
+        (unsigned long)current_clip.y;
+    content_right =
+        (unsigned long)content.x +
+        content.width;
+    content_bottom =
+        (unsigned long)content.y +
+        content.height;
+    current_right =
+        (unsigned long)current_clip.x +
+        current_clip.width;
+    current_bottom =
+        (unsigned long)current_clip.y +
+        current_clip.height;
+    right = content_right < current_right ?
+        content_right : current_right;
+    bottom = content_bottom < current_bottom ?
+        content_bottom : current_bottom;
+
+    content_clip.x = (long)left;
+    content_clip.y = (long)top;
+    content_clip.width =
+        right > left ? right - left : 0ul;
+    content_clip.height =
+        bottom > top ? bottom - top : 0ul;
+
+    content_surface = *surface;
+    result = rivet_surface_set_clip(
+        &content_surface,
+        content_clip
+    );
+    if (result != RIVET_OK) {
+        return result;
+    }
+
     if (browser->source_mode) {
         return browser_render_source(
-            surface,
+            &content_surface,
             browser,
             bounds,
             style
@@ -1855,7 +2027,7 @@ rivet_result rivet_browser_render(
     }
 
     return browser_render_document(
-        surface,
+        &content_surface,
         browser,
         bounds,
         style
