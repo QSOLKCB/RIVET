@@ -1,0 +1,95 @@
+{
+  "schema": "rivet.browser.web1/v1",
+  "version": 1,
+  "authority": "BROWSER-WEB1-v1.md",
+  "abi_version": 1,
+  "language_baseline": "C99",
+  "public_header": "include/rivet/browser.h",
+  "reference_source": "apps/browser/browser.c",
+  "memory": {
+    "heap": false,
+    "ownership": "caller-owned",
+    "url_max_bytes": 512
+  },
+  "required_capabilities": [
+    "surface.raster",
+    "input.keyboard",
+    "document.url",
+    "document.html",
+    "document.css",
+    "document.layout",
+    "document.links",
+    "browser.resource.fetch"
+  ],
+  "optional_capabilities": [
+    "browser.download.sink",
+    "image.ppm"
+  ],
+  "config": {
+    "format": "RIVET-WEB1-1-line-text",
+    "fields": ["home","downloads","user-css"],
+    "strict_order": true
+  },
+  "features": {
+    "javascript": false,
+    "history": "bounded-caller-owned",
+    "bookmarks": "bounded-caller-owned",
+    "downloads": "explicit-host-sink",
+    "view_source": true,
+    "user_styles": true,
+    "keyboard_first": true,
+    "software_raster": true,
+    "selected_link_navigation": true
+  },
+  "commands": [
+    "browser.back",
+    "browser.forward",
+    "browser.reload",
+    "browser.home",
+    "browser.link.next",
+    "browser.link.open",
+    "browser.bookmark.add",
+    "browser.download",
+    "view.source",
+    "view.scroll.up",
+    "view.scroll.down"
+  ],
+  "rendering": {
+    "surface": "RGBA8888-software",
+    "chrome_height": 10,
+    "glyph": "scalar-5x7-baseline",
+    "inline_images": "placeholder-in-web1",
+    "gpu": false
+  },
+  "transport": {
+    "browser_owns_http": false,
+    "browser_owns_tls": false,
+    "resource_provider": "browser.resource.fetch"
+  },
+  "proof": {
+    "config_fixture": "fixtures/r8_browser.conf",
+    "home_fixture": "fixtures/r8_home.html",
+    "about_fixture": "fixtures/r8_about.html",
+    "download_fixture": "fixtures/r8_download.txt",
+    "program": "examples/r8_browser_proof.c"
+  },
+  "non_goals": [
+    "javascript",
+    "cookies",
+    "html-recovery",
+    "relative-url-resolution",
+    "http-stack",
+    "tls-stack",
+    "form-submit",
+    "persistent-history",
+    "persistent-bookmarks",
+    "tabs",
+    "inline-image-resource-rendering",
+    "font-shaping",
+    "incremental-layout",
+    "cache",
+    "threads",
+    "simd",
+    "gpu"
+  ]
+}
