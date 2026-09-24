@@ -11,6 +11,14 @@
 #define BROWSER_LINE_HEIGHT 8ul
 #define BROWSER_SCROLL_STEP 8ul
 
+static rivet_result browser_utf8_one(
+    const unsigned char *bytes,
+    size_t byte_count,
+    size_t offset,
+    unsigned int *codepoint,
+    size_t *used
+);
+
 static int browser_space(unsigned int codepoint)
 {
     return codepoint == 0x09u ||
