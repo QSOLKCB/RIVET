@@ -1,0 +1,123 @@
+name: R8 WEB1 Browser
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  frozen-r7:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Verify frozen R1-R7 surfaces remain unchanged
+        run: |
+          baseline=ff1da3727e170e1480b12d2c2bbe8b22ca5b09c6
+          failed=0
+
+          while IFS= read -r path; do
+            case "$path" in
+              .gitattributes|\
+              .github/workflows/*|\
+              AGENTS.md|Makefile|README.md|ROADMAP.md|index.html)
+                continue
+                ;;
+            esac
+
+            if ! git diff --quiet "$baseline" -- "$path"; then
+              echo "Frozen pre-R8 path changed: $path" >&2
+              failed=1
+            fi
+          done < <(git ls-tree -r --name-only "$baseline")
+
+          exit "$failed"
+
+      - name: Verify WEB1 fixture checkout policy
+        run: |
+          test "$(git check-attr eol -- fixtures/r8_home.html)" = "fixtures/r8_home.html: eol: lf"
+          test "$(git check-attr eol -- fixtures/r8_about.html)" = "fixtures/r8_about.html: eol: lf"
+          test "$(git check-attr eol -- fixtures/r8_download.txt)" = "fixtures/r8_download.txt: eol: lf"
+          test "$(git check-attr eol -- fixtures/r8_browser.conf)" = "fixtures/r8_browser.conf: eol: lf"
+
+      - name: Validate machine JSON
+        run: |
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+
+          for path in sorted(Path("machine").rglob("*.json")):
+              json.loads(path.read_text(encoding="utf-8"))
+              print(path)
+          PY
+
+  c99:
+    runs-on: ubuntu-24.04
+    strategy:
+      matrix:
+        cc: [gcc, clang]
+    env:
+      CC: ${{ matrix.cc }}
+      CFLAGS: -std=c99 -O2 -Wall -Wextra -Wpedantic -Werror
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: WEB1 unit and hostile-input tests
+        run: |
+          make clean
+          make test-browser
+          make clean
+          make test-browser CPPFLAGS=-DRIVET_R8_EXTERNAL_CPPFLAGS=1
+
+      - name: Deterministic WEB1 proof and footprint
+        run: |
+          make clean
+          make browser CPPFLAGS=-DRIVET_R8_EXTERNAL_CPPFLAGS=1
+          ./build/rivet-web1-proof build/rivet-web1-proof.ppm
+          wc -c build/rivet-web1-proof build/rivet-web1-proof.ppm
+          size build/rivet-web1-proof
+
+  sanitizers:
+    runs-on: ubuntu-24.04
+    env:
+      CC: clang
+      CFLAGS: -std=c99 -O1 -g -Wall -Wextra -Wpedantic -Werror -fsanitize=address,undefined -fno-omit-frame-pointer
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Sanitized WEB1 tests
+        run: |
+          make clean
+          make test-browser CPPFLAGS=-DRIVET_R8_SANITIZED=1
+
+      - name: Sanitized WEB1 proof
+        run: |
+          make clean
+          make browser CPPFLAGS=-DRIVET_R8_SANITIZED=1
+          ./build/rivet-web1-proof build/rivet-web1-proof.ppm
+
+  powerpc-big-endian:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install PowerPC cross-toolchain and qemu-user
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends file gcc-powerpc-linux-gnu libc6-dev-powerpc-cross qemu-user
+
+      - name: Build and execute WEB1 on big-endian PowerPC
+        run: |
+          mkdir -p build/r8-ppc
+
+          powerpc-linux-gnu-gcc -static -std=c99 -O2 -Wall -Wextra -Wpedantic -Werror             -Iinclude             core/rivet.c gfx/raster.c ui/ui.c             web/stream_url_utf8.c web/html_css.c web/layout_image.c             apps/browser/browser.c tests/test_browser.c             -o build/r8-ppc/test-browser
+
+          powerpc-linux-gnu-gcc -static -std=c99 -O2 -Wall -Wextra -Wpedantic -Werror             -Iinclude -Iplatform/headless             core/rivet.c gfx/raster.c ui/ui.c             web/stream_url_utf8.c web/html_css.c web/layout_image.c             apps/browser/browser.c platform/headless/ppm.c             examples/r8_browser_proof.c             -o build/r8-ppc/rivet-web1-proof
+
+          file build/r8-ppc/test-browser build/r8-ppc/rivet-web1-proof | tee build/r8-ppc/file.txt
+          grep -F "ELF 32-bit MSB" build/r8-ppc/file.txt
+          grep -F "PowerPC" build/r8-ppc/file.txt
+
+          qemu-ppc build/r8-ppc/test-browser
+          qemu-ppc build/r8-ppc/rivet-web1-proof build/r8-ppc/rivet-web1-proof.ppm
