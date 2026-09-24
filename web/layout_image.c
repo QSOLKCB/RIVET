@@ -30,6 +30,11 @@ typedef struct layout_context {
     unsigned long y;
     unsigned long line_height;
     int emit;
+    int pending_space;
+    size_t pending_space_node;
+    size_t pending_space_start;
+    size_t pending_space_end;
+    layout_style pending_space_style;
 } layout_context;
 
 static int layout_space(unsigned int codepoint)
@@ -146,12 +151,14 @@ static layout_style layout_style_default(
 static layout_style layout_style_for(
     const layout_context *context,
     rivet_doc_node_kind kind,
-    rivet_doc_color inherited
+    layout_style inherited
 )
 {
-    layout_style style =
-        layout_style_default(inherited);
+    layout_style style = inherited;
     size_t i;
+
+    style.margin_top = 0ul;
+    style.margin_bottom = 0ul;
 
     for (i = 0u; i < context->rule_count; ++i) {
         const rivet_css_rule *rule =
@@ -205,6 +212,8 @@ static rivet_result layout_newline(
 {
     unsigned long height =
         context->line_height;
+
+    context->pending_space = 0;
 
     if (height == 0ul) {
         if (!force) {
@@ -308,6 +317,98 @@ static rivet_result layout_emit_text_run(
     return RIVET_OK;
 }
 
+static void layout_defer_space(
+    layout_context *context,
+    size_t node_index,
+    size_t source_start,
+    size_t source_end,
+    layout_style style
+)
+{
+    if (!context->pending_space) {
+        context->pending_space = 1;
+        context->pending_space_node =
+            node_index;
+        context->pending_space_start =
+            source_start;
+        context->pending_space_end =
+            source_end;
+        context->pending_space_style =
+            style;
+    } else if (
+        context->pending_space_node ==
+            node_index &&
+        context->pending_space_end ==
+            source_start) {
+        context->pending_space_end =
+            source_end;
+    }
+}
+
+static rivet_result layout_flush_pending_space(
+    layout_context *context,
+    unsigned long following_width
+)
+{
+    rivet_result result;
+    size_t node_index;
+    size_t source_start;
+    size_t source_end;
+    layout_style style;
+
+    if (!context->pending_space) {
+        return RIVET_OK;
+    }
+
+    if (context->x == 0ul) {
+        context->pending_space = 0;
+        return RIVET_OK;
+    }
+
+    if (following_width >
+            context->viewport_width ||
+        context->x >
+            context->viewport_width) {
+        return RIVET_ERR_CAPACITY;
+    }
+
+    if (DOC_GLYPH_WIDTH >
+            context->viewport_width -
+            context->x ||
+        following_width >
+            context->viewport_width -
+            context->x -
+            DOC_GLYPH_WIDTH) {
+        return layout_newline(
+            context, 1
+        );
+    }
+
+    node_index =
+        context->pending_space_node;
+    source_start =
+        context->pending_space_start;
+    source_end =
+        context->pending_space_end;
+    style =
+        context->pending_space_style;
+
+    result = layout_emit_text_run(
+        context,
+        node_index,
+        source_start,
+        source_end,
+        1ul,
+        style
+    );
+    if (result != RIVET_OK) {
+        return result;
+    }
+
+    context->pending_space = 0;
+    return RIVET_OK;
+}
+
 static rivet_result layout_text_node(
     layout_context *context,
     size_t node_index,
@@ -323,10 +424,13 @@ static rivet_result layout_text_node(
     unsigned long run_glyphs = 0ul;
     int pending_space = 0;
     size_t pending_space_start = 0u;
+    size_t pending_space_end = 0u;
 
-    if (node->text.length >
-        context->document->source_bytes -
-        node->text.offset) {
+    if (node->text.offset >
+            context->document->source_bytes ||
+        node->text.length >
+            context->document->source_bytes -
+            node->text.offset) {
         return RIVET_ERR_INVALID_ARGUMENT;
     }
     end = node->text.offset +
@@ -350,10 +454,16 @@ static rivet_result layout_text_node(
 
         if (layout_space(codepoint)) {
             if ((run_glyphs != 0ul ||
-                 context->x != 0ul) &&
+                 context->x != 0ul ||
+                 context->pending_space) &&
                 !pending_space) {
                 pending_space = 1;
-                pending_space_start = offset;
+                pending_space_start =
+                    offset;
+            }
+            if (pending_space) {
+                pending_space_end =
+                    offset + used;
             }
             offset += used;
             continue;
@@ -362,6 +472,18 @@ static rivet_result layout_text_node(
         if (codepoint < 0x20u ||
             codepoint == 0x7fu) {
             return RIVET_ERR_UNSUPPORTED;
+        }
+
+        if (context->pending_space) {
+            result =
+                layout_flush_pending_space(
+                    context,
+                    DOC_GLYPH_WIDTH
+                );
+            if (result != RIVET_OK) {
+                return result;
+            }
+            pending_space = 0;
         }
 
         {
@@ -428,14 +550,35 @@ static rivet_result layout_text_node(
         offset += used;
     }
 
-    return layout_emit_text_run(
-        context,
-        node_index,
-        run_start,
-        run_end,
-        run_glyphs,
-        style
-    );
+    {
+        rivet_result result =
+            layout_emit_text_run(
+                context,
+                node_index,
+                run_start,
+                run_end,
+                run_glyphs,
+                style
+            );
+        if (result != RIVET_OK) {
+            return result;
+        }
+    }
+
+    if (pending_space &&
+        pending_space_end >
+            pending_space_start &&
+        context->x != 0ul) {
+        layout_defer_space(
+            context,
+            node_index,
+            pending_space_start,
+            pending_space_end,
+            style
+        );
+    }
+
+    return RIVET_OK;
 }
 
 static rivet_result layout_replaced(
@@ -454,6 +597,14 @@ static rivet_result layout_replaced(
         height == 0ul ||
         width > context->viewport_width) {
         return RIVET_ERR_CAPACITY;
+    }
+
+    result = layout_flush_pending_space(
+        context,
+        width
+    );
+    if (result != RIVET_OK) {
+        return result;
     }
 
     if (context->x >
@@ -506,23 +657,55 @@ static int layout_block_kind(
            kind == RIVET_DOC_NODE_FORM;
 }
 
-static rivet_result layout_node(
-    layout_context *context,
+static void layout_skip_subtree(
+    const layout_context *context,
     size_t node_index,
-    rivet_doc_color inherited
+    size_t *cursor
 )
 {
-    const rivet_doc_node *node =
-        &context->document->nodes[node_index];
-    layout_style style =
-        layout_style_for(
+    while (*cursor <
+               context->document->node_count &&
+           context->document->nodes[
+               *cursor].parent ==
+               node_index) {
+        size_t child = *cursor;
+        ++(*cursor);
+        layout_skip_subtree(
             context,
-            node->kind,
-            inherited
+            child,
+            cursor
         );
+    }
+}
+
+static rivet_result layout_node(
+    layout_context *context,
+    size_t *cursor,
+    layout_style inherited
+)
+{
+    size_t node_index;
+    const rivet_doc_node *node;
+    layout_style style;
     rivet_result result;
-    size_t i;
-    int block = layout_block_kind(
+    int block;
+
+    if (*cursor >=
+        context->document->node_count) {
+        return RIVET_ERR_INVALID_ARGUMENT;
+    }
+
+    node_index = *cursor;
+    node =
+        &context->document->nodes[node_index];
+    ++(*cursor);
+
+    style = layout_style_for(
+        context,
+        node->kind,
+        inherited
+    );
+    block = layout_block_kind(
         node->kind
     );
 
@@ -530,6 +713,11 @@ static rivet_result layout_node(
             RIVET_DOC_NODE_HEAD ||
         node->kind ==
             RIVET_DOC_NODE_STYLE) {
+        layout_skip_subtree(
+            context,
+            node_index,
+            cursor
+        );
         return RIVET_OK;
     }
 
@@ -589,19 +777,18 @@ static rivet_result layout_node(
         );
     }
 
-    for (i = node_index + 1u;
-         i < context->document->node_count;
-         ++i) {
-        if (context->document->nodes[i].parent ==
-            node_index) {
-            result = layout_node(
-                context,
-                i,
-                style.color
-            );
-            if (result != RIVET_OK) {
-                return result;
-            }
+    while (*cursor <
+               context->document->node_count &&
+           context->document->nodes[
+               *cursor].parent ==
+               node_index) {
+        result = layout_node(
+            context,
+            cursor,
+            style
+        );
+        if (result != RIVET_OK) {
+            return result;
         }
     }
 
@@ -624,12 +811,23 @@ static rivet_result layout_node(
     return RIVET_OK;
 }
 
+static int layout_leaf_kind(
+    rivet_doc_node_kind kind
+)
+{
+    return kind == RIVET_DOC_NODE_TEXT ||
+           kind == RIVET_DOC_NODE_IMG ||
+           kind == RIVET_DOC_NODE_INPUT ||
+           kind == RIVET_DOC_NODE_BR;
+}
+
 static rivet_result layout_validate_document(
     const rivet_document *document
 )
 {
+    size_t stack[RIVET_DOCUMENT_MAX_DEPTH];
+    size_t depth = 0u;
     size_t i;
-    int roots = 0;
 
     if (document == NULL ||
         document->source == NULL ||
@@ -646,15 +844,41 @@ static rivet_result layout_validate_document(
         const rivet_doc_node *node =
             &document->nodes[i];
 
-        if (node->parent ==
-            RIVET_DOCUMENT_NO_PARENT) {
-            ++roots;
-            if (node->kind !=
-                RIVET_DOC_NODE_HTML) {
+        if (i == 0u) {
+            if (node->parent !=
+                    RIVET_DOCUMENT_NO_PARENT ||
+                node->kind !=
+                    RIVET_DOC_NODE_HTML) {
                 return RIVET_ERR_INVALID_ARGUMENT;
             }
-        } else if (node->parent >= i) {
-            return RIVET_ERR_INVALID_ARGUMENT;
+            stack[0] = 0u;
+            depth = 1u;
+        } else {
+            if (node->parent ==
+                    RIVET_DOCUMENT_NO_PARENT ||
+                node->parent >= i) {
+                return RIVET_ERR_INVALID_ARGUMENT;
+            }
+
+            while (depth != 0u &&
+                   stack[depth - 1u] !=
+                       node->parent) {
+                --depth;
+            }
+            if (depth == 0u) {
+                return RIVET_ERR_INVALID_ARGUMENT;
+            }
+            if (layout_leaf_kind(
+                    document->nodes[
+                        node->parent].kind)) {
+                return RIVET_ERR_INVALID_ARGUMENT;
+            }
+            if (depth >=
+                RIVET_DOCUMENT_MAX_DEPTH) {
+                return RIVET_ERR_CAPACITY;
+            }
+            stack[depth] = i;
+            ++depth;
         }
 
         if (node->kind ==
@@ -668,10 +892,6 @@ static rivet_result layout_validate_document(
         }
     }
 
-    if (roots != 1) {
-        return RIVET_ERR_INVALID_ARGUMENT;
-    }
-
     return RIVET_OK;
 }
 
@@ -680,18 +900,29 @@ static rivet_result layout_run(
     unsigned long *height
 )
 {
-    rivet_doc_color initial =
-        layout_color(
-            0u, 0u, 0u, 0xffu
+    layout_style initial =
+        layout_style_default(
+            layout_color(
+                0u, 0u, 0u, 0xffu
+            )
         );
+    size_t cursor = 0u;
     rivet_result result;
     unsigned long final_height;
 
+    context->pending_space = 0;
+
     result = layout_node(
-        context, 0u, initial
+        context,
+        &cursor,
+        initial
     );
-    if (result != RIVET_OK) {
-        return result;
+    if (result != RIVET_OK ||
+        cursor !=
+            context->document->node_count) {
+        return result != RIVET_OK ?
+            result :
+            RIVET_ERR_INVALID_ARGUMENT;
     }
 
     final_height = context->y;
@@ -902,6 +1133,11 @@ rivet_result rivet_image_decode_ppm(
         return RIVET_ERR_UNSUPPORTED;
     }
     cursor = 2u;
+
+    if (cursor >= byte_count ||
+        !ppm_space(bytes[cursor])) {
+        return RIVET_ERR_UNSUPPORTED;
+    }
 
     if (ppm_uint(
             bytes,
