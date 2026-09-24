@@ -37,7 +37,7 @@ Automated PR execution builds the frozen Platform v1 POSIX proof as a static 32-
 The same binary is executed twice:
 
 1. directly as a 32-bit process on the Ubuntu x86-64 runner;
-2. through qemu-i686 user-mode CPU emulation.
+2. through qemu-i386 user-mode CPU emulation.
 
 Required proof identity:
 
@@ -48,7 +48,7 @@ Required proof identity:
 
 The direct execution is 32-bit process evidence. It is not physical historical x86 hardware.
 
-The qemu-i686 execution is E2 user-mode CPU-emulation evidence. It is not a full historical operating-system image.
+The qemu-i386 execution is E2 user-mode CPU-emulation evidence of the same explicitly `-march=i686` 32-bit x86 binary. It is not a full historical operating-system image.
 
 ## Big-endian gate
 
