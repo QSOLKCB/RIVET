@@ -330,6 +330,18 @@ static int test_strict_structure_and_layout_state(void)
     static const unsigned char duplicate_empty_href[] =
         "<html><body><a href=\"\" href=\"\">X</a>"
         "</body></html>";
+    static const unsigned char whitespace_between_links[] =
+        "<html><body><p><a>A</a> <a>B</a></p>"
+        "</body></html>";
+    static const unsigned char bad_attribute_separator[] =
+        "<html><body><p id=\"a\"title=\"b\">X</p>"
+        "</body></html>";
+    static const unsigned char visible_head[] =
+        "<html><head><p>VISIBLE</p></head>"
+        "<body></body></html>";
+    static const unsigned char narrow_image[] =
+        "<html><body><img src=\"x\" width=\"2\" height=\"2\">"
+        "</body></html>";
     rivet_doc_node nodes[32];
     rivet_document document;
     rivet_css_rule rules[1];
@@ -339,8 +351,11 @@ static int test_strict_structure_and_layout_state(void)
     unsigned long document_height = 0ul;
     size_t link_index = 0u;
     size_t link_text_index = 0u;
+    size_t second_link_text_index = 0u;
     size_t i;
     int saw_link_text = 0;
+    int saw_space_node = 0;
+    int saw_second_link = 0;
 
     CHECK(rivet_html_parse(
         &document,
@@ -430,6 +445,86 @@ static int test_strict_structure_and_layout_state(void)
         nodes,
         32u) == RIVET_ERR_DUPLICATE);
 
+    CHECK(rivet_html_parse(
+        &document,
+        bad_attribute_separator,
+        sizeof(bad_attribute_separator) - 1u,
+        nodes,
+        32u) == RIVET_ERR_UNSUPPORTED);
+    CHECK(rivet_html_parse(
+        &document,
+        visible_head,
+        sizeof(visible_head) - 1u,
+        nodes,
+        32u) == RIVET_ERR_INVALID_ARGUMENT);
+
+    CHECK(rivet_html_parse(
+        &document,
+        whitespace_between_links,
+        sizeof(whitespace_between_links) - 1u,
+        nodes,
+        32u) == RIVET_OK);
+    second_link_text_index = document.node_count;
+    for (i = 0u; i < document.node_count; ++i) {
+        if (document.nodes[i].kind !=
+            RIVET_DOC_NODE_TEXT) {
+            continue;
+        }
+        if (document.nodes[i].text.length == 1u &&
+            document.source[
+                document.nodes[i].text.offset] == 0x20u) {
+            saw_space_node = 1;
+        }
+        if (document.nodes[i].text.length == 1u &&
+            document.source[
+                document.nodes[i].text.offset] == 0x42u) {
+            second_link_text_index = i;
+        }
+    }
+    CHECK(saw_space_node);
+    CHECK(second_link_text_index <
+          document.node_count);
+    CHECK(rivet_document_layout(
+        &document,
+        NULL,
+        0u,
+        24ul,
+        boxes,
+        16u,
+        &box_count,
+        &document_height) == RIVET_OK);
+    for (i = 0u; i < box_count; ++i) {
+        if (boxes[i].node_index ==
+                second_link_text_index &&
+            boxes[i].kind ==
+                RIVET_LAYOUT_TEXT) {
+            saw_second_link = 1;
+            CHECK(boxes[i].x == 12ul);
+        }
+    }
+    CHECK(saw_second_link);
+
+    CHECK(rivet_html_parse(
+        &document,
+        narrow_image,
+        sizeof(narrow_image) - 1u,
+        nodes,
+        32u) == RIVET_OK);
+    CHECK(rivet_document_layout(
+        &document,
+        NULL,
+        0u,
+        2ul,
+        boxes,
+        16u,
+        &box_count,
+        &document_height) == RIVET_OK);
+    CHECK(box_count == 1u);
+    CHECK(boxes[0].kind == RIVET_LAYOUT_IMAGE);
+    CHECK(boxes[0].x == 0ul);
+    CHECK(boxes[0].width == 2ul);
+    CHECK(boxes[0].height == 2ul);
+
     return 0;
 }
 
@@ -440,11 +535,52 @@ static int test_depth_limit(void)
     size_t i;
     rivet_doc_node nodes[64];
     rivet_document document;
+    rivet_layout_box boxes[4];
+    size_t box_count = 0u;
+    unsigned long document_height = 0ul;
     static const unsigned char open_html[] = "<html><body>";
     static const unsigned char close_html[] = "</body></html>";
     static const unsigned char open_p[] = "<p>";
     static const unsigned char close_p[] = "</p>";
 
+    memcpy(bytes + cursor, open_html, sizeof(open_html) - 1u);
+    cursor += sizeof(open_html) - 1u;
+
+    for (i = 0u; i < 30u; ++i) {
+        memcpy(bytes + cursor, open_p, sizeof(open_p) - 1u);
+        cursor += sizeof(open_p) - 1u;
+    }
+
+    bytes[cursor++] = 0x41u;
+
+    for (i = 0u; i < 30u; ++i) {
+        memcpy(bytes + cursor, close_p, sizeof(close_p) - 1u);
+        cursor += sizeof(close_p) - 1u;
+    }
+
+    memcpy(bytes + cursor, close_html, sizeof(close_html) - 1u);
+    cursor += sizeof(close_html) - 1u;
+
+    CHECK(rivet_html_parse(
+        &document,
+        bytes,
+        cursor,
+        nodes,
+        64u) == RIVET_OK);
+    CHECK(rivet_document_layout(
+        &document,
+        NULL,
+        0u,
+        6ul,
+        boxes,
+        4u,
+        &box_count,
+        &document_height) == RIVET_OK);
+    CHECK(box_count == 1u);
+    CHECK(boxes[0].kind == RIVET_LAYOUT_TEXT);
+    CHECK(boxes[0].width == 6ul);
+
+    cursor = 0u;
     memcpy(bytes + cursor, open_html, sizeof(open_html) - 1u);
     cursor += sizeof(open_html) - 1u;
 
@@ -532,6 +668,13 @@ static int test_image(void)
         0x32u,0x35u,0x35u,0x0au,
         0x00u,0x00u,0x00u
     };
+    static const unsigned char ppm_cr_comment[] = {
+        0x50u,0x36u,0x0du,
+        0x23u,0x63u,0x0du,
+        0x31u,0x20u,0x31u,0x0du,
+        0x32u,0x35u,0x35u,0x0du,
+        0x12u,0x34u,0x56u
+    };
     unsigned char pixels[16];
     rivet_document_image image;
 
@@ -578,6 +721,19 @@ static int test_image(void)
         sizeof(bad_adjacent_magic),
         pixels,
         sizeof(pixels)) == RIVET_ERR_UNSUPPORTED);
+    CHECK(rivet_image_decode_ppm(
+        &image,
+        ppm_cr_comment,
+        sizeof(ppm_cr_comment),
+        pixels,
+        sizeof(pixels)) == RIVET_OK);
+    CHECK(image.width == 1ul);
+    CHECK(image.height == 1ul);
+    CHECK(image.pixel_bytes == 4u);
+    CHECK(pixels[0] == 0x12u);
+    CHECK(pixels[1] == 0x34u);
+    CHECK(pixels[2] == 0x56u);
+    CHECK(pixels[3] == 0xffu);
     return 0;
 }
 
