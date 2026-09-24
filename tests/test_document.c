@@ -339,6 +339,9 @@ static int test_strict_structure_and_layout_state(void)
         "<html><p>X</p><body></body></html>";
     static const unsigned char control_text[] =
         "<html><body><p>\x01</p></body></html>";
+    static const unsigned char control_attribute[] =
+        "<html><body><p id=\"a" "\x01" "b\">X</p>"
+        "</body></html>";
     static const unsigned char bad_attribute_separator[] =
         "<html><body><p id=\"a\"title=\"b\">X</p>"
         "</body></html>";
@@ -508,6 +511,12 @@ static int test_strict_structure_and_layout_state(void)
         &document,
         control_text,
         sizeof(control_text) - 1u,
+        nodes,
+        32u) == RIVET_ERR_UNSUPPORTED);
+    CHECK(rivet_html_parse(
+        &document,
+        control_attribute,
+        sizeof(control_attribute) - 1u,
         nodes,
         32u) == RIVET_ERR_UNSUPPORTED);
 
@@ -778,6 +787,10 @@ static int test_image(void)
         0x32u,0x35u,0x35u,0x0du,
         0x12u,0x34u,0x56u
     };
+    static const unsigned char ppm_width_overflow[] =
+        "P6\n"
+        "999999999999999999999999999999999999999999 1\n"
+        "255\n";
     unsigned char pixels[16];
     rivet_document_image image;
 
@@ -837,6 +850,12 @@ static int test_image(void)
     CHECK(pixels[1] == 0x34u);
     CHECK(pixels[2] == 0x56u);
     CHECK(pixels[3] == 0xffu);
+    CHECK(rivet_image_decode_ppm(
+        &image,
+        ppm_width_overflow,
+        sizeof(ppm_width_overflow) - 1u,
+        pixels,
+        sizeof(pixels)) == RIVET_ERR_CAPACITY);
     return 0;
 }
 
