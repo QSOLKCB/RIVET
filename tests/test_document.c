@@ -60,6 +60,10 @@ static int test_url(void)
         "https://example.com/%zz";
     static const unsigned char invalid_port[] =
         "https://example.com:70000/";
+    static const unsigned char rooted_host[] =
+        "https://example.com./";
+    static const unsigned char empty_label[] =
+        "https://example..com/";
     rivet_url url;
 
     CHECK(rivet_url_parse(
@@ -84,6 +88,20 @@ static int test_url(void)
         &url,
         invalid_port,
         sizeof(invalid_port) - 1u) == RIVET_ERR_UNSUPPORTED);
+
+    CHECK(rivet_url_parse(
+        &url,
+        rooted_host,
+        sizeof(rooted_host) - 1u) == RIVET_OK);
+    CHECK(url.host.length == 12u);
+    CHECK(url.bytes[
+        url.host.offset + url.host.length - 1u] == 0x2eu);
+    CHECK(url.path.length == 1u);
+
+    CHECK(rivet_url_parse(
+        &url,
+        empty_label,
+        sizeof(empty_label) - 1u) == RIVET_ERR_UNSUPPORTED);
     return 0;
 }
 
