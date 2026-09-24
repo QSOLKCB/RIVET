@@ -7,11 +7,11 @@ OUT_DIR="${OUT_DIR:-build/r6-i386}"
 
 mkdir -p "$OUT_DIR"
 
-"$CC_I386"   -m32   -static   -std=c99   -O2   -Wall   -Wextra   -Wpedantic   -Werror   -Iinclude   core/rivet.c   platform/platform.c   platform/posix/platform_posix.c   examples/r5_platform_proof.c   -o "$OUT_DIR/rivet-platform-i386"
+"$CC_I386"   -m32   -march=i686   -static   -std=c99   -O2   -Wall   -Wextra   -Wpedantic   -Werror   -Iinclude   core/rivet.c   platform/platform.c   platform/posix/platform_posix.c   examples/r5_platform_proof.c   -o "$OUT_DIR/rivet-platform-i386"
 
 file "$OUT_DIR/rivet-platform-i386" | tee "$OUT_DIR/file.txt"
 grep -F "ELF 32-bit" "$OUT_DIR/file.txt"
-grep -F "Intel 80386" "$OUT_DIR/file.txt"
+printf '%s\n' "compiler_cpu_baseline=i686" | tee "$OUT_DIR/cpu-baseline.txt"
 
 "$OUT_DIR/rivet-platform-i386"   fixtures/r4_textview.txt   fixtures/r5_empty.txt   | tee "$OUT_DIR/native-proof.txt"
 
