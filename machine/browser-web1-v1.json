@@ -71,7 +71,11 @@
     "home_fixture": "fixtures/r8_home.html",
     "about_fixture": "fixtures/r8_about.html",
     "download_fixture": "fixtures/r8_download.txt",
-    "program": "examples/r8_browser_proof.c"
+    "program": "examples/r8_browser_proof.c",
+    "viewport_width": 120,
+    "viewport_height": 64,
+    "document_fnv1a64": "75be6cc92698ac1a",
+    "source_fnv1a64": "5cf7c63a1fa3d9b4"
   },
   "non_goals": [
     "javascript",
