@@ -3,6 +3,11 @@
   "version": 1,
   "authority": "DOCUMENT-v1.md",
   "abi_version": 1,
+  "abi_kind_fields": {
+    "storage": "uint32_t",
+    "c_enum_struct_fields": false,
+    "short_enums_independent": true
+  },
   "language_baseline": "C99",
   "public_header": "include/rivet/document.h",
   "reference_sources": [
@@ -38,6 +43,8 @@
       "https"
     ],
     "input": "visible-numeric-ascii-0x21-through-0x7e",
+    "host_labels": "nonempty-no-leading-or-trailing-hyphen",
+    "trailing_root_dot": "accepted-and-preserved",
     "percent_escape_validation": true,
     "unsupported": [
       "userinfo",
