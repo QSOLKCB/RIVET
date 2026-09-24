@@ -732,6 +732,52 @@ static int test_review_regressions(void)
     CHECK(rivet_browser_open_selected_link(NULL) ==
           RIVET_ERR_INVALID_ARGUMENT);
 
+    {
+        size_t saved_node_count =
+            browser.document.node_count;
+        size_t saved_selected =
+            browser.selected_link_node;
+        const unsigned char *saved_source =
+            browser.document.source;
+        size_t saved_source_bytes =
+            browser.document.source_bytes;
+        size_t url_prefix =
+            sizeof("https://site.test/") - 1u;
+
+        memcpy(
+            long_url,
+            "https://site.test/",
+            url_prefix
+        );
+        memset(
+            long_url + url_prefix,
+            0x61,
+            RIVET_BROWSER_URL_MAX + 1u -
+            url_prefix
+        );
+
+        nodes[0].kind = RIVET_DOC_NODE_A;
+        nodes[0].href.offset = 0u;
+        nodes[0].href.length =
+            RIVET_BROWSER_URL_MAX + 1u;
+        browser.document.source = long_url;
+        browser.document.source_bytes =
+            RIVET_BROWSER_URL_MAX + 1u;
+        browser.document.node_count = 1u;
+        browser.selected_link_node = 0u;
+
+        CHECK(rivet_browser_open_selected_link(
+            &browser) == RIVET_ERR_CAPACITY);
+
+        browser.document.source = saved_source;
+        browser.document.source_bytes =
+            saved_source_bytes;
+        browser.document.node_count =
+            saved_node_count;
+        browser.selected_link_node =
+            saved_selected;
+    }
+
     memcpy(
         long_url,
         "https://site.test/",
@@ -862,6 +908,16 @@ static int test_review_regressions(void)
         style) == RIVET_OK);
     browser.scroll_y = 0ul;
 
+    if (ULONG_MAX > (unsigned long)LONG_MAX) {
+        text_box->y =
+            (unsigned long)LONG_MAX + 1ul;
+        CHECK(rivet_browser_render(
+            &surface,
+            &browser,
+            bounds,
+            style) == RIVET_OK);
+    }
+
     {
         unsigned char narrow_pixels[40u * 32u * 4u];
         rivet_surface narrow_surface;
@@ -907,6 +963,35 @@ static int test_review_regressions(void)
                 CHECK(narrow_pixels[pixel + 3u] == 0x7bu);
             }
         }
+    }
+
+    {
+        unsigned char tiny_pixels[5u * 16u * 4u];
+        rivet_surface tiny_surface;
+        rivet_rect tiny_bounds =
+            {0L,0L,5ul,16ul};
+
+        CHECK(rivet_browser_init(
+            &browser,
+            &io,
+            &config,
+            &storage,
+            5ul) == RIVET_OK);
+        CHECK(rivet_browser_home(&browser) == RIVET_OK);
+        CHECK(rivet_browser_toggle_source(
+            &browser) == RIVET_OK);
+        CHECK(rivet_surface_attach(
+            &tiny_surface,
+            tiny_pixels,
+            sizeof(tiny_pixels),
+            5ul,
+            16ul,
+            5u * 4u) == RIVET_OK);
+        CHECK(rivet_browser_render(
+            &tiny_surface,
+            &browser,
+            tiny_bounds,
+            style) == RIVET_OK);
     }
 
     return 0;

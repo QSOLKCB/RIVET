@@ -147,9 +147,10 @@ The deterministic proof prints:
 
 - browser state bytes;
 - total caller-owned proof resident bytes;
-- proof executable size;
 - deterministic document-mode pixel FNV-1a64;
 - deterministic source-mode pixel FNV-1a64.
+
+The R8 CI footprint step additionally records the built proof executable's byte size with `wc -c` and its text/data/BSS section sizes with the platform `size` tool. Executable-size evidence is therefore a build-environment observation rather than a value emitted by the proof process itself.
 
 Footprint observations are evidence, not correctness identity across architectures.
 
