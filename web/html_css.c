@@ -473,6 +473,14 @@ static rivet_result html_parse_open_tag(
         return RIVET_ERR_INVALID_ARGUMENT;
     }
 
+    if (parser->depth != 0u &&
+        parser->stack_kinds[
+            parser->depth - 1u] ==
+            RIVET_DOC_NODE_HEAD &&
+        kind != RIVET_DOC_NODE_STYLE) {
+        return RIVET_ERR_INVALID_ARGUMENT;
+    }
+
     if (kind == RIVET_DOC_NODE_HEAD) {
         if (parser->seen_head) {
             return RIVET_ERR_DUPLICATE;
@@ -582,6 +590,15 @@ static rivet_result html_parse_open_tag(
         );
         if (result != RIVET_OK) {
             return result;
+        }
+
+        if (pos < parser->byte_count &&
+            !doc_space(parser->bytes[pos]) &&
+            parser->bytes[pos] != 0x3eu &&
+            !(parser->bytes[pos] == 0x2fu &&
+              pos + 1u < parser->byte_count &&
+              parser->bytes[pos + 1u] == 0x3eu)) {
+            return RIVET_ERR_UNSUPPORTED;
         }
     }
 
@@ -727,16 +744,32 @@ static rivet_result html_parse_text(
         return RIVET_ERR_INVALID_ARGUMENT;
     }
 
+    if (parser->depth == 0u) {
+        if (!html_text_has_content(
+                parser->bytes,
+                start,
+                pos - start)) {
+            *cursor = pos;
+            return RIVET_OK;
+        }
+        return RIVET_ERR_INVALID_ARGUMENT;
+    }
+
     if (!html_text_has_content(
             parser->bytes,
             start,
-            pos - start)) {
+            pos - start) &&
+        (parser->stack_kinds[
+             parser->depth - 1u] ==
+             RIVET_DOC_NODE_HTML ||
+         parser->stack_kinds[
+             parser->depth - 1u] ==
+             RIVET_DOC_NODE_HEAD ||
+         parser->stack_kinds[
+             parser->depth - 1u] ==
+             RIVET_DOC_NODE_STYLE)) {
         *cursor = pos;
         return RIVET_OK;
-    }
-
-    if (parser->depth == 0u) {
-        return RIVET_ERR_INVALID_ARGUMENT;
     }
 
     parent =
