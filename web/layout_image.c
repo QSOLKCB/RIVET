@@ -1123,6 +1123,7 @@ rivet_result rivet_image_decode_ppm(
     size_t source_bytes;
     size_t output_bytes;
     size_t i;
+    rivet_result result;
     rivet_document_image candidate;
 
     if (image == NULL ||
@@ -1142,22 +1143,34 @@ rivet_result rivet_image_decode_ppm(
         return RIVET_ERR_UNSUPPORTED;
     }
 
-    if (ppm_uint(
-            bytes,
-            byte_count,
-            &cursor,
-            &width) != RIVET_OK ||
-        ppm_uint(
-            bytes,
-            byte_count,
-            &cursor,
-            &height) != RIVET_OK ||
-        ppm_uint(
-            bytes,
-            byte_count,
-            &cursor,
-            &max_value) != RIVET_OK) {
-        return RIVET_ERR_UNSUPPORTED;
+    result = ppm_uint(
+        bytes,
+        byte_count,
+        &cursor,
+        &width
+    );
+    if (result != RIVET_OK) {
+        return result;
+    }
+
+    result = ppm_uint(
+        bytes,
+        byte_count,
+        &cursor,
+        &height
+    );
+    if (result != RIVET_OK) {
+        return result;
+    }
+
+    result = ppm_uint(
+        bytes,
+        byte_count,
+        &cursor,
+        &max_value
+    );
+    if (result != RIVET_OK) {
+        return result;
     }
 
     if (width == 0ul ||
