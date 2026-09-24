@@ -134,8 +134,8 @@ Published versioned machine contracts and the versioned human authority paths th
 
 R0 remains frozen in immutable `v0.1.0`.
 
-R1 Core v1, R2 GFX v1, R3 UI v1 and the R4 Text Viewer v1 proof are merged and must not be redefined by R5.
+R1 Core v1, R2 GFX v1, R3 UI v1, R4 Text Viewer v1 and R5 Platform v1 are merged and must not be redefined by R6.
 
-R5 may add only the platform split described by [PLATFORM-v1.md](PLATFORM-v1.md): one shared ABI earned by POSIX and Win32 implementations for bounded `filesystem.read` and `timer.monotonic`, plus target-specific evidence.
+R6 may add only historical/constrained execution harnesses, receipts, evidence workflows, and target metadata described by [HISTORICAL-v1.md](HISTORICAL-v1.md). It must reuse frozen RIVET semantics rather than create an emulator/runtime abstraction.
 
-Do not pull windowing, native input, filesystem write, networking, audio, threads, GPU APIs, dynamic backend loading, or general path-encoding machinery into R5.
+Do not claim qemu-user as full-system evidence, do not claim full-system emulation as physical hardware, and do not redistribute proprietary Windows guest media. Do not pull R7 document/encoding/HTML machinery forward.

@@ -12,25 +12,33 @@ The eventual RIVET Browser is a proof application, not the definition of the fra
 
 ## Status
 
-**R5 — platform split.**
+**R6 — historical stress gate.**
 
-R4 is merged at `e9dcaf87cb241fe59f0fa388c10ce93a78007a22`. R5 introduces the first earned shared platform ABI over two real implementations: POSIX and Win32.
+R5 is merged at `9528ce8cf2d089f9895970e0b8563a459afbab7e`. R6 reuses the frozen Platform v1 proof under constrained and non-native execution rather than adding another framework ABI.
 
-Platform v1 exposes only `filesystem.read` and `timer.monotonic`. POSIX uses `open/read/clock_gettime`; Win32 uses `CreateFileA/ReadFile/QueryPerformanceCounter`.
+Every PR now exercises a 32-bit i686-baseline x86 build directly and through `qemu-i386`, plus a 32-bit **big-endian PowerPC** build through `qemu-ppc`.
 
-## R5 quick proof
+The first full-system historical Windows target is **Windows Server 2012 R2 Datacenter Evaluation x64**. Its E3 workflow is manual/release-gated because Microsoft evaluation media requires registration and is not redistributed by RIVET.
+
+## R6 quick proofs
 
 ```sh
-make test-platform
-make platform-posix
-./build/rivet-platform-posix fixtures/r4_textview.txt
+bash scripts/r6_i386.sh
+bash scripts/r6_ppc_be.sh
 ```
 
-Both native backends must read the same frozen 237-byte fixture with FNV-1a64 `36aaff7f4aaa99ab` and prove a nondecreasing monotonic clock.
+Required semantic identity remains:
 
-R5 CI also executes a native Win32 x64 proof, a Win32 x86 process with `pointer_bits=32`, and GCC 13/14 container proofs.
+```text
+bytes       237
+empty       0
+FNV-1a64   36aaff7f4aaa99ab
+monotonic  nondecreasing
+```
 
-See [PLATFORM-v1.md](PLATFORM-v1.md).
+R6 receipts distinguish native 32-bit process evidence, E2 user-mode CPU emulation, and E3 full-system historical-Windows evidence.
+
+See [HISTORICAL-v1.md](HISTORICAL-v1.md).
 ## Mission
 
 RIVET exists to make it practical to build software that is:
@@ -130,7 +138,8 @@ The GitHub Pages site is intentionally static HTML/CSS with no framework, analyt
 
 ## Repository guide
 
-- [PLATFORM-v1.md](PLATFORM-v1.md) — R5 POSIX/Win32 platform ABI and evidence contract.
+- [HISTORICAL-v1.md](HISTORICAL-v1.md) — R6 constrained/historical execution and receipt contract.
+- [PLATFORM-v1.md](PLATFORM-v1.md) — frozen R5 POSIX/Win32 platform ABI and evidence contract.
 - [TEXTVIEW-v1.md](TEXTVIEW-v1.md) — frozen R4 bounded non-browser text-viewer proof contract.
 - [UI-v1.md](UI-v1.md) — frozen R3 logical keyboard, command projection, and lean-menu contract.
 - [GFX-v1.md](GFX-v1.md) — frozen R2 software-surface ABI and deterministic raster contract.
@@ -146,7 +155,8 @@ The GitHub Pages site is intentionally static HTML/CSS with no framework, analyt
 - [RUNTIME-PLAN-v1.md](RUNTIME-PLAN-v1.md) — donor-derived runtime and memory plan for R1+.
 - [DONORS-v1.md](DONORS-v1.md) — frozen donor/provenance map for runtime-plan v1.
 - [AGENTS.md](AGENTS.md) — rules for coding agents and contributors.
-- [machine/project-v7.json](machine/project-v7.json) — current machine entrypoint for R5.
+- [machine/project-v8.json](machine/project-v8.json) — current machine entrypoint for R6.
+- [machine/project-v7.json](machine/project-v7.json) — frozen R5 project contract.
 - [machine/project-v6.json](machine/project-v6.json) — frozen R4 project contract.
 - [machine/project-v5.json](machine/project-v5.json) — frozen R3 project contract.
 - [machine/project-v4.json](machine/project-v4.json) — frozen R2 project contract.

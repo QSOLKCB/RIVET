@@ -1,0 +1,197 @@
+name: R6 Historical Stress
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  frozen-r5:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Verify only R6 allowlisted paths differ
+        run: |
+          git diff --exit-code 9528ce8cf2d089f9895970e0b8563a459afbab7e -- . \
+            ':(exclude).github/workflows/r6-stress.yml' \
+            ':(exclude).github/workflows/r6-windows2012r2.yml' \
+            ':(exclude).github/workflows/r5-platform.yml' \
+            ':(exclude)AGENTS.md' \
+            ':(exclude)HISTORICAL-v1.md' \
+            ':(exclude)README.md' \
+            ':(exclude)ROADMAP.md' \
+            ':(exclude)index.html' \
+            ':(exclude)machine/historical-v1.json' \
+            ':(exclude)machine/project-v8.json' \
+            ':(exclude)scripts/r6_i386.sh' \
+            ':(exclude)scripts/r6_validate_dispatch_inputs.py' \
+            ':(exclude)scripts/r6_ppc_be.sh' \
+            ':(exclude)scripts/r6_receipt.py' \
+            ':(exclude)scripts/r6_windows2012r2_full_system.sh' \
+            ':(exclude)scripts/r6_validate_windows_inspector.py' \
+            ':(exclude)tests/r6_dispatch_input_selftest.py' \
+            ':(exclude)tests/r6_receipt_selftest.py' \
+            ':(exclude)tests/r6_windows_inspector_selftest.py'
+
+      - name: Validate machine JSON
+        run: |
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+
+          for path in sorted(Path("machine").rglob("*.json")):
+              json.loads(path.read_text(encoding="utf-8"))
+              print(path)
+          PY
+
+  receipt-contract:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Dispatch input validator self-test
+        run: python3 tests/r6_dispatch_input_selftest.py
+
+      - name: Receipt parser self-test
+        run: python3 tests/r6_receipt_selftest.py
+
+      - name: Historical Windows inspector identity self-test
+        run: python3 tests/r6_windows_inspector_selftest.py
+
+      - name: Historical Windows harness syntax
+        run: bash -n scripts/r6_windows2012r2_full_system.sh
+
+  i386:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install i386 toolchain and qemu-user
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            file \
+            gcc-multilib \
+            libc6-dev-i386 \
+            qemu-user
+
+      - name: Execute i686-baseline 32-bit x86 native and E2 qemu-user proofs
+        run: |
+          bash scripts/r6_i386.sh
+          compiler="$(gcc --version | head -n1)"
+          emulator="$(qemu-i386 --version | head -n1)"
+          source_revision="$(git rev-parse HEAD)"
+
+          python3 scripts/r6_receipt.py \
+            --proof-output build/r6-i386/native-proof.txt \
+            --output build/r6-i386/receipt-native.json \
+            --source-revision "$source_revision" \
+            --target-profile linux-x86-32-i686-native-process \
+            --evidence-class native-32bit-process \
+            --cpu i686 \
+            --execution native-compat \
+            --compiler "$compiler" \
+            --expected-backend posix-v1 \
+            --expected-os POSIX \
+            --expected-pointer-bits 32 \
+            --expected-endian little
+
+          python3 scripts/r6_receipt.py \
+            --proof-output build/r6-i386/qemu-proof.txt \
+            --output build/r6-i386/receipt-qemu.json \
+            --source-revision "$source_revision" \
+            --target-profile linux-x86-32-i686-qemu-user \
+            --evidence-class E2 \
+            --cpu i686 \
+            --execution qemu-user \
+            --compiler "$compiler" \
+            --emulator "$emulator" \
+            --expected-backend posix-v1 \
+            --expected-os POSIX \
+            --expected-pointer-bits 32 \
+            --expected-endian little
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: r6-i386-receipts
+          path: build/r6-i386/
+
+  powerpc-big-endian:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install PowerPC cross-toolchain and qemu-user
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            file \
+            gcc-powerpc-linux-gnu \
+            libc6-dev-powerpc-cross \
+            qemu-user
+
+      - name: Execute E2 PowerPC big-endian proof
+        run: |
+          bash scripts/r6_ppc_be.sh
+          compiler="$(powerpc-linux-gnu-gcc --version | head -n1)"
+          emulator="$(qemu-ppc --version | head -n1)"
+          source_revision="$(git rev-parse HEAD)"
+
+          python3 scripts/r6_receipt.py \
+            --proof-output build/r6-ppc-be/qemu-proof.txt \
+            --output build/r6-ppc-be/receipt-qemu.json \
+            --source-revision "$source_revision" \
+            --target-profile linux-powerpc32-big-endian-qemu-user \
+            --evidence-class E2 \
+            --cpu powerpc32 \
+            --execution qemu-user \
+            --compiler "$compiler" \
+            --emulator "$emulator" \
+            --expected-backend posix-v1 \
+            --expected-os POSIX \
+            --expected-pointer-bits 32 \
+            --expected-endian big
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: r6-powerpc-big-endian-receipt
+          path: build/r6-ppc-be/
+
+  historical-windows-payload:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Win64 cross-compiler and firstboot helper
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends file mingw-w64 rhsrvany
+          find /usr/share -type f \( -iname rhsrvany.exe -o -iname pvvxsvc.exe \) -print -quit | grep -q .
+
+      - name: Build historical Windows guest payload
+        run: |
+          mkdir -p build/r6-windows-payload
+          x86_64-w64-mingw32-gcc \
+            -std=c99 \
+            -O2 \
+            -Wall \
+            -Wextra \
+            -Werror \
+            -static \
+            -Iinclude \
+            core/rivet.c \
+            platform/platform.c \
+            platform/win32/platform_win32.c \
+            examples/r5_platform_proof.c \
+            -o build/r6-windows-payload/rivet-platform-win32.exe
+          file build/r6-windows-payload/rivet-platform-win32.exe | tee build/r6-windows-payload/file.txt
+          grep -F "PE32+" build/r6-windows-payload/file.txt
+          cp fixtures/r4_textview.txt build/r6-windows-payload/
+          cp fixtures/r5_empty.txt build/r6-windows-payload/
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: r6-windows2012r2-guest-payload
+          path: build/r6-windows-payload/

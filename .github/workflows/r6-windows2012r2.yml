@@ -1,0 +1,141 @@
+name: R6 Windows 2012 R2 Full-System Gate
+
+on:
+  workflow_dispatch:
+    inputs:
+      image_sha256:
+        description: SHA-256 of the registered Microsoft evaluation VHD/VHDX/ZIP
+        required: true
+        type: string
+      timeout_seconds:
+        description: Maximum QEMU guest runtime in seconds
+        required: true
+        default: "5400"
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  full-system-windows:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    env:
+      RIVET_WIN2012R2_VHD_URL: ${{ secrets.RIVET_WIN2012R2_VHD_URL }}
+      RIVET_INPUT_IMAGE_SHA256: ${{ inputs.image_sha256 }}
+      RIVET_INPUT_TIMEOUT_SECONDS: ${{ inputs.timeout_seconds }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate dispatch inputs and media URL
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          if [[ -z "${RIVET_WIN2012R2_VHD_URL:-}" ]]; then
+            echo "Set repository secret RIVET_WIN2012R2_VHD_URL to a registered Microsoft Evaluation Center VHD/VHDX download URL." >&2
+            exit 2
+          fi
+
+          python3 scripts/r6_validate_dispatch_inputs.py --github-env "$GITHUB_ENV"
+
+      - name: Install full-system harness dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            curl \
+            file \
+            libguestfs-tools \
+            rhsrvany \
+            mingw-w64 \
+            qemu-system-x86 \
+            qemu-utils \
+            unzip
+
+      - name: Download and verify evaluation media
+        id: media
+        run: |
+          mkdir -p build/r6-media
+          curl -L --fail --retry 3 --retry-delay 5 \
+            "$RIVET_WIN2012R2_VHD_URL" \
+            -o build/r6-media/download.bin
+
+          printf '%s  %s\n' "$RIVET_VALIDATED_IMAGE_SHA256" build/r6-media/download.bin | sha256sum -c -
+
+          if file build/r6-media/download.bin | grep -qi "Zip archive"; then
+            mkdir -p build/r6-media/unpacked
+            unzip -q build/r6-media/download.bin -d build/r6-media/unpacked
+            image="$(find build/r6-media/unpacked -type f \( -iname '*.vhd' -o -iname '*.vhdx' \) -print -quit)"
+          else
+            image="build/r6-media/download.bin"
+          fi
+
+          if [[ -z "${image:-}" || ! -f "$image" ]]; then
+            echo "No VHD/VHDX found in supplied evaluation media." >&2
+            exit 2
+          fi
+
+          qemu-img info "$image"
+          echo "image=$image" >> "$GITHUB_OUTPUT"
+
+      - name: Execute Windows Server 2012 R2 E3 full-system proof
+        run: |
+          bash scripts/r6_windows2012r2_full_system.sh \
+            "${{ steps.media.outputs.image }}" \
+            build/r6-windows2012r2 \
+            "$RIVET_VALIDATED_TIMEOUT_SECONDS"
+
+      - name: Validate E3 receipt
+        run: |
+          compiler="$(x86_64-w64-mingw32-gcc --version | head -n1)"
+          emulator="$(qemu-system-x86_64 --version | head -n1)"
+          source_revision="$(git rev-parse HEAD)"
+          accelerator="$(python3 -c 'import json; print(json.load(open("build/r6-windows2012r2/execution-environment.json"))["accelerator"])')"
+          cpu_model="$(python3 -c 'import json; print(json.load(open("build/r6-windows2012r2/execution-environment.json"))["cpu_model"])')"
+
+          python3 scripts/r6_receipt.py \
+            --proof-output build/r6-windows2012r2/receipt.txt \
+            --output build/r6-windows2012r2/receipt.json \
+            --source-revision "$source_revision" \
+            --target-profile windows-server-2012-r2-datacenter-evaluation-x64 \
+            --evidence-class E3 \
+            --cpu x86_64 \
+            --execution qemu-full-system \
+            --compiler "$compiler" \
+            --emulator "$emulator" \
+            --accelerator "$accelerator" \
+            --cpu-model "$cpu_model" \
+            --expected-backend win32-v1 \
+            --expected-os Win32 \
+            --expected-pointer-bits 64 \
+            --expected-endian little
+
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+
+          path = Path("build/r6-windows2012r2/receipt.json")
+          data = json.loads(path.read_text(encoding="utf-8"))
+          data["guest_media"] = {
+              "product": "Windows Server 2012 R2 Datacenter Evaluation",
+              "source": "Microsoft Evaluation Center",
+              "sha256": __import__("os").environ["RIVET_VALIDATED_IMAGE_SHA256"],
+              "redistributed_by_rivet": False,
+          }
+          data["full_system"] = True
+          data["historical_windows_target"] = True
+          path.write_text(
+              json.dumps(data, indent=2, sort_keys=True) + "\n",
+              encoding="utf-8",
+          )
+          PY
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: r6-windows2012r2-e3-receipt
+          path: |
+            build/r6-windows2012r2/receipt.json
+            build/r6-windows2012r2/receipt.txt
+            build/r6-windows2012r2/inspector.xml
+            build/r6-windows2012r2/execution-environment.json
+            build/r6-windows2012r2/serial.log
