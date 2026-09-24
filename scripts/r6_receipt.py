@@ -38,6 +38,8 @@ def main() -> int:
     parser.add_argument("--execution", required=True)
     parser.add_argument("--compiler", required=True)
     parser.add_argument("--emulator", default="")
+    parser.add_argument("--accelerator", default="")
+    parser.add_argument("--cpu-model", default="")
     parser.add_argument("--expected-backend", required=True)
     parser.add_argument("--expected-os", required=True)
     parser.add_argument("--expected-pointer-bits", type=int, required=True)
@@ -72,6 +74,8 @@ def main() -> int:
         "cpu": args.cpu,
         "compiler": args.compiler,
         "emulator": args.emulator or None,
+        "accelerator": args.accelerator or None,
+        "cpu_model": args.cpu_model or None,
         "proof": proof,
         "result": "pass",
     }
