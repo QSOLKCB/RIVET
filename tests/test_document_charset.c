@@ -28,7 +28,11 @@ int main(void)
     rivet_doc_node nodes[8];
     rivet_document document;
     rivet_css_rule rules[1];
+    const char *capability_ids[1];
+    rivet_capability_set capability_set;
+    size_t capability_count = 0u;
     size_t count = 0u;
+    int has = 0;
 
     CHECK(rivet_url_parse(
         &url,
@@ -44,6 +48,20 @@ int main(void)
         nodes,
         8u) == RIVET_OK);
     CHECK(document.node_count == 4u);
+
+    CHECK(rivet_document_required_capabilities(
+        &document,
+        capability_ids,
+        1u,
+        &capability_count) == RIVET_OK);
+    CHECK(capability_count == 1u);
+    capability_set.ids = capability_ids;
+    capability_set.count = capability_count;
+    CHECK(rivet_capability_has(
+        &capability_set,
+        "document.html",
+        &has) == RIVET_OK);
+    CHECK(has == 1);
 
     CHECK(rivet_css_parse(
         css_bytes,
