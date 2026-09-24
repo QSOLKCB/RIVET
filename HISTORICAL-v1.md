@@ -91,7 +91,7 @@ The workflow requires:
 - official evaluation media retained outside the repository;
 - Ubuntu's explicit rhsrvany Windows first-boot helper package.
 
-Dispatch inputs are treated as untrusted data. The workflow passes them through environment variables rather than interpolating them into shell or Python source, requires image_sha256 to be exactly 64 hexadecimal characters, and requires timeout_seconds to be decimal digits in the inclusive range 300..6000 before exporting validated values for later steps.
+Dispatch inputs are treated as untrusted data. The workflow passes them through environment variables rather than interpolating them into shell or Python source. scripts/r6_validate_dispatch_inputs.py requires image_sha256 to be exactly 64 hexadecimal characters and timeout_seconds to be decimal digits in the inclusive range 300..6000 before exporting validated values for later steps. The validator is exercised on every PR with valid, invalid, out-of-range, and shell-syntax-looking inputs.
 
 Before boot evidence is accepted, libguestfs inspection must identify Windows 6.3 on x86_64 with product variant Server and exact product name Windows Server 2012 R2 Datacenter Evaluation (with only the optional Microsoft prefix accepted).
 
