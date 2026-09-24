@@ -153,6 +153,15 @@ The deterministic proof prints:
 
 Footprint observations are evidence, not correctness identity across architectures.
 
+Reference raster identity at 120 × 64:
+
+```text
+document-mode FNV-1a64 = 75be6cc92698ac1a
+source-mode   FNV-1a64 = 5cf7c63a1fa3d9b4
+```
+
+The first x86-64 hosted proof observation records `sizeof(rivet_browser) = 848` bytes and 62,288 bytes of explicitly allocated proof-resident state including the 120 × 64 RGBA surface. These measurements are environment evidence rather than portable ABI-size requirements.
+
 ## Non-goals
 
 WEB1 does not add:
