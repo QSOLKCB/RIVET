@@ -167,7 +167,7 @@ The automated i686-baseline x86 and PowerPC lanes are cheaper PR gates. The full
 See [HISTORICAL-v1.md](HISTORICAL-v1.md).
 ## R7 — Document engine
 
-**Current phase.**
+**Complete in PR #9.**
 
 Implemented R7 bounded document slice:
 
@@ -192,19 +192,27 @@ The R7 parser is intentionally strict: browser-style malformed-markup recovery, 
 See [DOCUMENT-v1.md](DOCUMENT-v1.md).
 ## R8 — RIVET Browser / WEB1
 
-First browser demonstration.
+**Current phase.**
 
-Required goals:
+Implemented WEB1 slice:
 
-- useful non-JavaScript browsing;
-- history/bookmarks;
-- downloads;
-- view source;
-- user styles;
-- keyboard-first operation;
-- inspectable configuration;
-- measured footprint;
-- CPU/software raster rendering with no RIVET GPU path.
+- [x] bounded downstream browser state with no mandatory heap;
+- [x] explicit host-supplied resource fetch service;
+- [x] absolute-link non-JavaScript browsing over frozen Document v1;
+- [x] bounded history and bookmarks;
+- [x] explicit selected-resource download sink;
+- [x] view-source mode;
+- [x] user CSS applied after document CSS;
+- [x] keyboard-first stable command identities and default keymap;
+- [x] strict versioned inspectable WEB1 configuration;
+- [x] CPU/software raster rendering with no RIVET GPU path;
+- [x] deterministic browser pixel proof plus state/binary footprint evidence;
+- [x] GCC/Clang, ASan/UBSan and PowerPC32 big-endian coverage;
+- [x] regression gate freezing R1-R7 surfaces.
+
+WEB1 keeps HTTP/TLS implementation behind the resource-service boundary. R10 may later provide relay transport for targets that cannot reasonably implement modern transport locally.
+
+See [BROWSER-WEB1-v1.md](BROWSER-WEB1-v1.md).
 
 ## R9 — Retro portability expansion
 

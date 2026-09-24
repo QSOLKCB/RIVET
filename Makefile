@@ -21,8 +21,10 @@ PLATFORM_HEADER = include/rivet/platform.h
 DOCUMENT = web/stream_url_utf8.c web/html_css.c web/layout_image.c
 DOCUMENT_HEADER = include/rivet/document.h
 DOCUMENT_ABI_OBJECTS = $(BUILD_DIR)/r7-abi-stream.o $(BUILD_DIR)/r7-abi-html.o $(BUILD_DIR)/r7-abi-layout.o
+BROWSER = apps/browser/browser.c
+BROWSER_HEADER = include/rivet/browser.h
 
-.PHONY: all gfx ui textview platform-posix document test test-gfx test-ui test-textview test-platform test-document test-document-charset test-document-abi check-no-heap check-no-heap-gfx check-no-heap-ui check-no-heap-textview check-no-heap-platform check-no-heap-document clean
+.PHONY: all gfx ui textview platform-posix document browser test test-gfx test-ui test-textview test-platform test-document test-document-charset test-document-abi test-browser check-no-heap check-no-heap-gfx check-no-heap-ui check-no-heap-textview check-no-heap-platform check-no-heap-document check-no-heap-browser clean
 
 all: $(BUILD_DIR)/rivet-headless
 
@@ -35,6 +37,8 @@ textview: $(BUILD_DIR)/rivet-textview-proof
 platform-posix: $(BUILD_DIR)/rivet-platform-posix
 
 document: $(BUILD_DIR)/rivet-document-proof
+
+browser: $(BUILD_DIR)/rivet-web1-proof
 
 $(BUILD_DIR):
 	mkdir -p $(BUILD_DIR)
@@ -90,6 +94,12 @@ $(BUILD_DIR)/test-document-abi: $(DOCUMENT_ABI_OBJECTS) $(DOCUMENT_HEADER) $(HEA
 $(BUILD_DIR)/rivet-document-proof: $(DOCUMENT) $(DOCUMENT_HEADER) $(HEADER) examples/r7_document_proof.c | $(BUILD_DIR)
 	$(CC) $(CPPFLAGS) -Iinclude $(CFLAGS) $(DOCUMENT) examples/r7_document_proof.c -o $@
 
+$(BUILD_DIR)/test-browser: $(CORE) $(GFX) $(UI) $(DOCUMENT) $(BROWSER) $(BROWSER_HEADER) $(DOCUMENT_HEADER) $(UI_HEADER) $(GFX_HEADER) $(HEADER) tests/test_browser.c | $(BUILD_DIR)
+	$(CC) $(CPPFLAGS) -Iinclude $(CFLAGS) $(CORE) $(GFX) $(UI) $(DOCUMENT) $(BROWSER) tests/test_browser.c -o $@
+
+$(BUILD_DIR)/rivet-web1-proof: $(CORE) $(GFX) $(UI) $(DOCUMENT) $(BROWSER) $(BROWSER_HEADER) $(DOCUMENT_HEADER) $(UI_HEADER) $(GFX_HEADER) $(HEADER) $(HEADLESS_PPM) $(HEADLESS_PPM_HEADER) examples/r8_browser_proof.c | $(BUILD_DIR)
+	$(CC) $(CPPFLAGS) -Iinclude -Iplatform/headless $(CFLAGS) $(CORE) $(GFX) $(UI) $(DOCUMENT) $(BROWSER) $(HEADLESS_PPM) examples/r8_browser_proof.c -o $@
+
 test: check-no-heap $(BUILD_DIR)/test-core
 	./$(BUILD_DIR)/test-core
 
@@ -113,6 +123,9 @@ test-document-charset: check-no-heap-document $(BUILD_DIR)/test-document-charset
 
 test-document-abi: check-no-heap-document $(BUILD_DIR)/test-document-abi
 	./$(BUILD_DIR)/test-document-abi
+
+test-browser: check-no-heap-browser $(BUILD_DIR)/test-browser
+	./$(BUILD_DIR)/test-browser
 
 check-no-heap:
 	@if grep -En '(malloc|calloc|realloc|free)[[:space:]]*\(' $(CORE) >/dev/null; then \
@@ -147,6 +160,12 @@ check-no-heap-platform:
 check-no-heap-document:
 	@if grep -En '(malloc|calloc|realloc|free)[[:space:]]*\(' $(DOCUMENT) >/dev/null; then \
 		echo "R7 document engine must not require heap allocation"; \
+		exit 1; \
+	fi
+
+check-no-heap-browser:
+	@if grep -En '(malloc|calloc|realloc|free)[[:space:]]*\(' $(BROWSER) >/dev/null; then \
+		echo "R8 WEB1 browser must not require heap allocation"; \
 		exit 1; \
 	fi
 
