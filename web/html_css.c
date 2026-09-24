@@ -18,6 +18,7 @@ typedef struct html_parser {
     int seen_html;
     int seen_head;
     int seen_body;
+    int seen_doctype;
 } html_parser;
 
 static int doc_space(unsigned char byte)
@@ -135,6 +136,12 @@ static void doc_slice_clear(rivet_doc_slice *slice)
 {
     slice->offset = 0u;
     slice->length = 0u;
+}
+
+static int doc_slice_present(const rivet_doc_slice *slice)
+{
+    return slice->offset != 0u ||
+           slice->length != 0u;
 }
 
 static rivet_doc_node doc_node_blank(
@@ -328,7 +335,7 @@ static rivet_result html_apply_attribute(
             bytes, name_offset, name_length,
             href, sizeof(href))) {
         if (node->kind == RIVET_DOC_NODE_A) {
-            if (node->href.length != 0u) {
+            if (doc_slice_present(&node->href)) {
                 return RIVET_ERR_DUPLICATE;
             }
             node->href = value;
@@ -340,7 +347,7 @@ static rivet_result html_apply_attribute(
             bytes, name_offset, name_length,
             action, sizeof(action))) {
         if (node->kind == RIVET_DOC_NODE_FORM) {
-            if (node->action.length != 0u) {
+            if (doc_slice_present(&node->action)) {
                 return RIVET_ERR_DUPLICATE;
             }
             node->action = value;
@@ -352,7 +359,7 @@ static rivet_result html_apply_attribute(
             bytes, name_offset, name_length,
             src, sizeof(src))) {
         if (node->kind == RIVET_DOC_NODE_IMG) {
-            if (node->src.length != 0u) {
+            if (doc_slice_present(&node->src)) {
                 return RIVET_ERR_DUPLICATE;
             }
             node->src = value;
@@ -364,7 +371,7 @@ static rivet_result html_apply_attribute(
             bytes, name_offset, name_length,
             name, sizeof(name))) {
         if (node->kind == RIVET_DOC_NODE_INPUT) {
-            if (node->name.length != 0u) {
+            if (doc_slice_present(&node->name)) {
                 return RIVET_ERR_DUPLICATE;
             }
             node->name = value;
@@ -376,7 +383,7 @@ static rivet_result html_apply_attribute(
             bytes, name_offset, name_length,
             val, sizeof(val))) {
         if (node->kind == RIVET_DOC_NODE_INPUT) {
-            if (node->value.length != 0u) {
+            if (doc_slice_present(&node->value)) {
                 return RIVET_ERR_DUPLICATE;
             }
             node->value = value;
@@ -470,11 +477,22 @@ static rivet_result html_parse_open_tag(
         if (parser->seen_head) {
             return RIVET_ERR_DUPLICATE;
         }
+        if (parser->depth != 1u ||
+            parser->stack_kinds[0] !=
+                RIVET_DOC_NODE_HTML ||
+            parser->seen_body) {
+            return RIVET_ERR_INVALID_ARGUMENT;
+        }
         parser->seen_head = 1;
     }
     if (kind == RIVET_DOC_NODE_BODY) {
         if (parser->seen_body) {
             return RIVET_ERR_DUPLICATE;
+        }
+        if (parser->depth != 1u ||
+            parser->stack_kinds[0] !=
+                RIVET_DOC_NODE_HTML) {
+            return RIVET_ERR_INVALID_ARGUMENT;
         }
         parser->seen_body = 1;
     }
@@ -572,7 +590,7 @@ static rivet_result html_parse_open_tag(
     }
 
     if (kind == RIVET_DOC_NODE_A &&
-        node.href.length != 0u) {
+        doc_slice_present(&node.href)) {
         parser->requirements |=
             RIVET_DOC_REQUIRE_LINKS;
     }
@@ -792,6 +810,13 @@ static rivet_result html_run(
                     parser->bytes,
                     parser->byte_count,
                     cursor)) {
+                if (parser->seen_doctype ||
+                    parser->seen_html ||
+                    parser->depth != 0u ||
+                    parser->count != 0u) {
+                    return RIVET_ERR_INVALID_ARGUMENT;
+                }
+                parser->seen_doctype = 1;
                 cursor += 15u;
                 continue;
             }
@@ -865,6 +890,7 @@ rivet_result rivet_html_parse(
     parser.seen_html = 0;
     parser.seen_head = 0;
     parser.seen_body = 0;
+    parser.seen_doctype = 0;
 
     result = html_run(&parser);
     if (result != RIVET_OK) {
@@ -887,6 +913,7 @@ rivet_result rivet_html_parse(
     parser.seen_html = 0;
     parser.seen_head = 0;
     parser.seen_body = 0;
+    parser.seen_doctype = 0;
 
     result = html_run(&parser);
     if (result != RIVET_OK) {
@@ -912,26 +939,11 @@ rivet_result rivet_document_required_capabilities(
     size_t *count
 )
 {
-    static const char html_id[] = {
-        0x64,0x6f,0x63,0x75,0x6d,0x65,0x6e,0x74,
-        0x2e,0x68,0x74,0x6d,0x6c,0x00
-    };
-    static const char css_id[] = {
-        0x64,0x6f,0x63,0x75,0x6d,0x65,0x6e,0x74,
-        0x2e,0x63,0x73,0x73,0x00
-    };
-    static const char links_id[] = {
-        0x64,0x6f,0x63,0x75,0x6d,0x65,0x6e,0x74,
-        0x2e,0x6c,0x69,0x6e,0x6b,0x73,0x00
-    };
-    static const char forms_id[] = {
-        0x64,0x6f,0x63,0x75,0x6d,0x65,0x6e,0x74,
-        0x2e,0x66,0x6f,0x72,0x6d,0x73,0x00
-    };
-    static const char image_id[] = {
-        0x69,0x6d,0x61,0x67,0x65,0x2e,0x70,0x70,
-        0x6d,0x00
-    };
+    static const char html_id[] = "document.html";
+    static const char css_id[] = "document.css";
+    static const char links_id[] = "document.links";
+    static const char forms_id[] = "document.forms";
+    static const char image_id[] = "image.ppm";
     size_t needed = 0u;
     size_t written = 0u;
 
