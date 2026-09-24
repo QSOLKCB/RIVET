@@ -144,7 +144,7 @@ Platform v1 intentionally does not add windows, native input, filesystem write, 
 See [PLATFORM-v1.md](PLATFORM-v1.md).
 ## R6 — Historical stress gate
 
-**Current phase.**
+**Implementation complete in PR #8; Windows E3 release receipt remains pending.**
 
 Implemented R6 stress-gate machinery:
 
@@ -167,19 +167,29 @@ The automated i686-baseline x86 and PowerPC lanes are cheaper PR gates. The full
 See [HISTORICAL-v1.md](HISTORICAL-v1.md).
 ## R7 — Document engine
 
-Introduce bounded document capabilities:
+**Current phase.**
 
-- URL;
-- byte streams;
-- text decoding;
-- HTML subset;
-- CSS subset;
-- layout;
-- image decode;
-- links/forms as separate capabilities.
+Implemented R7 bounded document slice:
 
-Parsing hostile data invokes the security/invariant workflow rather than ad-hoc patching.
+- [x] caller-owned byte stream cursor;
+- [x] absolute HTTP/HTTPS URL parsing with bounded ASCII syntax;
+- [x] strict UTF-8 scalar decoding;
+- [x] strict bounded HTML subset with 32-level depth limit;
+- [x] explicit document.html / document.css / document.links / document.forms / image.ppm capability discovery;
+- [x] bounded element-selector CSS subset;
+- [x] deterministic scalar layout boxes with explicit viewport and box capacity;
+- [x] bounded PPM/P6 → RGBA8888 image decode;
+- [x] hostile-input regressions for malformed UTF-8, HTML nesting/depth/capacity, CSS grammar/overflow and truncated images;
+- [x] no-heap document implementation;
+- [x] execution-character-set regression using explicit numeric ASCII bytes;
+- [x] native GCC/Clang + ASan/UBSan coverage;
+- [x] PowerPC32 big-endian execution of document tests and proof;
+- [x] additive capability registry v3;
+- [x] regression gate preserving pre-R7 frozen authorities.
 
+The R7 parser is intentionally strict: browser-style malformed-markup recovery, entities, complex CSS selectors/cascade, PNG/JPEG, HTTP/TLS, history/downloads and JavaScript remain outside Document v1.
+
+See [DOCUMENT-v1.md](DOCUMENT-v1.md).
 ## R8 — RIVET Browser / WEB1
 
 First browser demonstration.

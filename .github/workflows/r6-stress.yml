@@ -12,28 +12,31 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Verify only R6 allowlisted paths differ
+      - name: Verify frozen pre-R6 baseline surfaces remain unchanged
         run: |
-          git diff --exit-code 9528ce8cf2d089f9895970e0b8563a459afbab7e -- . \
-            ':(exclude).github/workflows/r6-stress.yml' \
-            ':(exclude).github/workflows/r6-windows2012r2.yml' \
-            ':(exclude).github/workflows/r5-platform.yml' \
-            ':(exclude)AGENTS.md' \
-            ':(exclude)HISTORICAL-v1.md' \
-            ':(exclude)README.md' \
-            ':(exclude)ROADMAP.md' \
-            ':(exclude)index.html' \
-            ':(exclude)machine/historical-v1.json' \
-            ':(exclude)machine/project-v8.json' \
-            ':(exclude)scripts/r6_i386.sh' \
-            ':(exclude)scripts/r6_validate_dispatch_inputs.py' \
-            ':(exclude)scripts/r6_ppc_be.sh' \
-            ':(exclude)scripts/r6_receipt.py' \
-            ':(exclude)scripts/r6_windows2012r2_full_system.sh' \
-            ':(exclude)scripts/r6_validate_windows_inspector.py' \
-            ':(exclude)tests/r6_dispatch_input_selftest.py' \
-            ':(exclude)tests/r6_receipt_selftest.py' \
-            ':(exclude)tests/r6_windows_inspector_selftest.py'
+          baseline=9528ce8cf2d089f9895970e0b8563a459afbab7e
+          failed=0
+
+          while IFS= read -r path; do
+            case "$path" in
+              .gitattributes|\
+              .github/workflows/r5-platform.yml|\
+              AGENTS.md|\
+              Makefile|\
+              README.md|\
+              ROADMAP.md|\
+              index.html)
+                continue
+                ;;
+            esac
+
+            if ! git diff --quiet "$baseline" -- "$path"; then
+              echo "Frozen pre-R6 path changed: $path" >&2
+              failed=1
+            fi
+          done < <(git ls-tree -r --name-only "$baseline")
+
+          exit "$failed"
 
       - name: Validate machine JSON
         run: |

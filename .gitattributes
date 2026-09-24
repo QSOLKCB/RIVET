@@ -1,1 +1,3 @@
 fixtures/r4_textview.txt text eol=lf
+fixtures/r7_document.html text eol=lf
+fixtures/r7_image.ppm -text

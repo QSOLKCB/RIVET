@@ -19,6 +19,7 @@ jobs:
 
           while IFS= read -r path; do
             case "$path" in
+              .gitattributes|\
               .github/workflows/r5-platform.yml|\
               AGENTS.md|\
               Makefile|\
