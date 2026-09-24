@@ -52,6 +52,9 @@ static const unsigned char page_nested[] =
     "<html><body><a href=\"https://site.test/about\">"
     "<p>NESTED</p></a></body></html>";
 
+static const unsigned char page_empty[] =
+    "<html><body></body></html>";
+
 static const unsigned char page_replaced[] =
     "<html><head><style>"
     "img{background-color:#112233;}"
@@ -147,6 +150,37 @@ static rivet_result test_fetch(
 
     memcpy(buffer, source, source_count);
     *byte_count = source_count;
+    return RIVET_OK;
+}
+
+static rivet_result test_empty_fetch(
+    void *context,
+    const unsigned char *url,
+    size_t url_length,
+    unsigned char *buffer,
+    size_t capacity,
+    size_t *byte_count
+)
+{
+    (void)context;
+
+    if (url == NULL || buffer == NULL ||
+        byte_count == NULL ||
+        !bytes_equal(
+            url,
+            url_length,
+            url_home,
+            sizeof(url_home) - 1u) ||
+        sizeof(page_empty) - 1u > capacity) {
+        return RIVET_ERR_INVALID_ARGUMENT;
+    }
+
+    memcpy(
+        buffer,
+        page_empty,
+        sizeof(page_empty) - 1u
+    );
+    *byte_count = sizeof(page_empty) - 1u;
     return RIVET_OK;
 }
 
@@ -977,6 +1011,7 @@ static int test_review_regressions(void)
             &config,
             &storage,
             5ul) == RIVET_OK);
+        browser.io.fetch = test_empty_fetch;
         CHECK(rivet_browser_home(&browser) == RIVET_OK);
         CHECK(rivet_browser_toggle_source(
             &browser) == RIVET_OK);
