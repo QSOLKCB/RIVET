@@ -4,6 +4,8 @@
 
 #include <limits.h>
 
+#define HTML_MAX_ATTRIBUTES 64u
+
 typedef struct html_parser {
     const unsigned char *bytes;
     size_t byte_count;
@@ -65,6 +67,30 @@ static int doc_slice_equal_ascii(
             return 0;
         }
     }
+    return 1;
+}
+
+static int doc_name_equal(
+    const unsigned char *bytes,
+    size_t first_offset,
+    size_t first_length,
+    size_t second_offset,
+    size_t second_length
+)
+{
+    size_t i;
+
+    if (first_length != second_length) {
+        return 0;
+    }
+
+    for (i = 0u; i < first_length; ++i) {
+        if (doc_lower(bytes[first_offset + i]) !=
+            doc_lower(bytes[second_offset + i])) {
+            return 0;
+        }
+    }
+
     return 1;
 }
 
@@ -437,6 +463,9 @@ static rivet_result html_parse_open_tag(
         parser->stack_nodes[parser->depth - 1u];
     rivet_doc_node node;
     size_t node_index;
+    size_t attribute_offsets[HTML_MAX_ATTRIBUTES];
+    size_t attribute_lengths[HTML_MAX_ATTRIBUTES];
+    size_t attribute_count = 0u;
     int self_closing = 0;
     rivet_result result;
 
@@ -487,6 +516,13 @@ static rivet_result html_parse_open_tag(
             parser->depth - 1u] ==
             RIVET_DOC_NODE_HEAD &&
         kind != RIVET_DOC_NODE_STYLE) {
+        return RIVET_ERR_INVALID_ARGUMENT;
+    }
+
+    if (parser->depth != 0u &&
+        parser->stack_kinds[
+            parser->depth - 1u] ==
+            RIVET_DOC_NODE_STYLE) {
         return RIVET_ERR_INVALID_ARGUMENT;
     }
 
@@ -551,6 +587,32 @@ static rivet_result html_parse_open_tag(
         attr_end = pos;
         if (attr_end == attr_start) {
             return RIVET_ERR_UNSUPPORTED;
+        }
+
+        {
+            size_t i;
+
+            for (i = 0u; i < attribute_count; ++i) {
+                if (doc_name_equal(
+                        parser->bytes,
+                        attr_start,
+                        attr_end - attr_start,
+                        attribute_offsets[i],
+                        attribute_lengths[i])) {
+                    return RIVET_ERR_DUPLICATE;
+                }
+            }
+
+            if (attribute_count >=
+                HTML_MAX_ATTRIBUTES) {
+                return RIVET_ERR_CAPACITY;
+            }
+
+            attribute_offsets[attribute_count] =
+                attr_start;
+            attribute_lengths[attribute_count] =
+                attr_end - attr_start;
+            ++attribute_count;
         }
 
         while (pos < parser->byte_count &&
