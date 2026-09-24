@@ -126,6 +126,8 @@ img    src width height
 
 Attribute values must use double quotes.
 
+Quoted attribute values reject NUL, non-whitespace C0 control bytes, DEL, `<` and `&`.
+
 Unknown attributes are parsed safely but do not gain semantics. Attribute names are ASCII case-insensitive for duplicate detection, and each element is bounded to at most 64 attributes.
 
 Void elements:
