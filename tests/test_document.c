@@ -309,6 +309,130 @@ static int test_html_css_layout(void)
     return 0;
 }
 
+static int test_strict_structure_and_layout_state(void)
+{
+    static const unsigned char inline_source[] =
+        "<!doctype html><html><body>"
+        "<p>HELLO <a href=\"\">LINK</a> WORLD</p>"
+        "</body></html>";
+    static const unsigned char css_source[] =
+        "body{background-color:#010203;}";
+    static const unsigned char nested_body[] =
+        "<html><head><body><p>VISIBLE</p>"
+        "</body></head></html>";
+    static const unsigned char nested_doctype[] =
+        "<html><body><!doctype html></body></html>";
+    static const unsigned char duplicate_doctype[] =
+        "<!doctype html><!doctype html>"
+        "<html><body></body></html>";
+    static const unsigned char trailing_doctype[] =
+        "<html><body></body></html><!doctype html>";
+    static const unsigned char duplicate_empty_href[] =
+        "<html><body><a href=\"\" href=\"\">X</a>"
+        "</body></html>";
+    rivet_doc_node nodes[32];
+    rivet_document document;
+    rivet_css_rule rules[1];
+    rivet_layout_box boxes[16];
+    size_t rule_count = 0u;
+    size_t box_count = 0u;
+    unsigned long document_height = 0ul;
+    size_t link_index = 0u;
+    size_t link_text_index = 0u;
+    size_t i;
+    int saw_link_text = 0;
+
+    CHECK(rivet_html_parse(
+        &document,
+        inline_source,
+        sizeof(inline_source) - 1u,
+        nodes,
+        32u) == RIVET_OK);
+    CHECK((document.requirements &
+           RIVET_DOC_REQUIRE_LINKS) != 0u);
+    CHECK(find_node(
+        &document,
+        RIVET_DOC_NODE_A,
+        &link_index));
+    CHECK(link_index + 1u <
+          document.node_count);
+    link_text_index = link_index + 1u;
+    CHECK(document.nodes[
+        link_text_index].kind ==
+        RIVET_DOC_NODE_TEXT);
+    CHECK(document.nodes[
+        link_text_index].parent ==
+        link_index);
+
+    CHECK(rivet_css_parse(
+        css_source,
+        sizeof(css_source) - 1u,
+        rules,
+        1u,
+        &rule_count) == RIVET_OK);
+    CHECK(rule_count == 1u);
+
+    CHECK(rivet_document_layout(
+        &document,
+        rules,
+        rule_count,
+        120ul,
+        boxes,
+        16u,
+        &box_count,
+        &document_height) == RIVET_OK);
+    CHECK(document_height > 0ul);
+
+    for (i = 0u; i < box_count; ++i) {
+        if (boxes[i].node_index ==
+                link_text_index &&
+            boxes[i].kind ==
+                RIVET_LAYOUT_TEXT) {
+            saw_link_text = 1;
+            CHECK(boxes[i].x == 36ul);
+            CHECK(boxes[i].has_background);
+            CHECK(boxes[i].background.r == 0x01u);
+            CHECK(boxes[i].background.g == 0x02u);
+            CHECK(boxes[i].background.b == 0x03u);
+            CHECK(boxes[i].background.a == 0xffu);
+        }
+    }
+    CHECK(saw_link_text);
+
+    CHECK(rivet_html_parse(
+        &document,
+        nested_body,
+        sizeof(nested_body) - 1u,
+        nodes,
+        32u) == RIVET_ERR_INVALID_ARGUMENT);
+    CHECK(rivet_html_parse(
+        &document,
+        nested_doctype,
+        sizeof(nested_doctype) - 1u,
+        nodes,
+        32u) == RIVET_ERR_INVALID_ARGUMENT);
+    CHECK(rivet_html_parse(
+        &document,
+        duplicate_doctype,
+        sizeof(duplicate_doctype) - 1u,
+        nodes,
+        32u) == RIVET_ERR_INVALID_ARGUMENT);
+    CHECK(rivet_html_parse(
+        &document,
+        trailing_doctype,
+        sizeof(trailing_doctype) - 1u,
+        nodes,
+        32u) == RIVET_ERR_INVALID_ARGUMENT);
+    CHECK(rivet_html_parse(
+        &document,
+        duplicate_empty_href,
+        sizeof(duplicate_empty_href) - 1u,
+        nodes,
+        32u) == RIVET_ERR_DUPLICATE);
+
+    return 0;
+}
+
 static int test_depth_limit(void)
 {
     unsigned char bytes[512];
@@ -403,6 +527,11 @@ static int test_image(void)
         0x50u,0x33u,0x0au,0x31u,0x20u,0x31u,0x0au,
         0x32u,0x35u,0x35u,0x0au,0x30u
     };
+    static const unsigned char bad_adjacent_magic[] = {
+        0x50u,0x36u,0x31u,0x20u,0x31u,0x20u,
+        0x32u,0x35u,0x35u,0x0au,
+        0x00u,0x00u,0x00u
+    };
     unsigned char pixels[16];
     rivet_document_image image;
 
@@ -443,6 +572,12 @@ static int test_image(void)
         sizeof(bad_magic),
         pixels,
         sizeof(pixels)) == RIVET_ERR_UNSUPPORTED);
+    CHECK(rivet_image_decode_ppm(
+        &image,
+        bad_adjacent_magic,
+        sizeof(bad_adjacent_magic),
+        pixels,
+        sizeof(pixels)) == RIVET_ERR_UNSUPPORTED);
     return 0;
 }
 
@@ -453,6 +588,7 @@ int main(void)
     CHECK(test_url() == 0);
     CHECK(test_utf8() == 0);
     CHECK(test_html_css_layout() == 0);
+    CHECK(test_strict_structure_and_layout_state() == 0);
     CHECK(test_depth_limit() == 0);
     CHECK(test_css_failures() == 0);
     CHECK(test_image() == 0);
