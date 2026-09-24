@@ -755,16 +755,29 @@ static rivet_result html_parse_text(
         return RIVET_ERR_INVALID_ARGUMENT;
     }
 
+    if (parser->stack_kinds[
+            parser->depth - 1u] ==
+            RIVET_DOC_NODE_HTML ||
+        parser->stack_kinds[
+            parser->depth - 1u] ==
+            RIVET_DOC_NODE_HEAD) {
+        if (html_text_has_content(
+                parser->bytes,
+                start,
+                pos - start)) {
+            return RIVET_ERR_INVALID_ARGUMENT;
+        }
+        *cursor = pos;
+        return RIVET_OK;
+    }
+
     if (!html_text_has_content(
             parser->bytes,
             start,
             pos - start) &&
         (parser->stack_kinds[
              parser->depth - 1u] ==
-             RIVET_DOC_NODE_HTML ||
-         parser->stack_kinds[
-             parser->depth - 1u] ==
-             RIVET_DOC_NODE_HEAD ||
+             RIVET_DOC_NODE_BODY ||
          parser->stack_kinds[
              parser->depth - 1u] ==
              RIVET_DOC_NODE_STYLE)) {
