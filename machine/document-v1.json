@@ -23,6 +23,7 @@
   },
   "limits": {
     "html_depth": 32,
+    "html_attributes_per_element": 64,
     "html_image_dimension": 4096,
     "css_margin_pixels": 1024,
     "ppm_dimension": 4096,
@@ -89,6 +90,8 @@
       ]
     },
     "quoted_attributes": "double-only",
+    "duplicate_attributes": "reject-ascii-case-insensitive",
+    "style_content": "css-text-only",
     "strict_nesting": true,
     "recovery": false,
     "entities": false
