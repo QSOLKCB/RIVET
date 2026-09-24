@@ -126,7 +126,7 @@ img    src width height
 
 Attribute values must use double quotes.
 
-Unknown attributes are parsed safely but do not gain semantics.
+Unknown attributes are parsed safely but do not gain semantics. Attribute names are ASCII case-insensitive for duplicate detection, and each element is bounded to at most 64 attributes.
 
 Void elements:
 
@@ -142,6 +142,8 @@ Rules:
 - maximum element stack depth is 32;
 - exactly one HTML root and one body are required;
 - duplicate head/body roots are rejected;
+- duplicate attribute names are rejected, including unknown attributes;
+- style elements contain CSS text only and reject element children;
 - image nodes require src, width and height;
 - image dimensions are positive decimal values no greater than 4096;
 - HTML text must be valid UTF-8;
