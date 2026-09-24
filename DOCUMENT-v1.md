@@ -219,7 +219,7 @@ Images and inputs are replaced boxes.
 Layout:
 
 - wraps at the caller-declared viewport width;
-- collapses ASCII HTML whitespace across inline node boundaries for measurement;
+- preserves body text whitespace for layout and collapses ASCII HTML whitespace across inline node boundaries for measurement;
 - emits caller-owned text/image/input boxes;
 - uses parent text colour and effective container backgrounds plus supported element-rule overrides;
 - applies declared block top/bottom margins;
@@ -283,14 +283,14 @@ Reference identity:
 HTML bytes          = 428
 HTML SHA-256        = 0e39a26117b5a8774e3a06e76d00053362ddfacf280f1304df938619e06b0484
 HTML FNV-1a64       = 3987ce4034e4f3fc
-HTML nodes          = 15
+HTML nodes          = 20
 CSS rules           = 5
 content capabilities= 5
 UTF-8 sample scalars= 12
 layout viewport     = 120 px
 layout boxes        = 7
 document height     = 46 px
-layout FNV-1a64     = 7cd183ff169aea33
+layout FNV-1a64     = c207c69598198e47
 PPM bytes           = 23
 PPM SHA-256         = 69d84c9c40bbfe1bfa0519120af54a299af34be4eebb31bb6a34b67aaae22f00
 RGBA FNV-1a64       = 8a4318bc590ba10d
