@@ -79,7 +79,16 @@
         "accelerator": "kvm",
         "cpu_model": "host"
       }
-    ]
+    ],
+    "dispatch_input_validation": {
+      "image_sha256": "exactly-64-hex-characters",
+      "timeout_seconds": {
+        "type": "decimal-digits",
+        "minimum": 300,
+        "maximum": 6000
+      },
+      "transport": "environment-variables-not-source-interpolation"
+    }
   },
   "receipt_schema": "rivet.historical-receipt/v1",
   "phase_completion_rule": "automated lanes pass and an E3 historical-Windows receipt is retained for the release source revision",
