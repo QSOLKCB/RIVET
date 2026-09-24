@@ -345,6 +345,17 @@ static int test_strict_structure_and_layout_state(void)
     static const unsigned char visible_head[] =
         "<html><head><p>VISIBLE</p></head>"
         "<body></body></html>";
+    static const unsigned char element_inside_style[] =
+        "<html><head><style><p>VISIBLE</p></style></head>"
+        "<body></body></html>";
+    static const unsigned char duplicate_unknown_attribute[] =
+        "<html><body><p id=\"a\" id=\"b\">X</p>"
+        "</body></html>";
+    static const unsigned char duplicate_unknown_attribute_case[] =
+        "<html><body><p ID=\"a\" id=\"b\">X</p>"
+        "</body></html>";
+    static const unsigned char single_unknown_attribute[] =
+        "<html><body><p id=\"a\">X</p></body></html>";
     static const unsigned char narrow_image[] =
         "<html><body><img src=\"x\" width=\"2\" height=\"2\">"
         "</body></html>";
@@ -463,6 +474,30 @@ static int test_strict_structure_and_layout_state(void)
         sizeof(visible_head) - 1u,
         nodes,
         32u) == RIVET_ERR_INVALID_ARGUMENT);
+    CHECK(rivet_html_parse(
+        &document,
+        element_inside_style,
+        sizeof(element_inside_style) - 1u,
+        nodes,
+        32u) == RIVET_ERR_INVALID_ARGUMENT);
+    CHECK(rivet_html_parse(
+        &document,
+        duplicate_unknown_attribute,
+        sizeof(duplicate_unknown_attribute) - 1u,
+        nodes,
+        32u) == RIVET_ERR_DUPLICATE);
+    CHECK(rivet_html_parse(
+        &document,
+        duplicate_unknown_attribute_case,
+        sizeof(duplicate_unknown_attribute_case) - 1u,
+        nodes,
+        32u) == RIVET_ERR_DUPLICATE);
+    CHECK(rivet_html_parse(
+        &document,
+        single_unknown_attribute,
+        sizeof(single_unknown_attribute) - 1u,
+        nodes,
+        32u) == RIVET_OK);
     CHECK(rivet_html_parse(
         &document,
         direct_root_content,
