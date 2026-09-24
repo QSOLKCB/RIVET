@@ -39,6 +39,8 @@ web/layout_image.c
 
 The implementation requires no heap allocation.
 
+Public node-kind, selector-kind, and layout-box-kind discriminants use 32-bit unsigned ABI fields with integer constants rather than C enum-typed struct fields. Their layout is therefore independent of compiler enum-width options such as `-fshort-enums`.
+
 Caller-owned storage is used for decoded code points, HTML nodes, CSS rules, layout boxes, and image pixels.
 
 ## Byte streams
@@ -62,6 +64,8 @@ Supported URL identity:
 - scheme: HTTP or HTTPS, ASCII case-insensitive;
 - authority separator: `//`;
 - host: ASCII letters, digits, dot and hyphen;
+- host labels are non-empty and may not begin or end with hyphen;
+- one trailing root dot is accepted and preserved in the host slice;
 - optional decimal port 1..65535;
 - optional path/query/fragment;
 - percent escapes must contain two hexadecimal digits.
