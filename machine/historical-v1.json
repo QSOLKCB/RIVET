@@ -12,20 +12,22 @@
   },
   "automated_lanes": [
     {
-      "id": "linux-i386-native-process",
-      "cpu": "i386",
+      "id": "linux-x86-32-i686-native-process",
+      "cpu": "i686",
       "pointer_bits": 32,
       "endian": "little",
       "execution": "native-compat",
-      "evidence_class": "native-32bit-process"
+      "evidence_class": "native-32bit-process",
+      "compiler_baseline": "gcc--march=i686"
     },
     {
-      "id": "linux-i386-qemu-user",
-      "cpu": "i386",
+      "id": "linux-x86-32-i686-qemu-user",
+      "cpu": "i686",
       "pointer_bits": 32,
       "endian": "little",
       "execution": "qemu-user",
-      "evidence_class": "E2"
+      "evidence_class": "E2",
+      "compiler_baseline": "gcc--march=i686"
     },
     {
       "id": "linux-powerpc32-big-endian-qemu-user",
@@ -63,7 +65,21 @@
         "Microsoft Windows Server 2012 R2 Datacenter Evaluation"
       ]
     },
-    "firstboot_helper_package": "rhsrvany"
+    "firstboot_helper_package": "rhsrvany",
+    "receipt_environment_fields": [
+      "accelerator",
+      "cpu_model"
+    ],
+    "execution_variants": [
+      {
+        "accelerator": "tcg",
+        "cpu_model": "Nehalem"
+      },
+      {
+        "accelerator": "kvm",
+        "cpu_model": "host"
+      }
+    ]
   },
   "receipt_schema": "rivet.historical-receipt/v1",
   "phase_completion_rule": "automated lanes pass and an E3 historical-Windows receipt is retained for the release source revision",
