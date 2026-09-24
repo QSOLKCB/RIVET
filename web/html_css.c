@@ -638,9 +638,15 @@ static rivet_result html_parse_open_tag(
         attr_value.offset = pos;
         while (pos < parser->byte_count &&
                parser->bytes[pos] != 0x22u) {
-            if (parser->bytes[pos] == 0x3cu ||
-                parser->bytes[pos] == 0x26u ||
-                parser->bytes[pos] == 0u) {
+            unsigned char byte =
+                parser->bytes[pos];
+
+            if (byte == 0x3cu ||
+                byte == 0x26u ||
+                byte == 0u ||
+                (byte < 0x20u &&
+                 !doc_space(byte)) ||
+                byte == 0x7fu) {
                 return RIVET_ERR_UNSUPPORTED;
             }
             ++pos;
