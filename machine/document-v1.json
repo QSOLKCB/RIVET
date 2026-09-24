@@ -90,6 +90,7 @@
       ]
     },
     "quoted_attributes": "double-only",
+    "quoted_attribute_controls": "reject-nul-non-whitespace-c0-del-lt-amp",
     "duplicate_attributes": "reject-ascii-case-insensitive",
     "style_content": "css-text-only",
     "strict_nesting": true,
