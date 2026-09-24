@@ -51,6 +51,45 @@ static int doc_url_host_byte(unsigned char byte)
            byte == 0x2eu;
 }
 
+static rivet_result doc_url_validate_host(
+    const unsigned char *bytes,
+    size_t start,
+    size_t end
+)
+{
+    size_t label_start = start;
+    size_t i;
+
+    if (start == end) {
+        return RIVET_ERR_UNSUPPORTED;
+    }
+
+    for (i = start; i < end; ++i) {
+        if (bytes[i] != 0x2eu) {
+            continue;
+        }
+
+        if (i == label_start ||
+            bytes[label_start] == 0x2du ||
+            bytes[i - 1u] == 0x2du) {
+            return RIVET_ERR_UNSUPPORTED;
+        }
+
+        label_start = i + 1u;
+    }
+
+    if (label_start == end) {
+        return RIVET_OK;
+    }
+
+    if (bytes[label_start] == 0x2du ||
+        bytes[end - 1u] == 0x2du) {
+        return RIVET_ERR_UNSUPPORTED;
+    }
+
+    return RIVET_OK;
+}
+
 static rivet_result doc_utf8_one(
     const unsigned char *bytes,
     size_t byte_count,
@@ -300,11 +339,10 @@ rivet_result rivet_url_parse(
         ++host_end;
     }
 
-    if (host_end == host_start ||
-        bytes[host_start] == 0x2eu ||
-        bytes[host_end - 1u] == 0x2eu ||
-        bytes[host_start] == 0x2du ||
-        bytes[host_end - 1u] == 0x2du) {
+    if (doc_url_validate_host(
+            bytes,
+            host_start,
+            host_end) != RIVET_OK) {
         return RIVET_ERR_UNSUPPORTED;
     }
 
