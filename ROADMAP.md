@@ -148,9 +148,9 @@ See [PLATFORM-v1.md](PLATFORM-v1.md).
 
 Implemented R6 stress-gate machinery:
 
-- [x] static 32-bit i386 Platform v1 proof;
-- [x] direct 32-bit i386 process execution on the Ubuntu runner;
-- [x] E2 `qemu-i386` execution of the same 32-bit binary;
+- [x] static 32-bit x86 Platform v1 proof with explicit i686 baseline;
+- [x] direct 32-bit i686-baseline x86 process execution on the Ubuntu runner;
+- [x] E2 `qemu-i386` execution of the i686-baseline binary of the same 32-bit binary;
 - [x] static PowerPC32 cross-build;
 - [x] E2 `qemu-ppc` big-endian execution with `pointer_bits=32` and `endian=big`;
 - [x] machine-readable historical receipt schema and artifact capture;
@@ -162,7 +162,7 @@ Implemented R6 stress-gate machinery:
 
 R6 remains **evidence-incomplete** until a passing E3 Windows Server 2012 R2 receipt is retained for the source revision being released. The repository intentionally does not store Microsoft evaluation media.
 
-The automated i386 and PowerPC lanes are cheaper PR gates. The full-system Windows lane is manual/release-gated because licensed media acquisition and full-system execution are materially more expensive.
+The automated i686-baseline x86 and PowerPC lanes are cheaper PR gates. The full-system Windows lane is manual/release-gated because licensed media acquisition and full-system execution are materially more expensive.
 
 See [HISTORICAL-v1.md](HISTORICAL-v1.md).
 ## R7 — Document engine
