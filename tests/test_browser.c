@@ -674,6 +674,7 @@ static int test_review_regressions(void)
     rivet_browser_storage storage;
     rivet_browser_config config;
     rivet_browser_config crowded;
+    rivet_browser_config aliased_config;
     rivet_browser_io io;
     rivet_browser browser;
     test_io_state io_state;
@@ -750,6 +751,10 @@ static int test_review_regressions(void)
             storage.scratch_bytes;
         size_t saved_scratch_capacity =
             storage.scratch_capacity;
+        rivet_browser_url *saved_bookmarks =
+            storage.bookmarks;
+        size_t saved_bookmark_capacity =
+            storage.bookmark_capacity;
 
         storage.scratch_bytes =
             storage.document_bytes;
@@ -776,7 +781,47 @@ static int test_review_regressions(void)
         storage.scratch_bytes = saved_scratch;
         storage.scratch_capacity =
             saved_scratch_capacity;
+
+        storage.bookmarks = storage.history;
+        storage.bookmark_capacity = 4u;
+        CHECK(rivet_browser_init(
+            &browser,
+            &io,
+            &config,
+            &storage,
+            120ul) == RIVET_ERR_INVALID_ARGUMENT);
+
+        storage.bookmarks = storage.history + 1u;
+        storage.bookmark_capacity = 4u;
+        CHECK(rivet_browser_init(
+            &browser,
+            &io,
+            &config,
+            &storage,
+            120ul) == RIVET_ERR_INVALID_ARGUMENT);
+
+        storage.bookmarks = saved_bookmarks;
+        storage.bookmark_capacity =
+            saved_bookmark_capacity;
     }
+
+    CHECK(sizeof(config_bytes) - 1u <=
+          sizeof(document_bytes));
+    memcpy(
+        document_bytes,
+        config_bytes,
+        sizeof(config_bytes) - 1u
+    );
+    CHECK(rivet_browser_config_parse(
+        &aliased_config,
+        document_bytes,
+        sizeof(config_bytes) - 1u) == RIVET_OK);
+    CHECK(rivet_browser_init(
+        &browser,
+        &io,
+        &aliased_config,
+        &storage,
+        120ul) == RIVET_ERR_INVALID_ARGUMENT);
 
     if (ULONG_MAX > (unsigned long)LONG_MAX) {
         CHECK(rivet_browser_init(
