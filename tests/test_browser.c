@@ -755,6 +755,26 @@ static int test_review_regressions(void)
             RIVET_ERR_CAPACITY);
     }
 
+    if (sizeof(size_t) <= sizeof(unsigned long)) {
+        size_t size_max = (size_t)-1;
+        unsigned long row_width_limit =
+            (unsigned long)(
+                size_max /
+                RIVET_GFX_PIXEL_BYTES
+            );
+
+        if (row_width_limit <
+            (unsigned long)LONG_MAX) {
+            CHECK(rivet_browser_init(
+                &browser,
+                &io,
+                &config,
+                &storage,
+                row_width_limit + 1ul) ==
+                RIVET_ERR_CAPACITY);
+        }
+    }
+
     CHECK(rivet_browser_init(
         &browser,
         &io,
@@ -762,6 +782,25 @@ static int test_review_regressions(void)
         &storage,
         120ul) == RIVET_OK);
     CHECK(rivet_browser_home(&browser) == RIVET_OK);
+
+    browser.io.fetch = test_zero_success_fetch;
+    CHECK(rivet_browser_reload(&browser) ==
+          RIVET_ERR_UNSUPPORTED);
+    CHECK(!browser.loaded);
+    CHECK(bytes_equal(
+        browser.current_url.bytes,
+        browser.current_url.length,
+        url_home,
+        sizeof(url_home) - 1u));
+
+    browser.io.fetch = test_fetch;
+    CHECK(rivet_browser_reload(&browser) == RIVET_OK);
+    CHECK(browser.loaded);
+    CHECK(bytes_equal(
+        browser.current_url.bytes,
+        browser.current_url.length,
+        url_home,
+        sizeof(url_home) - 1u));
 
     CHECK(rivet_browser_open_selected_link(NULL) ==
           RIVET_ERR_INVALID_ARGUMENT);
