@@ -745,6 +745,39 @@ static int test_review_regressions(void)
     storage.rule_capacity =
         sizeof(rules) / sizeof(rules[0]);
 
+    {
+        unsigned char *saved_scratch =
+            storage.scratch_bytes;
+        size_t saved_scratch_capacity =
+            storage.scratch_capacity;
+
+        storage.scratch_bytes =
+            storage.document_bytes;
+        storage.scratch_capacity =
+            storage.document_capacity;
+        CHECK(rivet_browser_init(
+            &browser,
+            &io,
+            &config,
+            &storage,
+            120ul) == RIVET_ERR_INVALID_ARGUMENT);
+
+        storage.scratch_bytes =
+            storage.document_bytes + 1u;
+        storage.scratch_capacity =
+            storage.document_capacity - 1u;
+        CHECK(rivet_browser_init(
+            &browser,
+            &io,
+            &config,
+            &storage,
+            120ul) == RIVET_ERR_INVALID_ARGUMENT);
+
+        storage.scratch_bytes = saved_scratch;
+        storage.scratch_capacity =
+            saved_scratch_capacity;
+    }
+
     if (ULONG_MAX > (unsigned long)LONG_MAX) {
         CHECK(rivet_browser_init(
             &browser,
