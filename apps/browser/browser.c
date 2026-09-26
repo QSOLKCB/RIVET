@@ -3,6 +3,7 @@
 #include "rivet/browser.h"
 
 #include <limits.h>
+#include <stdint.h>
 #include <string.h>
 
 #define BROWSER_GLYPH_WIDTH 5ul
@@ -351,6 +352,36 @@ static int browser_url_equal(
            );
 }
 
+static int browser_byte_ranges_overlap(
+    const unsigned char *left,
+    size_t left_count,
+    const unsigned char *right,
+    size_t right_count
+)
+{
+    uintptr_t left_start;
+    uintptr_t right_start;
+    uintptr_t left_end;
+    uintptr_t right_end;
+
+    if (left == NULL || right == NULL ||
+        left_count == 0u || right_count == 0u) {
+        return 0;
+    }
+
+    left_start = (uintptr_t)(const void *)left;
+    right_start = (uintptr_t)(const void *)right;
+    if (left_count > UINTPTR_MAX - left_start ||
+        right_count > UINTPTR_MAX - right_start) {
+        return 1;
+    }
+
+    left_end = left_start + left_count;
+    right_end = right_start + right_count;
+    return left_start < right_end &&
+           right_start < left_end;
+}
+
 static rivet_result browser_storage_validate(
     const rivet_browser_storage *storage
 )
@@ -370,6 +401,13 @@ static rivet_result browser_storage_validate(
         storage->bookmark_capacity == 0u ||
         storage->scratch_bytes == NULL ||
         storage->scratch_capacity == 0u) {
+        return RIVET_ERR_INVALID_ARGUMENT;
+    }
+    if (browser_byte_ranges_overlap(
+            storage->document_bytes,
+            storage->document_capacity,
+            storage->scratch_bytes,
+            storage->scratch_capacity)) {
         return RIVET_ERR_INVALID_ARGUMENT;
     }
     return RIVET_OK;
@@ -2016,6 +2054,9 @@ static rivet_result browser_render_source(
         if (codepoint == 0x0au ||
             codepoint == 0x0du) {
             column = 0ul;
+            if (row == ULONG_MAX) {
+                return RIVET_ERR_CAPACITY;
+            }
             ++row;
             offset += used;
             continue;
@@ -2027,6 +2068,9 @@ static rivet_result browser_render_source(
 
         if (column == columns) {
             column = 0ul;
+            if (row == ULONG_MAX) {
+                return RIVET_ERR_CAPACITY;
+            }
             ++row;
         }
 
@@ -2226,6 +2270,13 @@ rivet_result rivet_browser_render(
     );
     if (result != RIVET_OK) {
         return result;
+    }
+
+    if (bounds.x > LONG_MAX - 2L ||
+        bounds.y >
+            LONG_MAX -
+            (long)RIVET_BROWSER_CHROME_HEIGHT) {
+        return RIVET_ERR_CAPACITY;
     }
 
     result = browser_draw_word(
