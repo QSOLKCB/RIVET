@@ -437,6 +437,9 @@ int main(int argc, char **argv)
     }
 
     resident_bytes =
+        sizeof(url_home) +
+        sizeof(url_about) +
+        sizeof(url_download) +
         sizeof(home_bytes) +
         sizeof(about_bytes) +
         sizeof(download_bytes) +
