@@ -430,6 +430,7 @@ rivet_result rivet_browser_init(
 )
 {
     size_t user_rule_count = 0u;
+    size_t size_max = (size_t)-1;
     rivet_result result;
 
     if (browser == NULL || io == NULL ||
@@ -438,7 +439,11 @@ rivet_result rivet_browser_init(
         return RIVET_ERR_INVALID_ARGUMENT;
     }
     if (viewport_width >
-        (unsigned long)LONG_MAX) {
+            (unsigned long)LONG_MAX ||
+        viewport_width >
+            (unsigned long)size_max ||
+        (size_t)viewport_width >
+            size_max / RIVET_GFX_PIXEL_BYTES) {
         return RIVET_ERR_CAPACITY;
     }
 
@@ -829,7 +834,7 @@ rivet_result rivet_browser_reload(rivet_browser *browser)
     if (browser == NULL) {
         return RIVET_ERR_INVALID_ARGUMENT;
     }
-    if (!browser->loaded) {
+    if (browser->current_url.length == 0u) {
         return RIVET_ERR_NOT_FOUND;
     }
     return browser_load(
@@ -2026,7 +2031,7 @@ static rivet_result browser_render_source(
         }
 
         if (row <=
-            (unsigned long)LONG_MAX /
+            ULONG_MAX /
             BROWSER_LINE_HEIGHT) {
             long y;
             unsigned long content_y =
