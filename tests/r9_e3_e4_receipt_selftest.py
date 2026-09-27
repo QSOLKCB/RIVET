@@ -158,6 +158,25 @@ def main() -> int:
         assert data["schema"] == "rivet.retro-e3-receipt/v1"
         assert data["guest_os_identity"] == WIN98_VER
 
+        stale_before = receipt.read_bytes()
+        stale_invalid = root / "proof-stale-invalid.txt"
+        stale_invalid.write_text(
+            GUEST_LINE + "\n" +
+            "proof_exit=nonzero\n" +
+            "startup_stage=winstart\n" +
+            WIN98_VER + "\n",
+            encoding="utf-8",
+        )
+        result = run_e3(stale_invalid, receipt)
+        assert result.returncode != 0
+        assert not receipt.exists()
+        assert not receipt.with_name(
+            receipt.name + ".tmp"
+        ).exists()
+        assert stale_before
+
+        run_e3(good, receipt, check=True)
+
         xp = root / "proof-xp.txt"
         xp.write_text(
             GUEST_LINE + "\n" +
@@ -604,6 +623,89 @@ def main() -> int:
         write_json(windows95_path, windows95)
         validate_e4(windows95_path, check=True)
 
+        windows95_386 = base_e4()
+        windows95_386["target_profile"] = "windows9x-x86"
+        windows95_386["software_environment"] = {
+            "os_name": "Windows 95",
+            "os_version": "4.00.950",
+            "api": "Win32",
+        }
+        windows95_386["hardware"] = {
+            "manufacturer": "Intel",
+            "model": "Physical 386 test system",
+            "cpu": "Intel 80386DX",
+            "memory_bytes": 16 * 1024 * 1024,
+        }
+        windows95_386["browser_proof"]["target"] = (
+            "windows9x-x86"
+        )
+        windows95_386["browser_proof"]["endian"] = "little"
+        windows95_386_path = root / "e4-windows95-386.json"
+        write_json(windows95_386_path, windows95_386)
+        validate_e4(windows95_386_path, check=True)
+
+        windows98_386 = base_e4()
+        windows98_386["target_profile"] = "windows9x-x86"
+        windows98_386["software_environment"] = {
+            "os_name": "Windows 98",
+            "os_version": "4.10.2222",
+            "api": "Win32",
+        }
+        windows98_386["hardware"] = dict(
+            windows95_386["hardware"]
+        )
+        windows98_386["browser_proof"]["target"] = (
+            "windows9x-x86"
+        )
+        windows98_386["browser_proof"]["endian"] = "little"
+        windows98_386_path = root / "e4-windows98-386.json"
+        write_json(windows98_386_path, windows98_386)
+        assert validate_e4(windows98_386_path).returncode != 0
+
+        windows_me_386 = base_e4()
+        windows_me_386["target_profile"] = "windows9x-x86"
+        windows_me_386["software_environment"] = {
+            "os_name": "Windows Me",
+            "os_version": "4.90.3000",
+            "api": "Win32",
+        }
+        windows_me_386["hardware"] = dict(
+            windows95_386["hardware"]
+        )
+        windows_me_386["browser_proof"]["target"] = (
+            "windows9x-x86"
+        )
+        windows_me_386["browser_proof"]["endian"] = "little"
+        windows_me_386_path = root / "e4-windows-me-386.json"
+        write_json(windows_me_386_path, windows_me_386)
+        assert validate_e4(windows_me_386_path).returncode != 0
+
+        windows_me_pentium = base_e4()
+        windows_me_pentium["target_profile"] = "windows9x-x86"
+        windows_me_pentium["software_environment"] = {
+            "os_name": "Windows Me",
+            "os_version": "4.90.3000",
+            "api": "Win32",
+        }
+        windows_me_pentium["hardware"] = {
+            "manufacturer": "Intel",
+            "model": "Physical Pentium test system",
+            "cpu": "Intel Pentium",
+            "memory_bytes": 64 * 1024 * 1024,
+        }
+        windows_me_pentium["browser_proof"]["target"] = (
+            "windows9x-x86"
+        )
+        windows_me_pentium["browser_proof"]["endian"] = "little"
+        windows_me_pentium_path = (
+            root / "e4-windows-me-pentium.json"
+        )
+        write_json(
+            windows_me_pentium_path,
+            windows_me_pentium,
+        )
+        validate_e4(windows_me_pentium_path, check=True)
+
         amd_am486 = base_e4()
         amd_am486["target_profile"] = "windows9x-x86"
         amd_am486["software_environment"] = {
@@ -716,6 +818,38 @@ def main() -> int:
         boolean_counts_path = root / "e4-boolean-counts.json"
         write_json(boolean_counts_path, boolean_counts)
         assert validate_e4(boolean_counts_path).returncode != 0
+
+        duplicate_top = root / "e4-duplicate-top.json"
+        duplicate_top_text = json.dumps(
+            base_e4(),
+            separators=(",", ":"),
+        )
+        duplicate_top_text = duplicate_top_text.replace(
+            '"result":"pass"',
+            '"result":"fail","result":"pass"',
+            1,
+        )
+        duplicate_top.write_text(
+            duplicate_top_text + "\n",
+            encoding="utf-8",
+        )
+        assert validate_e4(duplicate_top).returncode != 0
+
+        duplicate_nested = root / "e4-duplicate-nested.json"
+        duplicate_nested_text = json.dumps(
+            base_e4(),
+            separators=(",", ":"),
+        )
+        duplicate_nested_text = duplicate_nested_text.replace(
+            '"model":"Quadra test"',
+            '"model":"Wrong model","model":"Quadra test"',
+            1,
+        )
+        duplicate_nested.write_text(
+            duplicate_nested_text + "\n",
+            encoding="utf-8",
+        )
+        assert validate_e4(duplicate_nested).returncode != 0
 
         env_path = root / "github-env.txt"
         marker = root / "should-not-exist"
