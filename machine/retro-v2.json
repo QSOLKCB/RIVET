@@ -90,7 +90,7 @@
           "Windows 98": "^4\\.10(?:\\.[0-9A-Za-z]+)*$",
           "Windows Me": "^4\\.90(?:\\.[0-9A-Za-z]+)*$"
         },
-        "cpu_pattern": "(?i)(?:\\bx86\\b|\\b80386\\b|\\b80486\\b|\\bi[3-6]86\\b|\\bpentium(?:\\s+(?:pro|ii|iii|4|mmx))?\\b|\\bceleron\\b|\\bathlon(?:\\s+xp)?\\b|\\bduron\\b|\\bk[56](?:-[23])?\\b|\\bcyrix\\s+6x86\\b|\\bvia\\s+c3\\b)"
+        "cpu_pattern": "(?i)(?:\\bx86\\b|\\b(?:i?386(?:dx|sx)?|i?486(?:dx(?:2|4)?|sx)?)\\b|\\bi[5-6]86\\b|\\bpentium(?:\\s+(?:pro|ii|iii|4|mmx))?\\b|\\bceleron\\b|\\bathlon(?:\\s+xp)?\\b|\\bduron\\b|\\bk[56](?:-[23])?\\b|\\bcyrix\\s+6x86\\b|\\bvia\\s+c3\\b)"
       },
       "classic-mac-m68k": {
         "os_names": [
