@@ -677,6 +677,10 @@ static int test_review_regressions(void)
     rivet_browser_config aliased_config;
     rivet_browser_io io;
     rivet_browser browser;
+    union {
+        rivet_browser browser;
+        unsigned char bytes[sizeof(rivet_browser)];
+    } browser_alias;
     test_io_state io_state;
     unsigned char pixels[120u * 64u * 4u];
     rivet_surface surface;
@@ -803,6 +807,21 @@ static int test_review_regressions(void)
         storage.bookmarks = saved_bookmarks;
         storage.bookmark_capacity =
             saved_bookmark_capacity;
+
+        storage.scratch_bytes =
+            browser_alias.bytes;
+        storage.scratch_capacity =
+            sizeof(browser_alias.bytes);
+        CHECK(rivet_browser_init(
+            &browser_alias.browser,
+            &io,
+            &config,
+            &storage,
+            120ul) == RIVET_ERR_INVALID_ARGUMENT);
+
+        storage.scratch_bytes = saved_scratch;
+        storage.scratch_capacity =
+            saved_scratch_capacity;
     }
 
     CHECK(sizeof(config_bytes) - 1u <=
@@ -1144,6 +1163,39 @@ static int test_review_regressions(void)
             &browser,
             tiny_bounds,
             style) == RIVET_OK);
+    }
+
+    {
+        rivet_surface aliased_surface;
+        rivet_rect aliased_bounds =
+            {0L,0L,20ul,10ul};
+
+        CHECK(rivet_browser_init(
+            &browser,
+            &io,
+            &config,
+            &storage,
+            20ul) == RIVET_OK);
+        browser.io.fetch = test_fetch;
+        CHECK(rivet_browser_home(&browser) == RIVET_OK);
+        CHECK(rivet_surface_attach(
+            &aliased_surface,
+            document_bytes,
+            sizeof(document_bytes),
+            20ul,
+            10ul,
+            20u * RIVET_GFX_PIXEL_BYTES) == RIVET_OK);
+        CHECK(rivet_browser_render(
+            &aliased_surface,
+            &browser,
+            aliased_bounds,
+            style) == RIVET_ERR_INVALID_ARGUMENT);
+        CHECK(browser.loaded);
+        CHECK(bytes_equal(
+            browser.current_url.bytes,
+            browser.current_url.length,
+            url_home,
+            sizeof(url_home) - 1u));
     }
 
     return 0;
