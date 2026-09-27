@@ -287,6 +287,18 @@ def main() -> int:
     parser.add_argument("--notes", default="")
     args = parser.parse_args()
 
+    output = Path(args.output)
+    temporary_output = output.with_name(
+        output.name + ".tmp"
+    )
+    try:
+        output.unlink(missing_ok=True)
+        temporary_output.unlink(missing_ok=True)
+    except OSError as exc:
+        raise SystemExit(
+            f"R9 E3 receipt: cannot clear output path: {exc}"
+        )
+
     if not re.fullmatch(r"[0-9a-f]{40}", args.source_revision):
         raise SystemExit(
             "R9 E3 receipt: source revision must be "
@@ -401,12 +413,20 @@ def main() -> int:
         "result": "pass",
     }
 
-    output = Path(args.output)
-    output.parent.mkdir(parents=True, exist_ok=True)
-    output.write_text(
-        json.dumps(receipt, indent=2, sort_keys=True) + "\n",
-        encoding="utf-8",
-    )
+    try:
+        output.parent.mkdir(parents=True, exist_ok=True)
+        temporary_output.write_text(
+            json.dumps(receipt, indent=2, sort_keys=True)
+            + "\n",
+            encoding="utf-8",
+        )
+        temporary_output.replace(output)
+    except OSError as exc:
+        temporary_output.unlink(missing_ok=True)
+        output.unlink(missing_ok=True)
+        raise SystemExit(
+            f"R9 E3 receipt: failed to publish receipt: {exc}"
+        )
     print(output)
     return 0
 
