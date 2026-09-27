@@ -42,7 +42,7 @@ TARGETS = {
         "api": "Mac OS Toolbox",
         "cpu_pattern": (
             r"(?i)(?:(?:motorola\s+)?m68k|"
-            r"(?:motorola\s+)?68"
+            r"(?:motorola\s+)?(?:mc)?68"
             r"(?:000|010|020|030|040|060))"
         ),
     },
@@ -75,7 +75,7 @@ TARGETS = {
         "api": "AmigaOS",
         "cpu_pattern": (
             r"(?i)(?:(?:motorola\s+)?m68k|"
-            r"(?:motorola\s+)?68"
+            r"(?:motorola\s+)?(?:mc)?68"
             r"(?:000|010|020|030|040|060))"
         ),
     },
@@ -105,6 +105,8 @@ def require_integer(
 def require_sha256(value: object, field: str) -> str:
     if not isinstance(value, str) or not re.fullmatch(r"[0-9a-f]{64}", value):
         raise ValueError(f"{field} must be 64 lowercase hex characters")
+    if value == "0" * 64:
+        raise ValueError(f"{field} must not be the all-zero placeholder digest")
     return value
 
 def main() -> int:
@@ -131,6 +133,8 @@ def main() -> int:
         source = data.get("source_revision")
         if not isinstance(source, str) or not re.fullmatch(r"[0-9a-f]{40}", source):
             raise ValueError("source_revision must be 40 lowercase hex characters")
+        if source == "0" * 40:
+            raise ValueError("source_revision must not be the Git null OID")
 
         software = data.get("software_environment")
         if not isinstance(software, dict):
