@@ -101,7 +101,13 @@
           "Windows 98": "486",
           "Windows Me": "Pentium-class"
         },
-        "cpu_generation_rule": "accepted x86 CPU identity must meet the minimum generation for the selected Windows product"
+        "cpu_generation_rule": "accepted x86 CPU identity must meet the minimum generation for the selected Windows product",
+        "minimum_memory_bytes": {
+          "Windows 95": 4194304,
+          "Windows 98": 16777216,
+          "Windows Me": 33554432
+        },
+        "memory_floor_rule": "hardware.memory_bytes must meet the minimum RAM for the selected Windows product"
       },
       "classic-mac-m68k": {
         "os_names": [
@@ -121,7 +127,11 @@
         "os_version_patterns": {
           "Classic Mac OS": "^(?:7\\.(?:1\\.(?:[2-9]|[1-9][0-9]+)|[2-9](?:\\.[0-9]+)?)|8\\.[0-9]+(?:\\.[0-9]+)?|9\\.[0-9]+(?:\\.[0-9]+)?)$"
         },
-        "cpu_pattern": "(?i)(?:(?:(?:motorola|ibm|apple)\\s+)?(?:powerpc|ppc)(?:\\s+(?:601|603|604e?|750|g3|g4))?|(?:601|603|604e?|750|g3|g4))"
+        "cpu_pattern": "(?i)(?:(?:(?:motorola|ibm|apple)\\s+)?(?:powerpc|ppc)(?:\\s+(?:601|603|604e?|750|7400|g3|g4))?|(?:601|603|604e?|750|7400|g3|g4))",
+        "canonical_g4_identities": [
+          "PowerPC 7400",
+          "G4"
+        ]
       },
       "amiga-m68k": {
         "os_names": [
@@ -175,7 +185,8 @@
   "e3_windows_identity": {
     "required_identity_lines": 1,
     "line_shape": "Windows ... [Version ...]",
-    "rule": "exactly one Windows version identity line is permitted and it must identify consumer Windows 95/98/Me"
+    "rule": "exactly one Windows version identity occurrence is permitted across the proof, including multiple identities concatenated on one physical line, and it must identify consumer Windows 95/98/Me",
+    "required_identity_occurrences": 1
   },
   "e3_provenance_sentinels": {
     "forbidden_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
@@ -245,5 +256,14 @@
     "temporary_suffix": ".tmp",
     "atomic_replace_after_validation": true,
     "failure_rule": "failed validation or publication leaves no receipt at the requested output path"
+  },
+  "v2_authority_freeze": {
+    "paths": [
+      "RETRO-v2.md",
+      "machine/retro-v2.json",
+      "machine/project-v12.json"
+    ],
+    "baseline_pinned_by": ".github/workflows/r9-target-harnesses.yml",
+    "rule": "after publication, all three v2 authority files are immutable against a pinned exact commit baseline"
   }
 }
