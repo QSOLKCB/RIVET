@@ -90,7 +90,7 @@
           "Windows 98": "^4\\.10(?:\\.[0-9A-Za-z]+)*$",
           "Windows Me": "^4\\.90(?:\\.[0-9A-Za-z]+)*$"
         },
-        "cpu_pattern": "(?i)(?:x86|80386|80486|i[3-6]86|pentium|celeron|athlon|k5|k6|cyrix|via|intel|amd)"
+        "cpu_pattern": "(?i)(?:\\bx86\\b|\\b80386\\b|\\b80486\\b|\\bi[3-6]86\\b|\\bpentium(?:\\s+(?:pro|ii|iii|4|mmx))?\\b|\\bceleron\\b|\\bathlon(?:\\s+xp)?\\b|\\bduron\\b|\\bk[56](?:-[23])?\\b|\\bcyrix\\s+6x86\\b|\\bvia\\s+c3\\b)"
       },
       "classic-mac-m68k": {
         "os_names": [
@@ -124,5 +124,23 @@
       }
     },
     "rule": "physical evidence is bound to target-compatible CPU architecture, exact OS version family, and API identity"
+  },
+  "windows9x_payload_runtime": {
+    "entrypoint": "mainCRTStartup",
+    "allowed_import_family": "Kernel32",
+    "forbidden_imports": [
+      "MSVCRT",
+      "UCRTBASE",
+      "api-ms-win-crt"
+    ],
+    "proof_source": "evidence/r9_win9x_browser_proof.c"
+  },
+  "full_system_timeout_statuses": {
+    "proceed_to_proof_extraction": [
+      0,
+      124,
+      137
+    ],
+    "rule": "timeout status is not evidence; fresh guest proof validation remains mandatory"
   }
 }
