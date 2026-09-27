@@ -1,0 +1,74 @@
+{
+  "schema": "rivet.retro/v2",
+  "version": 2,
+  "supersedes": "rivet.retro/v1",
+  "authority": "RETRO-v2.md",
+  "framework_abi": false,
+  "frozen_stack": {
+    "through_phase": "R9-v1",
+    "merge_commit": "7d260e0671c5d089b25d6075ab1b66fb0886c99e",
+    "browser_contract": "rivet.browser.web1/v1",
+    "retro_v1_contract": "rivet.retro/v1"
+  },
+  "guest_proof": {
+    "source": "evidence/r9_guest_browser_proof.c",
+    "schema": "rivet-r9-guest-line/v1",
+    "document_fnv1a64": "75be6cc92698ac1a",
+    "source_fnv1a64": "5cf7c63a1fa3d9b4",
+    "history": 2,
+    "bookmarks": 1,
+    "fetches": 4,
+    "downloads": 1,
+    "source_revision_embedded": true,
+    "local_parsing_layout_rendering_required": true
+  },
+  "e3_targets": [
+    {
+      "id": "windows9x-x86",
+      "execution": "qemu-full-system",
+      "payload": "PE32 Win32 x86",
+      "media": "user-supplied-bootable-disk",
+      "media_sha256_required": true,
+      "rom_sha256_required": false,
+      "workflow": ".github/workflows/r9-windows9x.yml",
+      "state": "harness-ready-receipt-required"
+    },
+    {
+      "id": "classic-mac-m68k",
+      "execution": "qemu-full-system-q800",
+      "payload": "Retro68 m68k APPL MacBinary",
+      "media": "user-supplied-HFS-boot-disk",
+      "media_sha256_required": true,
+      "rom_sha256_required": true,
+      "workflow": ".github/workflows/r9-classic-mac.yml",
+      "state": "harness-ready-receipt-required"
+    },
+    {
+      "id": "classic-mac-powerpc",
+      "execution": "qemu-full-system-mac99",
+      "payload": "Retro68 PowerPC PEF/APPL MacBinary",
+      "media": "user-supplied-HFS-boot-disk",
+      "media_sha256_required": true,
+      "rom_sha256_required": false,
+      "workflow": ".github/workflows/r9-classic-mac.yml",
+      "state": "harness-ready-receipt-required"
+    },
+    {
+      "id": "amiga-m68k",
+      "execution": "fs-uae-full-system",
+      "payload": "AmigaOS m68k executable",
+      "cpu_baseline": "68020",
+      "media": "user-supplied-bootable-HDF",
+      "media_sha256_required": true,
+      "rom_sha256_required": true,
+      "workflow": ".github/workflows/r9-amiga.yml",
+      "state": "harness-ready-receipt-required"
+    }
+  ],
+  "e3_receipt_schema": "rivet.retro-e3-receipt/v1",
+  "e4_receipt_schema": "rivet.retro-e4-receipt/v1",
+  "e4_validator": "scripts/r9_validate_physical_receipt.py",
+  "media_redistributed_by_rivet": false,
+  "implementation_completion": "all-target-harnesses-and-receipt-validators-present",
+  "support_claim_rule": "target-support-remains-unclaimed-until-passing-target-specific-e3-or-e4-receipt-is-retained"
+}
