@@ -1,0 +1,28 @@
+{
+  "schema": "rivet.retro-e4-receipt/v1",
+  "evidence_class": "E4",
+  "execution": "physical-hardware",
+  "target_profile": "classic-mac-m68k",
+  "source_revision": "0000000000000000000000000000000000000000",
+  "hardware": {
+    "manufacturer": "Apple",
+    "model": "REPLACE-WITH-EXACT-MODEL",
+    "cpu": "REPLACE-WITH-EXACT-CPU",
+    "memory_bytes": 1
+  },
+  "browser_proof": {
+    "document_fnv1a64": "75be6cc92698ac1a",
+    "source_fnv1a64": "5cf7c63a1fa3d9b4",
+    "history": 2,
+    "bookmarks": 1,
+    "fetches": 4,
+    "downloads": 1
+  },
+  "attachments": [
+    {
+      "name": "REPLACE-WITH-EVIDENCE-FILENAME",
+      "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+    }
+  ],
+  "result": "pass"
+}
