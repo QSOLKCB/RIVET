@@ -3,6 +3,8 @@ from pathlib import Path
 
 WINDOWS = Path("scripts/r9_windows9x_full_system.sh")
 WINDOWS_BUILD = Path("scripts/r9_build_windows9x_payload.sh")
+WINDOWS_PROOF = Path("evidence/r9_win9x_browser_proof.c")
+WINDOWS_WORKFLOW = Path(".github/workflows/r9-windows9x.yml")
 MAC = Path("scripts/r9_classic_mac_full_system.sh")
 AMIGA = Path("scripts/r9_amiga_full_system.sh")
 AMIGA_WORKFLOW = Path(".github/workflows/r9-amiga.yml")
@@ -59,6 +61,39 @@ def main() -> int:
         "ECHO proof_exit=0",
         "Windows proof exit ordering",
     )
+
+    if "C:\\RIVET-R9" in windows:
+        raise SystemExit(
+            "Windows harness must not hard-code the C: guest drive"
+        )
+    if 'DOS_DRIVE="${DOS_DRIVE^^}"' not in windows:
+        raise SystemExit(
+            "Windows harness must normalize an explicit DOS drive"
+        )
+
+    windows_proof = WINDOWS_PROOF.read_text(encoding="utf-8")
+    if '#define RECEIPT_PATH "RECEIPT.TXT"' not in windows_proof:
+        raise SystemExit(
+            "Windows proof receipt path must be relative to the "
+            "selected DOS drive working directory"
+        )
+    if "C:\\RIVET-R9" in windows_proof:
+        raise SystemExit(
+            "Windows proof source must not hard-code the C: drive"
+        )
+
+    windows_workflow = WINDOWS_WORKFLOW.read_text(
+        encoding="utf-8"
+    )
+    for required in (
+        "RIVET_INPUT_DOS_DRIVE:",
+        "$RIVET_VALIDATED_DOS_DRIVE",
+    ):
+        if required not in windows_workflow:
+            raise SystemExit(
+                "Windows workflow must retain validated DOS drive "
+                "routing: " + required
+            )
 
     windows_build = WINDOWS_BUILD.read_text(encoding="utf-8")
     for required in (
