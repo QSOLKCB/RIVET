@@ -22,7 +22,7 @@ def main() -> int:
     require_before(
         windows,
         "rm-f /RIVET-R9/RECEIPT.TXT",
-        "qemu-system-i386",
+        'timeout --signal=TERM --kill-after=20 "$TIMEOUT_SECONDS"',
         "Windows freshness",
     )
     require_before(
@@ -45,7 +45,7 @@ def main() -> int:
     require_before(
         mac,
         'hdel "RIVET-R9-RECEIPT.TXT"',
-        'timeout --signal=TERM',
+        'timeout --signal=TERM --kill-after=20 "$TIMEOUT_SECONDS"',
         "Classic Mac freshness",
     )
 
@@ -53,7 +53,7 @@ def main() -> int:
     require_before(
         amiga,
         "delete RIVET-R9-RECEIPT.TXT",
-        'timeout --signal=TERM',
+        'timeout --signal=TERM --kill-after=20 "$TIMEOUT_SECONDS"',
         "Amiga freshness",
     )
 
