@@ -331,6 +331,7 @@ static rivet_result browser_copy_url(
         return RIVET_ERR_UNSUPPORTED;
     }
 
+    memset(target, 0, sizeof(*target));
     memcpy(target->bytes, url, url_length);
     target->length = url_length;
     return RIVET_OK;
@@ -630,46 +631,40 @@ static rivet_result browser_config_validate(
     const rivet_browser_config *config
 )
 {
-    rivet_url parsed;
+    rivet_browser_config parsed;
     rivet_result result;
 
     if (config == NULL ||
         config->source == NULL ||
-        config->source_bytes == 0u ||
-        config->home_url.offset >
-            config->source_bytes ||
-        config->home_url.length >
-            config->source_bytes -
-            config->home_url.offset ||
-        config->user_css.offset >
-            config->source_bytes ||
-        config->user_css.length >
-            config->source_bytes -
-            config->user_css.offset ||
-        (config->downloads_enabled != 0 &&
-         config->downloads_enabled != 1)) {
+        config->source_bytes == 0u) {
         return RIVET_ERR_INVALID_ARGUMENT;
     }
 
-    if (config->home_url.length >
-        RIVET_BROWSER_URL_MAX) {
-        return RIVET_ERR_CAPACITY;
-    }
-
-    result = rivet_url_parse(
+    result = rivet_browser_config_parse(
         &parsed,
-        config->source + config->home_url.offset,
-        config->home_url.length
+        config->source,
+        config->source_bytes
     );
     if (result != RIVET_OK) {
         return result;
     }
 
-    return browser_validate_css(
-        config->source + config->user_css.offset,
-        config->user_css.length,
-        NULL
-    );
+    if (parsed.source != config->source ||
+        parsed.source_bytes != config->source_bytes ||
+        parsed.home_url.offset !=
+            config->home_url.offset ||
+        parsed.home_url.length !=
+            config->home_url.length ||
+        parsed.user_css.offset !=
+            config->user_css.offset ||
+        parsed.user_css.length !=
+            config->user_css.length ||
+        parsed.downloads_enabled !=
+            config->downloads_enabled) {
+        return RIVET_ERR_INVALID_ARGUMENT;
+    }
+
+    return RIVET_OK;
 }
 
 rivet_result rivet_browser_init(
@@ -1535,8 +1530,62 @@ rivet_result rivet_browser_register_commands(
         {RIVET_BROWSER_CMD_SCROLL_DOWN, command_scroll_down}
     };
     size_t i;
+    size_t slot_bytes;
+    int overlap;
+    rivet_result result;
 
     if (browser == NULL || commands == NULL) {
+        return RIVET_ERR_INVALID_ARGUMENT;
+    }
+
+    result = browser_live_bytes_overlap(
+        browser,
+        (const unsigned char *)
+            (const void *)commands,
+        sizeof(*commands),
+        &overlap
+    );
+    if (result != RIVET_OK) {
+        return result;
+    }
+    if (overlap) {
+        return RIVET_ERR_INVALID_ARGUMENT;
+    }
+    if (commands->slots == NULL ||
+        commands->capacity == 0u ||
+        commands->count > commands->capacity) {
+        return RIVET_ERR_INVALID_ARGUMENT;
+    }
+
+    result = browser_array_bytes(
+        commands->capacity,
+        sizeof(commands->slots[0]),
+        &slot_bytes
+    );
+    if (result != RIVET_OK) {
+        return result;
+    }
+    if (browser_byte_ranges_overlap(
+            (const unsigned char *)
+                (const void *)commands,
+            sizeof(*commands),
+            (const unsigned char *)
+                (const void *)commands->slots,
+            slot_bytes)) {
+        return RIVET_ERR_INVALID_ARGUMENT;
+    }
+
+    result = browser_live_bytes_overlap(
+        browser,
+        (const unsigned char *)
+            (const void *)commands->slots,
+        slot_bytes,
+        &overlap
+    );
+    if (result != RIVET_OK) {
+        return result;
+    }
+    if (overlap) {
         return RIVET_ERR_INVALID_ARGUMENT;
     }
 
@@ -1544,13 +1593,12 @@ rivet_result rivet_browser_register_commands(
          i < sizeof(definitions) /
              sizeof(definitions[0]);
          ++i) {
-        rivet_result result =
-            rivet_commands_add(
-                commands,
-                definitions[i].id,
-                definitions[i].fn,
-                browser
-            );
+        result = rivet_commands_add(
+            commands,
+            definitions[i].id,
+            definitions[i].fn,
+            browser
+        );
         if (result != RIVET_OK) {
             return result;
         }
