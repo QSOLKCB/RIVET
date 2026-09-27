@@ -22,7 +22,8 @@
     "source_revision_embedded": true,
     "local_parsing_layout_rendering_required": true,
     "single_proof_line_required": true,
-    "null_source_revision_forbidden": true
+    "null_source_revision_forbidden": true,
+    "single_proof_line_rule": "exactly one line with the rivet-r9-guest: prefix is permitted; malformed duplicate-prefixed lines are invalid evidence"
   },
   "e3_targets": [
     {
@@ -92,7 +93,7 @@
           "Windows 98": "^4\\.10(?:\\.[0-9A-Za-z]+)*$",
           "Windows Me": "^4\\.90(?:\\.[0-9A-Za-z]+)*$"
         },
-        "cpu_pattern": "(?i)(?:(?:intel\\s+)?(?:x86|(?:80|i)?386(?:dx|sx)?|(?:80|i)?486(?:dx(?:2|4)?|sx)?|i[5-6]86|pentium(?:\\s+(?:pro|ii|iii|4|mmx))?|celeron)|(?:amd\\s+)?(?:athlon(?:\\s+xp)?|duron|k[56](?:-[23])?)|cyrix\\s+6x86|via\\s+c3)"
+        "cpu_pattern": "(?i)(?:(?:intel\\s+)?(?:x86|(?:80|i)?386(?:dx|sx)?|(?:80|i)?486(?:dx(?:2|4)?|sx)?|i[5-6]86|pentium(?:\\s+(?:pro|ii|iii|4|mmx))?|celeron)|(?:amd\\s+)?(?:am386(?:dx|sx)?|am486(?:dx(?:2|4)?|sx)?|athlon(?:\\s+xp)?|duron|k[56](?:-[23])?)|cyrix\\s+6x86|via\\s+c3)"
       },
       "classic-mac-m68k": {
         "os_names": [
@@ -110,7 +111,7 @@
         ],
         "api": "Mac OS Toolbox",
         "os_version_patterns": {
-          "Classic Mac OS": "^(?:7\\.[0-9]+(?:\\.[0-9]+)?|8\\.[0-9]+(?:\\.[0-9]+)?|9\\.[0-9]+(?:\\.[0-9]+)?)$"
+          "Classic Mac OS": "^(?:7\\.(?:1\\.(?:[2-9]|[1-9][0-9]+)|[2-9](?:\\.[0-9]+)?)|8\\.[0-9]+(?:\\.[0-9]+)?|9\\.[0-9]+(?:\\.[0-9]+)?)$"
         },
         "cpu_pattern": "(?i)(?:(?:(?:motorola|ibm|apple)\\s+)?(?:powerpc|ppc)(?:\\s+(?:601|603|604e?|750|g3|g4))?|(?:601|603|604e?|750|g3|g4))"
       },
@@ -154,5 +155,19 @@
     "forbidden_source_revision": "0000000000000000000000000000000000000000",
     "forbidden_attachment_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
     "rule": "placeholder/null provenance identifiers cannot satisfy exact-source or attachment evidence requirements"
+  },
+  "e3_windows_identity": {
+    "required_identity_lines": 1,
+    "line_shape": "Windows ... [Version ...]",
+    "rule": "exactly one Windows version identity line is permitted and it must identify consumer Windows 95/98/Me"
+  },
+  "e3_provenance_sentinels": {
+    "forbidden_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+    "applies_to": [
+      "guest_media_sha256",
+      "payload_sha256",
+      "rom_sha256"
+    ],
+    "rule": "all-zero placeholder digests cannot bind E3 media, payloads or ROMs"
   }
 }
