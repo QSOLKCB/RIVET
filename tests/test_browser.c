@@ -1186,6 +1186,30 @@ static int test_review_regressions(void)
     }
 
     {
+        unsigned long negative_limit =
+            (unsigned long)(-(LONG_MIN + 1L)) + 1ul;
+
+        if (negative_limit <=
+            ULONG_MAX -
+                RIVET_BROWSER_CHROME_HEIGHT -
+                1ul) {
+            for (i = 0u; i < browser.box_count; ++i) {
+                browser.storage.boxes[i].y = 0ul;
+            }
+            browser.scroll_y =
+                negative_limit +
+                RIVET_BROWSER_CHROME_HEIGHT +
+                1ul;
+            CHECK(rivet_browser_render(
+                &surface,
+                &browser,
+                bounds,
+                style) == RIVET_OK);
+            browser.scroll_y = 0ul;
+        }
+    }
+
+    {
         unsigned char narrow_pixels[40u * 32u * 4u];
         rivet_surface narrow_surface;
         rivet_rect narrow_bounds =
