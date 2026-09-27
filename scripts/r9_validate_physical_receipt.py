@@ -16,8 +16,10 @@ TARGETS = {
         },
         "api": "Win32",
         "cpu_pattern": (
-            r"(?i)(?:\bx86\b|\b80386\b|\b80486\b|"
-            r"\bi[3-6]86\b|\bpentium(?:\s+"
+            r"(?i)(?:\bx86\b|"
+            r"\b(?:i?386(?:dx|sx)?|"
+            r"i?486(?:dx(?:2|4)?|sx)?)\b|"
+            r"\bi[5-6]86\b|\bpentium(?:\s+"
             r"(?:pro|ii|iii|4|mmx))?\b|\bceleron\b|"
             r"\bathlon(?:\s+xp)?\b|\bduron\b|"
             r"\bk[56](?:-[23])?\b|\bcyrix\s+6x86\b|"
