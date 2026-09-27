@@ -6,11 +6,12 @@ import sys
 import tempfile
 from pathlib import Path
 
-SOURCE = "0123456789abcdef0123456789abcdef01234567"
-E4_SOURCE = subprocess.check_output(
+SOURCE = subprocess.check_output(
     ["git", "rev-parse", "HEAD"],
     text=True,
 ).strip()
+E4_SOURCE = SOURCE
+NONEXISTENT_SOURCE = "f" * 40
 GUEST_LINE = (
     "rivet-r9-guest: target=windows9x-x86 "
     f"source={SOURCE} pointer_bits=32 endian=little "
@@ -34,6 +35,26 @@ MAC_M68K_GUEST_LINE = (
     "document_fnv1a64=75be6cc92698ac1a "
     "source_fnv1a64=5cf7c63a1fa3d9b4 "
     "history=2 bookmarks=1 fetches=4 downloads=1"
+)
+MAC_M68K_OS_LINE = (
+    "rivet-r9-os: target=classic-mac-m68k "
+    "os=classic-mac-os version=7.6.1 api=toolbox"
+)
+MAC_PPC_GUEST_LINE = (
+    "rivet-r9-guest: target=classic-mac-powerpc "
+    f"source={SOURCE} pointer_bits=32 endian=big "
+    "document_fnv1a64=75be6cc92698ac1a "
+    "source_fnv1a64=5cf7c63a1fa3d9b4 "
+    "history=2 bookmarks=1 fetches=4 downloads=1"
+)
+MAC_PPC_OS_LINE = (
+    "rivet-r9-os: target=classic-mac-powerpc "
+    "os=classic-mac-os version=8.6.0 api=toolbox"
+)
+AMIGA_OS_LINE = (
+    "rivet-r9-os: target=amiga-m68k os=amigaos "
+    "exec_version=40 exec_revision=68 "
+    "dos_version=40 dos_revision=3 api=exec-dos"
 )
 
 def run_e3(
@@ -278,7 +299,8 @@ def main() -> int:
 
         amiga_proof = root / "proof-amiga.txt"
         amiga_proof.write_text(
-            AMIGA_GUEST_LINE + "\n",
+            AMIGA_GUEST_LINE + "\n" +
+            AMIGA_OS_LINE + "\n",
             encoding="utf-8",
         )
         amiga_without_rom = root / "amiga-without-rom.json"
@@ -303,6 +325,34 @@ def main() -> int:
         assert result.returncode != 0
         assert not amiga_without_rom.exists()
 
+        amiga_cpu_only = root / "amiga-cpu-only.txt"
+        amiga_cpu_only.write_text(
+            AMIGA_GUEST_LINE + "\n",
+            encoding="utf-8",
+        )
+        amiga_cpu_only_output = root / "amiga-cpu-only.json"
+        result = subprocess.run(
+            [
+                sys.executable,
+                "scripts/r9_e3_receipt.py",
+                "--proof", str(amiga_cpu_only),
+                "--output", str(amiga_cpu_only_output),
+                "--target-profile", "amiga-m68k",
+                "--source-revision", SOURCE,
+                "--emulator", "qemu-m68k-linux-user",
+                "--guest-media-sha256", "1" * 64,
+                "--guest-media-label", "linux-m68k",
+                "--payload-sha256", "2" * 64,
+                "--rom-sha256", "4" * 64,
+            ],
+            check=False,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+        )
+        assert result.returncode != 0
+        assert not amiga_cpu_only_output.exists()
+
         amiga_with_rom = root / "amiga-with-rom.json"
         subprocess.run(
             [
@@ -324,7 +374,8 @@ def main() -> int:
 
         mac_m68k_proof = root / "proof-mac-m68k.txt"
         mac_m68k_proof.write_text(
-            MAC_M68K_GUEST_LINE + "\n",
+            MAC_M68K_GUEST_LINE + "\n" +
+            MAC_M68K_OS_LINE + "\n",
             encoding="utf-8",
         )
         mac_without_rom = root / "mac-m68k-without-rom.json"
@@ -348,6 +399,61 @@ def main() -> int:
         )
         assert result.returncode != 0
         assert not mac_without_rom.exists()
+
+        mac_ppc_proof = root / "proof-mac-ppc.txt"
+        mac_ppc_proof.write_text(
+            MAC_PPC_GUEST_LINE + "\n" +
+            MAC_PPC_OS_LINE + "\n",
+            encoding="utf-8",
+        )
+        mac_ppc_output = root / "mac-ppc.json"
+        subprocess.run(
+            [
+                sys.executable,
+                "scripts/r9_e3_receipt.py",
+                "--proof", str(mac_ppc_proof),
+                "--output", str(mac_ppc_output),
+                "--target-profile", "classic-mac-powerpc",
+                "--source-revision", SOURCE,
+                "--emulator", "qemu-system-ppc test",
+                "--guest-media-sha256", "1" * 64,
+                "--guest-media-label", "Classic Mac OS 8.6 test",
+                "--payload-sha256", "2" * 64,
+            ],
+            check=True,
+        )
+        assert mac_ppc_output.exists()
+
+        nonexistent_ppc_proof = root / "proof-nonexistent-ppc.txt"
+        nonexistent_ppc_proof.write_text(
+            MAC_PPC_GUEST_LINE.replace(
+                SOURCE,
+                NONEXISTENT_SOURCE,
+            ) + "\n" +
+            MAC_PPC_OS_LINE + "\n",
+            encoding="utf-8",
+        )
+        nonexistent_ppc_output = root / "nonexistent-ppc.json"
+        result = subprocess.run(
+            [
+                sys.executable,
+                "scripts/r9_e3_receipt.py",
+                "--proof", str(nonexistent_ppc_proof),
+                "--output", str(nonexistent_ppc_output),
+                "--target-profile", "classic-mac-powerpc",
+                "--source-revision", NONEXISTENT_SOURCE,
+                "--emulator", "qemu-system-ppc test",
+                "--guest-media-sha256", "1" * 64,
+                "--guest-media-label", "Classic Mac OS 8.6 test",
+                "--payload-sha256", "2" * 64,
+            ],
+            check=False,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+        )
+        assert result.returncode != 0
+        assert not nonexistent_ppc_output.exists()
 
         bad_hash = root / "proof-bad-hash.txt"
         bad_hash.write_text(
