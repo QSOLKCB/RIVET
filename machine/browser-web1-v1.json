@@ -19,6 +19,7 @@
     "document.css",
     "document.layout",
     "document.links",
+    "document.forms",
     "browser.resource.fetch"
   ],
   "optional_capabilities": [
