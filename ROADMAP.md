@@ -216,29 +216,37 @@ See [BROWSER-WEB1-v1.md](BROWSER-WEB1-v1.md).
 
 ## R9 — Retro portability expansion
 
-**Current phase.**
+**Implementation machinery complete; target-specific E3/E4 receipts remain evidence-gated.**
 
-Implemented first R9 slice:
+Implemented R9 evidence stack:
 
 - [x] freeze the merged R1-R8 implementation at merge commit `f2522b83231b4547b11cbaf59e650bfcbdc54efe`;
-- [x] define a separate Retro v1 evidence contract without adding a framework ABI;
-- [x] add a static 32-bit big-endian Motorola 68020-baseline m68k cross-build;
-- [x] execute the frozen Platform v1 proof under `qemu-m68k` user-mode emulation;
-- [x] execute the frozen WEB1 browser tests and deterministic browser proof under the same m68k lane;
-- [x] retain a machine-readable `rivet.retro-receipt/v1` artifact with source revision, toolchain, emulator, proof identities, claims and explicit non-claims;
-- [x] label the automated lane as Linux/POSIX m68k E2 evidence only.
+- [x] define Retro v1 CPU/ABI evidence without adding a framework ABI;
+- [x] add and execute a static 32-bit big-endian Motorola 68020-baseline Linux/m68k E2 lane;
+- [x] execute the frozen Platform v1 proof and WEB1 browser proof under `qemu-m68k`;
+- [x] freeze the merged R9-v1 source at `7d260e0671c5d089b25d6075ab1b66fb0886c99e`;
+- [x] define Retro v2 target-specific E3/E4 receipt rules;
+- [x] add a source-bound Windows 9x Win32 payload and QEMU full-system harness;
+- [x] add source-bound Classic Macintosh m68k and PowerPC payloads using Retro68 plus q800/mac99 full-system harnesses;
+- [x] add a source-bound Amiga m68k payload plus FS-UAE full-system harness;
+- [x] require user-supplied guest/ROM media with exact SHA-256 before any E3 workflow runs;
+- [x] require the guest itself to reproduce the frozen WEB1 pixel identities before an E3 receipt is minted;
+- [x] add a strict physical-hardware E4 receipt validator with hashed evidence attachments;
+- [x] add PR CI for receipt validation, shell/Python syntax, frozen-source preservation and source-bound target payload builds.
 
-Still separate and unclaimed until target-specific E3 receipts exist:
+Evidence still required before platform-support claims may be made:
 
-- [ ] Windows 9x-class full-system execution;
-- [ ] classic Macintosh m68k;
-- [ ] classic Macintosh PowerPC;
-- [ ] Amiga-family m68k;
-- [ ] physical historical systems where available.
+- [ ] retained passing `windows9x-x86` E3 receipt;
+- [ ] retained passing `classic-mac-m68k` E3 receipt;
+- [ ] retained passing `classic-mac-powerpc` E3 receipt;
+- [ ] retained passing `amiga-m68k` E3 receipt;
+- [ ] physical E4 receipts where hardware is available.
 
-A CPU-family or qemu-user pass is never promoted into an OS-family claim.
+The repository intentionally does not contain proprietary Windows, Macintosh, AmigaOS/Workbench, Kickstart, or Macintosh ROM media.
 
-See [RETRO-v1.md](RETRO-v1.md).
+A buildable harness is not an OS-support claim. A CPU-family or qemu-user pass is never promoted into an OS-family claim.
+
+See [RETRO-v2.md](RETRO-v2.md) and [RETRO-v1.md](RETRO-v1.md).
 
 ## R10 — Transport relay
 
