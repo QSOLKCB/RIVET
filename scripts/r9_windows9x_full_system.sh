@@ -40,18 +40,20 @@ DOS_DRIVE="${DOS_DRIVE^^}"
 mkdir -p "$OUT_DIR"
 qemu-img convert -p -O qcow2 "$SOURCE_IMAGE" "$GUEST"
 
-cat > "$RUN_BAT" <<'BAT'
-@ECHO OFF
-C:\RIVET-R9\RIVETR9.EXE
-IF ERRORLEVEL 1 GOTO RIVET_FAIL
-ECHO proof_exit=0>>C:\RIVET-R9\RECEIPT.TXT
-GOTO RIVET_STATUS_DONE
-:RIVET_FAIL
-ECHO proof_exit=nonzero>>C:\RIVET-R9\RECEIPT.TXT
-:RIVET_STATUS_DONE
-ECHO startup_stage=winstart>>C:\RIVET-R9\RECEIPT.TXT
-VER>>C:\RIVET-R9\RECEIPT.TXT
-BAT
+{
+  printf '@ECHO OFF\r\n'
+  printf '%s\r\n' "$DOS_DRIVE"
+  printf 'CD \\RIVET-R9\r\n'
+  printf 'RIVETR9.EXE\r\n'
+  printf 'IF ERRORLEVEL 1 GOTO RIVET_FAIL\r\n'
+  printf 'ECHO proof_exit=0>>RECEIPT.TXT\r\n'
+  printf 'GOTO RIVET_STATUS_DONE\r\n'
+  printf ':RIVET_FAIL\r\n'
+  printf 'ECHO proof_exit=nonzero>>RECEIPT.TXT\r\n'
+  printf ':RIVET_STATUS_DONE\r\n'
+  printf 'ECHO startup_stage=winstart>>RECEIPT.TXT\r\n'
+  printf 'VER>>RECEIPT.TXT\r\n'
+} > "$RUN_BAT"
 
 if guestfish --ro -a "$GUEST" -m "$GUEST_PARTITION" \
     exists "$WINDOWS_DIRECTORY/WINSTART.BAT" | grep -q true; then
