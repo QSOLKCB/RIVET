@@ -23,6 +23,13 @@ AMIGA_GUEST_LINE = (
     "source_fnv1a64=5cf7c63a1fa3d9b4 "
     "history=2 bookmarks=1 fetches=4 downloads=1"
 )
+MAC_M68K_GUEST_LINE = (
+    "rivet-r9-guest: target=classic-mac-m68k "
+    f"source={SOURCE} pointer_bits=32 endian=big "
+    "document_fnv1a64=75be6cc92698ac1a "
+    "source_fnv1a64=5cf7c63a1fa3d9b4 "
+    "history=2 bookmarks=1 fetches=4 downloads=1"
+)
 
 def run_e3(
     proof: Path,
@@ -187,6 +194,33 @@ def main() -> int:
             check=True,
         )
         assert amiga_with_rom.exists()
+
+        mac_m68k_proof = root / "proof-mac-m68k.txt"
+        mac_m68k_proof.write_text(
+            MAC_M68K_GUEST_LINE + "\n",
+            encoding="utf-8",
+        )
+        mac_without_rom = root / "mac-m68k-without-rom.json"
+        result = subprocess.run(
+            [
+                sys.executable,
+                "scripts/r9_e3_receipt.py",
+                "--proof", str(mac_m68k_proof),
+                "--output", str(mac_without_rom),
+                "--target-profile", "classic-mac-m68k",
+                "--source-revision", SOURCE,
+                "--emulator", "qemu-system-m68k test",
+                "--guest-media-sha256", "1" * 64,
+                "--guest-media-label", "Classic Mac test media",
+                "--payload-sha256", "2" * 64,
+            ],
+            check=False,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+        )
+        assert result.returncode != 0
+        assert not mac_without_rom.exists()
 
         bad_hash = root / "proof-bad-hash.txt"
         bad_hash.write_text(
