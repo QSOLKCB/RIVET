@@ -70,6 +70,12 @@ jobs:
           make clean
           make test-browser CPPFLAGS=-DRIVET_R8_EXTERNAL_CPPFLAGS=1
 
+      - name: Execution-charset WEB1 chrome test
+        if: matrix.cc == 'gcc'
+        run: |
+          make clean
+          make test-browser-charset CFLAGS="$CFLAGS -fexec-charset=IBM1047"
+
       - name: Deterministic WEB1 proof and footprint
         run: |
           make clean
