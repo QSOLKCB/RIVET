@@ -127,8 +127,14 @@
         "os_version_patterns": {
           "Classic Mac OS": "^(?:7\\.(?:1\\.(?:[2-9]|[1-9][0-9]+)|[2-9](?:\\.[0-9]+)?)|8\\.[0-9]+(?:\\.[0-9]+)?|9\\.[0-9]+(?:\\.[0-9]+)?)$"
         },
-        "cpu_pattern": "(?i)(?:(?:(?:motorola|ibm|apple)\\s+)?(?:powerpc|ppc)(?:\\s+(?:601|603|604e?|750|7400|g3|g4))?|(?:601|603|604e?|750|7400|g3|g4))",
+        "cpu_pattern": "(?i)(?:(?:(?:motorola|ibm|apple)\\s+)?(?:powerpc|ppc)(?:\\s+(?:601|603e?|604e?|750|7400|g3|g4))?|(?:601|603e?|604e?|750|7400|g3|g4))",
         "canonical_g4_identities": [
+          "PowerPC 7400",
+          "G4"
+        ],
+        "canonical_powerpc_identities": [
+          "PowerPC 603e",
+          "PowerPC 604e",
           "PowerPC 7400",
           "G4"
         ]
@@ -185,8 +191,11 @@
   "e3_windows_identity": {
     "required_identity_lines": 1,
     "line_shape": "Windows ... [Version ...]",
-    "rule": "exactly one Windows version identity occurrence is permitted across the proof, including multiple identities concatenated on one physical line, and it must identify consumer Windows 95/98/Me",
-    "required_identity_occurrences": 1
+    "rule": "exactly one Windows version identity occurrence is permitted across the proof, including multiple identities concatenated on one physical line; canonical Windows 95 product punctuation is accepted, and the identity must still match the exact consumer Windows 95/98/Me version family",
+    "required_identity_occurrences": 1,
+    "canonical_windows95_punctuation": [
+      "Windows 95. [Version 4.00.950]"
+    ]
   },
   "e3_provenance_sentinels": {
     "forbidden_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
@@ -264,6 +273,7 @@
       "machine/project-v12.json"
     ],
     "baseline_pinned_by": ".github/workflows/r9-target-harnesses.yml",
-    "rule": "after publication, all three v2 authority files are immutable against a pinned exact commit baseline"
+    "addressing": "git-blob-sha",
+    "rule": "after publication, each authority file must retain its pinned Git blob SHA; no historical baseline commit is required or referenced"
   }
 }
