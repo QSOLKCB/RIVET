@@ -4,6 +4,11 @@
   "execution": "physical-hardware",
   "target_profile": "classic-mac-m68k",
   "source_revision": "0000000000000000000000000000000000000000",
+  "software_environment": {
+    "os_name": "Classic Mac OS",
+    "os_version": "REPLACE-WITH-EXACT-OS-VERSION",
+    "api": "Mac OS Toolbox"
+  },
   "hardware": {
     "manufacturer": "Apple",
     "model": "REPLACE-WITH-EXACT-MODEL",
