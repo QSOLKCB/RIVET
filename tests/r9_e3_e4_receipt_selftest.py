@@ -19,6 +19,7 @@ GUEST_LINE = (
     "source_fnv1a64=5cf7c63a1fa3d9b4 "
     "history=2 bookmarks=1 fetches=4 downloads=1"
 )
+WIN95_VER = "Windows 95. [Version 4.00.950]"
 WIN98_VER = "Microsoft Windows 98 [Version 4.10.2222]"
 XP_VER = "Microsoft Windows XP [Version 5.1.2600]"
 NT4_VER = "Microsoft Windows NT [Version 4.00.1381]"
@@ -176,6 +177,21 @@ def main() -> int:
         assert stale_before
 
         run_e3(good, receipt, check=True)
+
+        win95 = root / "proof-win95.txt"
+        win95.write_text(
+            GUEST_LINE + "\n" +
+            "proof_exit=0\n" +
+            "startup_stage=winstart\n" +
+            WIN95_VER + "\n",
+            encoding="utf-8",
+        )
+        win95_output = root / "win95.json"
+        run_e3(win95, win95_output, check=True)
+        win95_data = json.loads(
+            win95_output.read_text(encoding="utf-8")
+        )
+        assert win95_data["guest_os_identity"] == WIN95_VER
 
         xp = root / "proof-xp.txt"
         xp.write_text(
@@ -545,6 +561,26 @@ def main() -> int:
         ppc604e_path = root / "e4-powerpc-604e.json"
         write_json(ppc604e_path, ppc604e)
         validate_e4(ppc604e_path, check=True)
+
+        ppc603e = base_e4()
+        ppc603e["target_profile"] = "classic-mac-powerpc"
+        ppc603e["software_environment"] = {
+            "os_name": "Classic Mac OS",
+            "os_version": "8.6",
+            "api": "Mac OS Toolbox",
+        }
+        ppc603e["hardware"] = {
+            "manufacturer": "Apple",
+            "model": "PowerBook 5300",
+            "cpu": "Motorola PowerPC 603e",
+            "memory_bytes": 64 * 1024 * 1024,
+        }
+        ppc603e["browser_proof"]["target"] = (
+            "classic-mac-powerpc"
+        )
+        ppc603e_path = root / "e4-powerpc-603e.json"
+        write_json(ppc603e_path, ppc603e)
+        validate_e4(ppc603e_path, check=True)
 
         ppc7400 = base_e4()
         ppc7400["target_profile"] = "classic-mac-powerpc"
