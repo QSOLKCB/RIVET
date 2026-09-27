@@ -1,0 +1,84 @@
+name: R9 Windows 9x E3 Full-System
+
+on:
+  workflow_dispatch:
+    inputs:
+      media_sha256:
+        description: SHA-256 of the user-supplied bootable Windows 95/98 disk image
+        required: true
+        type: string
+      media_label:
+        description: Exact Windows product/media label for the receipt
+        required: true
+        type: string
+      guest_partition:
+        description: Guestfish system partition (for example /dev/sda1)
+        required: true
+        default: /dev/sda1
+        type: string
+      timeout_seconds:
+        description: Maximum guest runtime
+        required: true
+        default: "600"
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  windows9x-e3:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 150
+    env:
+      RIVET_WINDOWS9X_IMAGE_URL: ${{ secrets.RIVET_WINDOWS9X_IMAGE_URL }}
+      RIVET_INPUT_MEDIA_SHA256: ${{ inputs.media_sha256 }}
+      RIVET_INPUT_ROM_SHA256: ""
+      RIVET_INPUT_TIMEOUT_SECONDS: ${{ inputs.timeout_seconds }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate inputs
+        run: |
+          test -n "$RIVET_WINDOWS9X_IMAGE_URL" || {
+            echo "Set RIVET_WINDOWS9X_IMAGE_URL to a user-controlled bootable Windows 9x disk image URL." >&2
+            exit 2
+          }
+          python3 scripts/r9_validate_dispatch_inputs.py --github-env "$GITHUB_ENV"
+
+      - name: Install harness dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends             curl file libguestfs-tools mingw-w64             qemu-system-x86 qemu-utils
+
+      - name: Download and verify guest media
+        run: |
+          mkdir -p build/r9-win9x-media
+          curl -L --fail --retry 3 "$RIVET_WINDOWS9X_IMAGE_URL"             -o build/r9-win9x-media/guest.img
+          printf '%s  %s\n'             "$RIVET_VALIDATED_MEDIA_SHA256"             build/r9-win9x-media/guest.img | sha256sum -c -
+
+      - name: Build source-bound guest payload
+        run: |
+          bash scripts/r9_build_windows9x_payload.sh             "$(git rev-parse HEAD)" build/r9-win9x-payload
+
+      - name: Execute Windows 9x full-system proof
+        run: |
+          bash scripts/r9_windows9x_full_system.sh             build/r9-win9x-media/guest.img             "${{ inputs.guest_partition }}"             build/r9-win9x-payload/RIVETR9.EXE             "$(git rev-parse HEAD)"             "$RIVET_VALIDATED_TIMEOUT_SECONDS"             build/r9-windows9x
+
+          grep -Ei 'Windows|Version 4\.(00|10)'             build/r9-windows9x/guest-proof.txt
+
+      - name: Mint E3 receipt
+        run: |
+          emulator="$(qemu-system-i386 --version | head -n1)"
+          source_revision="$(git rev-parse HEAD)"
+          payload_sha="$(sha256sum build/r9-win9x-payload/RIVETR9.EXE | awk '{print $1}')"
+
+          python3 scripts/r9_e3_receipt.py             --proof build/r9-windows9x/guest-proof.txt             --output build/r9-windows9x/receipt.json             --target-profile windows9x-x86             --source-revision "$source_revision"             --emulator "$emulator"             --guest-media-sha256 "$RIVET_VALIDATED_MEDIA_SHA256"             --guest-media-label "${{ inputs.media_label }}"             --payload-sha256 "$payload_sha"             --notes "Windows VER output retained in guest-proof.txt"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: r9-windows9x-e3-receipt
+          path: |
+            build/r9-windows9x/receipt.json
+            build/r9-windows9x/guest-proof.txt
+            build/r9-windows9x/serial.log
+            build/r9-win9x-payload/payload.sha256
