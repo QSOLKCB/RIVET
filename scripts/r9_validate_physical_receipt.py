@@ -2,7 +2,10 @@
 import argparse
 import json
 import re
+import subprocess
 from pathlib import Path
+
+REPO_ROOT = Path(__file__).resolve().parents[1]
 
 TARGETS = {
     "windows9x-x86": {
@@ -106,6 +109,34 @@ def require_integer(
         )
     return value
 
+def require_evidence_name(value: object, field: str) -> str:
+    name = require_identity(value, field)
+    if name.upper().startswith("REPLACE-WITH-"):
+        raise ValueError(
+            f"{field} must not use a shipped placeholder sentinel"
+        )
+    return name
+
+def require_git_commit(value: str) -> str:
+    result = subprocess.run(
+        [
+            "git",
+            "-C",
+            str(REPO_ROOT),
+            "cat-file",
+            "-e",
+            f"{value}^{{commit}}",
+        ],
+        check=False,
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+    )
+    if result.returncode != 0:
+        raise ValueError(
+            "source_revision must resolve to a RIVET commit"
+        )
+    return value
+
 def require_sha256(value: object, field: str) -> str:
     if not isinstance(value, str) or not re.fullmatch(r"[0-9a-f]{64}", value):
         raise ValueError(f"{field} must be 64 lowercase hex characters")
@@ -139,6 +170,7 @@ def main() -> int:
             raise ValueError("source_revision must be 40 lowercase hex characters")
         if source == "0" * 40:
             raise ValueError("source_revision must not be the Git null OID")
+        require_git_commit(source)
 
         software = data.get("software_environment")
         if not isinstance(software, dict):
@@ -245,7 +277,7 @@ def main() -> int:
                 raise ValueError(
                     f"attachments[{index}] must be an object"
                 )
-            require_identity(
+            require_evidence_name(
                 item.get("name"),
                 f"attachments[{index}].name",
             )
