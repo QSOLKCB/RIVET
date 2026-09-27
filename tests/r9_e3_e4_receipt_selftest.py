@@ -16,6 +16,13 @@ GUEST_LINE = (
 )
 WIN98_VER = "Microsoft Windows 98 [Version 4.10.2222]"
 XP_VER = "Microsoft Windows XP [Version 5.1.2600]"
+AMIGA_GUEST_LINE = (
+    "rivet-r9-guest: target=amiga-m68k "
+    f"source={SOURCE} pointer_bits=32 endian=big "
+    "document_fnv1a64=75be6cc92698ac1a "
+    "source_fnv1a64=5cf7c63a1fa3d9b4 "
+    "history=2 bookmarks=1 fetches=4 downloads=1"
+)
 
 def run_e3(
     proof: Path,
@@ -135,6 +142,52 @@ def main() -> int:
         assert result.returncode != 0
         assert not empty_emulator.exists()
 
+        amiga_proof = root / "proof-amiga.txt"
+        amiga_proof.write_text(
+            AMIGA_GUEST_LINE + "\n",
+            encoding="utf-8",
+        )
+        amiga_without_rom = root / "amiga-without-rom.json"
+        result = subprocess.run(
+            [
+                sys.executable,
+                "scripts/r9_e3_receipt.py",
+                "--proof", str(amiga_proof),
+                "--output", str(amiga_without_rom),
+                "--target-profile", "amiga-m68k",
+                "--source-revision", SOURCE,
+                "--emulator", "fs-uae test",
+                "--guest-media-sha256", "1" * 64,
+                "--guest-media-label", "AROS/Amiga test media",
+                "--payload-sha256", "2" * 64,
+            ],
+            check=False,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+        )
+        assert result.returncode != 0
+        assert not amiga_without_rom.exists()
+
+        amiga_with_rom = root / "amiga-with-rom.json"
+        subprocess.run(
+            [
+                sys.executable,
+                "scripts/r9_e3_receipt.py",
+                "--proof", str(amiga_proof),
+                "--output", str(amiga_with_rom),
+                "--target-profile", "amiga-m68k",
+                "--source-revision", SOURCE,
+                "--emulator", "fs-uae test",
+                "--guest-media-sha256", "1" * 64,
+                "--guest-media-label", "Amiga test media",
+                "--payload-sha256", "2" * 64,
+                "--rom-sha256", "4" * 64,
+            ],
+            check=True,
+        )
+        assert amiga_with_rom.exists()
+
         bad_hash = root / "proof-bad-hash.txt"
         bad_hash.write_text(
             (GUEST_LINE + "\n" + WIN98_VER + "\n").replace(
@@ -147,6 +200,11 @@ def main() -> int:
         result = run_e3(bad_hash, bad_output)
         assert result.returncode != 0
         assert not bad_output.exists()
+
+        template = Path(
+            "evidence/retro/physical-receipt.example.json"
+        )
+        assert validate_e4(template).returncode != 0
 
         e4 = root / "e4.json"
         write_json(e4, base_e4())
