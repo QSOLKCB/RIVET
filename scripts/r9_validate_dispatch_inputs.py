@@ -12,6 +12,28 @@ def require_sha256(name: str, value: str, optional: bool = False) -> str:
         raise ValueError(f"{name} must be exactly 64 hex characters")
     return value
 
+def require_text(name: str, value: str, maximum: int = 160) -> str:
+    if not value or len(value) > maximum:
+        raise ValueError(f"{name} must be 1..{maximum} characters")
+    if any(ord(ch) < 0x20 or ord(ch) == 0x7f for ch in value):
+        raise ValueError(f"{name} contains control characters")
+    return value
+
+def optional_env_text(
+    env_name: str,
+    display_name: str,
+    pattern: str | None = None,
+    choices: set[str] | None = None,
+) -> str:
+    if env_name not in os.environ:
+        return ""
+    value = require_text(display_name, os.environ.get(env_name, ""))
+    if pattern is not None and re.fullmatch(pattern, value) is None:
+        raise ValueError(f"{display_name} has invalid syntax")
+    if choices is not None and value not in choices:
+        raise ValueError(f"{display_name} is not an allowed value")
+    return value
+
 def require_timeout(value: str) -> int:
     if not re.fullmatch(r"[0-9]+", value):
         raise ValueError("timeout_seconds must contain decimal digits only")
@@ -38,6 +60,30 @@ def main() -> int:
         timeout = require_timeout(
             os.environ.get("RIVET_INPUT_TIMEOUT_SECONDS", "")
         )
+        media_label = optional_env_text(
+            "RIVET_INPUT_MEDIA_LABEL",
+            "media_label",
+        )
+        guest_partition = optional_env_text(
+            "RIVET_INPUT_GUEST_PARTITION",
+            "guest_partition",
+            r"/dev/(?:sd|hd|vd)[A-Za-z][0-9]{1,2}",
+        )
+        windows_directory = optional_env_text(
+            "RIVET_INPUT_WINDOWS_DIRECTORY",
+            "windows_directory",
+            r"/[A-Za-z0-9._-]{1,32}",
+        )
+        architecture = optional_env_text(
+            "RIVET_INPUT_ARCHITECTURE",
+            "architecture",
+            choices={"m68k", "powerpc"},
+        )
+        partition = optional_env_text(
+            "RIVET_INPUT_PARTITION",
+            "partition",
+            r"[A-Za-z0-9._-]{1,32}",
+        )
     except ValueError as exc:
         raise SystemExit(str(exc))
 
@@ -47,6 +93,22 @@ def main() -> int:
             handle.write(f"RIVET_VALIDATED_MEDIA_SHA256={media}\n")
             handle.write(f"RIVET_VALIDATED_ROM_SHA256={rom}\n")
             handle.write(f"RIVET_VALIDATED_TIMEOUT_SECONDS={timeout}\n")
+            if media_label:
+                handle.write(f"RIVET_VALIDATED_MEDIA_LABEL={media_label}\n")
+            if guest_partition:
+                handle.write(
+                    f"RIVET_VALIDATED_GUEST_PARTITION={guest_partition}\n"
+                )
+            if windows_directory:
+                handle.write(
+                    f"RIVET_VALIDATED_WINDOWS_DIRECTORY={windows_directory}\n"
+                )
+            if architecture:
+                handle.write(
+                    f"RIVET_VALIDATED_ARCHITECTURE={architecture}\n"
+                )
+            if partition:
+                handle.write(f"RIVET_VALIDATED_PARTITION={partition}\n")
     else:
         print(media)
         print(rom)
