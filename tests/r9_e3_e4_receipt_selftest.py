@@ -119,6 +119,7 @@ def main() -> int:
         good = root / "proof-good.txt"
         good.write_text(
             GUEST_LINE + "\n" +
+            "proof_exit=0\n" +
             "startup_stage=winstart\n" +
             WIN98_VER + "\n",
             encoding="utf-8",
@@ -131,7 +132,10 @@ def main() -> int:
 
         xp = root / "proof-xp.txt"
         xp.write_text(
-            GUEST_LINE + "\n" + XP_VER + "\n",
+            GUEST_LINE + "\n" +
+            "proof_exit=0\n" +
+            "startup_stage=winstart\n" +
+            XP_VER + "\n",
             encoding="utf-8",
         )
         xp_output = root / "xp.json"
@@ -142,6 +146,7 @@ def main() -> int:
         nt4 = root / "proof-nt4.txt"
         nt4.write_text(
             GUEST_LINE + "\n" +
+            "proof_exit=0\n" +
             "startup_stage=winstart\n" +
             NT4_VER + "\n",
             encoding="utf-8",
@@ -152,11 +157,29 @@ def main() -> int:
         assert not nt4_output.exists()
 
         no_ver = root / "proof-no-ver.txt"
-        no_ver.write_text(GUEST_LINE + "\n", encoding="utf-8")
+        no_ver.write_text(
+            GUEST_LINE + "\n" +
+            "proof_exit=0\n" +
+            "startup_stage=winstart\n",
+            encoding="utf-8",
+        )
         no_ver_output = root / "no-ver.json"
         result = run_e3(no_ver, no_ver_output)
         assert result.returncode != 0
         assert not no_ver_output.exists()
+
+        nonzero_exit = root / "proof-nonzero-exit.txt"
+        nonzero_exit.write_text(
+            GUEST_LINE + "\n" +
+            "proof_exit=nonzero\n" +
+            "startup_stage=winstart\n" +
+            WIN98_VER + "\n",
+            encoding="utf-8",
+        )
+        nonzero_exit_output = root / "nonzero-exit.json"
+        result = run_e3(nonzero_exit, nonzero_exit_output)
+        assert result.returncode != 0
+        assert not nonzero_exit_output.exists()
 
         empty_emulator = root / "empty-emulator.json"
         result = run_e3(
@@ -242,7 +265,12 @@ def main() -> int:
 
         bad_hash = root / "proof-bad-hash.txt"
         bad_hash.write_text(
-            (GUEST_LINE + "\n" + WIN98_VER + "\n").replace(
+            (
+                GUEST_LINE + "\n" +
+                "proof_exit=0\n" +
+                "startup_stage=winstart\n" +
+                WIN98_VER + "\n"
+            ).replace(
                 "75be6cc92698ac1a",
                 "0000000000000000",
             ),
@@ -261,6 +289,13 @@ def main() -> int:
         e4 = root / "e4.json"
         write_json(e4, base_e4())
         validate_e4(e4, check=True)
+
+        mc68040 = base_e4()
+        mc68040["hardware"]["model"] = "Quadra 840AV"
+        mc68040["hardware"]["cpu"] = "Motorola MC68040"
+        mc68040_path = root / "e4-mc68040.json"
+        write_json(mc68040_path, mc68040)
+        validate_e4(mc68040_path, check=True)
 
         missing_software = base_e4()
         del missing_software["software_environment"]
@@ -362,6 +397,13 @@ def main() -> int:
         write_json(relabeled_path, relabeled)
         assert validate_e4(relabeled_path).returncode != 0
 
+        null_source = base_e4()
+        null_source["source_revision"] = "0" * 40
+        null_source["browser_proof"]["source"] = "0" * 40
+        null_source_path = root / "e4-null-source.json"
+        write_json(null_source_path, null_source)
+        assert validate_e4(null_source_path).returncode != 0
+
         wrong_source = base_e4()
         wrong_source["source_revision"] = "f" * 40
         wrong_source_path = root / "e4-wrong-source.json"
@@ -375,6 +417,12 @@ def main() -> int:
         anonymous_path = root / "e4-anonymous.json"
         write_json(anonymous_path, anonymous)
         assert validate_e4(anonymous_path).returncode != 0
+
+        zero_digest = base_e4()
+        zero_digest["attachments"][0]["sha256"] = "0" * 64
+        zero_digest_path = root / "e4-zero-digest.json"
+        write_json(zero_digest_path, zero_digest)
+        assert validate_e4(zero_digest_path).returncode != 0
 
         unnamed_attachment = base_e4()
         unnamed_attachment["attachments"][0]["name"] = ""
