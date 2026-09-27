@@ -13,6 +13,12 @@ WINDOWS_CPU_MIN_GENERATION = {
     "Windows Me": 5,
 }
 
+WINDOWS_MEMORY_MIN_BYTES = {
+    "Windows 95": 4 * 1024 * 1024,
+    "Windows 98": 16 * 1024 * 1024,
+    "Windows Me": 32 * 1024 * 1024,
+}
+
 WINDOWS_CPU_GENERATION_PATTERNS = (
     (
         3,
@@ -111,8 +117,8 @@ TARGETS = {
         "cpu_pattern": (
             r"(?i)(?:(?:(?:motorola|ibm|apple)\s+)?"
             r"(?:powerpc|ppc)(?:\s+"
-            r"(?:601|603|604e?|750|g3|g4))?|"
-            r"(?:601|603|604e?|750|g3|g4))"
+            r"(?:601|603|604e?|750|7400|g3|g4))?|"
+            r"(?:601|603|604e?|750|7400|g3|g4))"
         ),
     },
     "amiga-m68k": {
@@ -314,11 +320,18 @@ def main() -> int:
                     "hardware.cpu is below the minimum "
                     f"for {os_name}"
                 )
-        require_integer(
+        memory_bytes = require_integer(
             hardware["memory_bytes"],
             "hardware.memory_bytes",
             1,
         )
+        if target == "windows9x-x86":
+            minimum_memory = WINDOWS_MEMORY_MIN_BYTES[os_name]
+            if memory_bytes < minimum_memory:
+                raise ValueError(
+                    "hardware.memory_bytes is below the minimum "
+                    f"for {os_name}"
+                )
 
         proof = data.get("browser_proof")
         if not isinstance(proof, dict):
