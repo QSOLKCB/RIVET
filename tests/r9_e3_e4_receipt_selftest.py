@@ -297,6 +297,24 @@ def main() -> int:
         assert result.returncode != 0
         assert not conflicting_windows_output.exists()
 
+        same_line_conflict = root / "proof-same-line-windows.txt"
+        same_line_conflict.write_text(
+            GUEST_LINE + "\n" +
+            "proof_exit=0\n" +
+            "startup_stage=winstart\n" +
+            XP_VER + " " + WIN98_VER + "\n",
+            encoding="utf-8",
+        )
+        same_line_conflict_output = (
+            root / "same-line-windows.json"
+        )
+        result = run_e3(
+            same_line_conflict,
+            same_line_conflict_output,
+        )
+        assert result.returncode != 0
+        assert not same_line_conflict_output.exists()
+
         zero_digests_output = root / "zero-e3-digests.json"
         result = run_e3(
             good,
@@ -528,6 +546,26 @@ def main() -> int:
         write_json(ppc604e_path, ppc604e)
         validate_e4(ppc604e_path, check=True)
 
+        ppc7400 = base_e4()
+        ppc7400["target_profile"] = "classic-mac-powerpc"
+        ppc7400["software_environment"] = {
+            "os_name": "Classic Mac OS",
+            "os_version": "9.2.2",
+            "api": "Mac OS Toolbox",
+        }
+        ppc7400["hardware"] = {
+            "manufacturer": "Apple",
+            "model": "Power Mac G4",
+            "cpu": "Motorola PowerPC 7400",
+            "memory_bytes": 128 * 1024 * 1024,
+        }
+        ppc7400["browser_proof"]["target"] = (
+            "classic-mac-powerpc"
+        )
+        ppc7400_path = root / "e4-powerpc-7400.json"
+        write_json(ppc7400_path, ppc7400)
+        validate_e4(ppc7400_path, check=True)
+
         ppc_pre_floor = base_e4()
         ppc_pre_floor["target_profile"] = "classic-mac-powerpc"
         ppc_pre_floor["software_environment"] = {
@@ -705,6 +743,38 @@ def main() -> int:
             windows_me_pentium,
         )
         validate_e4(windows_me_pentium_path, check=True)
+
+        windows_me_low_memory = json.loads(
+            json.dumps(windows_me_pentium)
+        )
+        windows_me_low_memory["hardware"]["memory_bytes"] = 1
+        windows_me_low_memory_path = (
+            root / "e4-windows-me-low-memory.json"
+        )
+        write_json(
+            windows_me_low_memory_path,
+            windows_me_low_memory,
+        )
+        assert (
+            validate_e4(
+                windows_me_low_memory_path
+            ).returncode != 0
+        )
+
+        windows_me_min_memory = json.loads(
+            json.dumps(windows_me_pentium)
+        )
+        windows_me_min_memory["hardware"]["memory_bytes"] = (
+            32 * 1024 * 1024
+        )
+        windows_me_min_memory_path = (
+            root / "e4-windows-me-min-memory.json"
+        )
+        write_json(
+            windows_me_min_memory_path,
+            windows_me_min_memory,
+        )
+        validate_e4(windows_me_min_memory_path, check=True)
 
         amd_am486 = base_e4()
         amd_am486["target_profile"] = "windows9x-x86"
