@@ -51,7 +51,7 @@ jobs:
             fi
           }
 
-          check_blob RETRO-v2.md 3ca7ef1dd82639c44b87a56d1eca2d2a4a61e6
+          check_blob RETRO-v2.md 3ca7ef1dd82639c44b87a56d1eca2d2a2a4a61e6
           check_blob machine/retro-v2.json 0019d7697ed22f8032e770aa2292b69f7c035df0
           check_blob machine/project-v12.json 955e7a661b04d8c4b7e3b2be0406de86d5a18511
 
