@@ -12,25 +12,23 @@ The eventual RIVET Browser is a proof application, not the definition of the fra
 
 ## Status
 
-**R7 — bounded document engine.**
+**R8 — RIVET Browser / WEB1.**
 
 R6 implementation is merged at `e6dd743286f8c7c7691bd554fa0e42382b18b8d1`; its Windows Server 2012 R2 E3 receipt remains a release-gated evidence item.
 
-R7 adds a no-heap document core for bounded byte streams, HTTP/HTTPS URL parsing, strict UTF-8, strict HTML/CSS subsets, deterministic layout, PPM/P6 image decode, and independent links/forms capabilities.
+R7 is merged at `ff1da3727e170e1480b12d2c2bbe8b22ca5b09c6`. R8 composes the frozen core/UI/document layers into the first bounded WEB1 browser profile with link navigation, history/bookmarks, downloads, view source, user CSS, keyboard commands, inspectable config and software raster output.
 
-## R7 quick proof
+## R8 quick proof
 
 ```sh
-make test-document
-make document
-./build/rivet-document-proof fixtures/r7_document.html fixtures/r7_image.ppm
+make test-browser
+make browser
+./build/rivet-web1-proof build/rivet-web1-proof.ppm
 ```
 
-The proof binds bytes → stream → UTF-8 → HTML → CSS → URL → capability requirements → layout → RGBA image decode.
+WEB1 deliberately keeps resource transport behind an explicit host service. It does not make HTTP/TLS, JavaScript, GPU rendering, persistence adapters or browser-style malformed-markup recovery universal requirements.
 
-R7 remains deliberately smaller than a browser: there is no network I/O, HTTP/TLS, history, downloads, JavaScript, browser error recovery, or generic web-image stack yet.
-
-See [DOCUMENT-v1.md](DOCUMENT-v1.md).
+See [BROWSER-WEB1-v1.md](BROWSER-WEB1-v1.md) and [DOCUMENT-v1.md](DOCUMENT-v1.md).
 ## Mission
 
 RIVET exists to make it practical to build software that is:
@@ -130,7 +128,8 @@ The GitHub Pages site is intentionally static HTML/CSS with no framework, analyt
 
 ## Repository guide
 
-- [DOCUMENT-v1.md](DOCUMENT-v1.md) — R7 bounded URL/stream/UTF-8/HTML/CSS/layout/image contract.
+- [BROWSER-WEB1-v1.md](BROWSER-WEB1-v1.md) — R8 first bounded non-JavaScript browser profile.
+- [DOCUMENT-v1.md](DOCUMENT-v1.md) — frozen R7 bounded URL/stream/UTF-8/HTML/CSS/layout/image contract.
 - [HISTORICAL-v1.md](HISTORICAL-v1.md) — frozen R6 constrained/historical execution and receipt contract.
 - [PLATFORM-v1.md](PLATFORM-v1.md) — frozen R5 POSIX/Win32 platform ABI and evidence contract.
 - [TEXTVIEW-v1.md](TEXTVIEW-v1.md) — frozen R4 bounded non-browser text-viewer proof contract.
@@ -148,7 +147,8 @@ The GitHub Pages site is intentionally static HTML/CSS with no framework, analyt
 - [RUNTIME-PLAN-v1.md](RUNTIME-PLAN-v1.md) — donor-derived runtime and memory plan for R1+.
 - [DONORS-v1.md](DONORS-v1.md) — frozen donor/provenance map for runtime-plan v1.
 - [AGENTS.md](AGENTS.md) — rules for coding agents and contributors.
-- [machine/project-v9.json](machine/project-v9.json) — current machine entrypoint for R7.
+- [machine/project-v10.json](machine/project-v10.json) — current machine entrypoint for R8.
+- [machine/project-v9.json](machine/project-v9.json) — frozen R7 project contract.
 - [machine/project-v8.json](machine/project-v8.json) — frozen R6 project contract.
 - [machine/project-v7.json](machine/project-v7.json) — frozen R5 project contract.
 - [machine/project-v6.json](machine/project-v6.json) — frozen R4 project contract.

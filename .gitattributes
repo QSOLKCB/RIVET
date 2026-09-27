@@ -1,3 +1,7 @@
 fixtures/r4_textview.txt text eol=lf
 fixtures/r7_document.html text eol=lf
 fixtures/r7_image.ppm -text
+fixtures/r8_home.html text eol=lf
+fixtures/r8_about.html text eol=lf
+fixtures/r8_download.txt text eol=lf
+fixtures/r8_browser.conf text eol=lf
