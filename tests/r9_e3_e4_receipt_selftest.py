@@ -274,6 +274,33 @@ def main() -> int:
         write_json(wrong_os_path, wrong_os)
         assert validate_e4(wrong_os_path).returncode != 0
 
+        wrong_version = base_e4()
+        wrong_version["target_profile"] = "windows9x-x86"
+        wrong_version["software_environment"] = {
+            "os_name": "Windows 95",
+            "os_version": "10.0.19045",
+            "api": "Win32",
+        }
+        wrong_version["hardware"] = {
+            "manufacturer": "IBM Compatible",
+            "model": "Physical test system",
+            "cpu": "Intel 80486DX2",
+            "memory_bytes": 64 * 1024 * 1024,
+        }
+        wrong_version["browser_proof"]["target"] = (
+            "windows9x-x86"
+        )
+        wrong_version["browser_proof"]["endian"] = "little"
+        wrong_version_path = root / "e4-wrong-version.json"
+        write_json(wrong_version_path, wrong_version)
+        assert validate_e4(wrong_version_path).returncode != 0
+
+        wrong_cpu = base_e4()
+        wrong_cpu["hardware"]["cpu"] = "Intel Core i9-14900K"
+        wrong_cpu_path = root / "e4-wrong-cpu.json"
+        write_json(wrong_cpu_path, wrong_cpu)
+        assert validate_e4(wrong_cpu_path).returncode != 0
+
         relabeled = base_e4()
         relabeled["target_profile"] = "amiga-m68k"
         relabeled_path = root / "e4-relabeled.json"
