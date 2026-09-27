@@ -84,27 +84,45 @@
           "Windows 98",
           "Windows Me"
         ],
-        "api": "Win32"
+        "api": "Win32",
+        "os_version_patterns": {
+          "Windows 95": "^4\\.00(?:\\.[0-9A-Za-z]+)*$",
+          "Windows 98": "^4\\.10(?:\\.[0-9A-Za-z]+)*$",
+          "Windows Me": "^4\\.90(?:\\.[0-9A-Za-z]+)*$"
+        },
+        "cpu_pattern": "(?i)(?:x86|80386|80486|i[3-6]86|pentium|celeron|athlon|k5|k6|cyrix|via|intel|amd)"
       },
       "classic-mac-m68k": {
         "os_names": [
           "Classic Mac OS"
         ],
-        "api": "Mac OS Toolbox"
+        "api": "Mac OS Toolbox",
+        "os_version_patterns": {
+          "Classic Mac OS": "^(?:6\\.[0-9]+(?:\\.[0-9]+)?|7\\.[0-9]+(?:\\.[0-9]+)?|8\\.[01](?:\\.[0-9]+)?)$"
+        },
+        "cpu_pattern": "(?i)(?:m68k|(?:motorola\\s+)?68(?:000|010|020|030|040|060))"
       },
       "classic-mac-powerpc": {
         "os_names": [
           "Classic Mac OS"
         ],
-        "api": "Mac OS Toolbox"
+        "api": "Mac OS Toolbox",
+        "os_version_patterns": {
+          "Classic Mac OS": "^(?:7\\.[0-9]+(?:\\.[0-9]+)?|8\\.[0-9]+(?:\\.[0-9]+)?|9\\.[0-9]+(?:\\.[0-9]+)?)$"
+        },
+        "cpu_pattern": "(?i)(?:powerpc|\\bppc\\b|\\b60[134]\\b|\\b750\\b|\\bg[34]\\b)"
       },
       "amiga-m68k": {
         "os_names": [
           "AmigaOS"
         ],
-        "api": "AmigaOS"
+        "api": "AmigaOS",
+        "os_version_patterns": {
+          "AmigaOS": "^[1-3]\\.[0-9]+(?:\\.[0-9]+)?$"
+        },
+        "cpu_pattern": "(?i)(?:m68k|(?:motorola\\s+)?68(?:000|010|020|030|040|060))"
       }
     },
-    "rule": "physical evidence is bound to the exact OS version and target-compatible API identity"
+    "rule": "physical evidence is bound to target-compatible CPU architecture, exact OS version family, and API identity"
   }
 }
