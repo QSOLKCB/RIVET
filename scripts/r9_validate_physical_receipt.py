@@ -21,6 +21,17 @@ def require_identity(value: object, field: str) -> str:
         raise ValueError(f"{field} contains control characters")
     return value
 
+def require_integer(
+    value: object,
+    field: str,
+    minimum: int = 0,
+) -> int:
+    if type(value) is not int or value < minimum:
+        raise ValueError(
+            f"{field} must be an integer >= {minimum}"
+        )
+    return value
+
 def require_sha256(value: object, field: str) -> str:
     if not isinstance(value, str) or not re.fullmatch(r"[0-9a-f]{64}", value):
         raise ValueError(f"{field} must be 64 lowercase hex characters")
@@ -59,13 +70,29 @@ def main() -> int:
                 raise ValueError(f"hardware.{field} is required")
         for field in ("manufacturer", "model", "cpu"):
             require_identity(hardware[field], f"hardware.{field}")
-        if not isinstance(hardware["memory_bytes"], int) or hardware["memory_bytes"] <= 0:
-            raise ValueError("hardware.memory_bytes must be a positive integer")
+        require_integer(
+            hardware["memory_bytes"],
+            "hardware.memory_bytes",
+            1,
+        )
 
         proof = data.get("browser_proof")
         if not isinstance(proof, dict):
             raise ValueError("browser_proof object is required")
         pointer_bits, endian = TARGETS[target]
+        for field in (
+            "pointer_bits",
+            "history",
+            "bookmarks",
+            "fetches",
+            "downloads",
+        ):
+            require_integer(
+                proof.get(field),
+                f"browser_proof.{field}",
+                0,
+            )
+
         expected = {
             "target": target,
             "source": source,
@@ -86,9 +113,18 @@ def main() -> int:
         if not isinstance(attachments, list) or not attachments:
             raise ValueError("at least one hashed attachment is required")
         for index, item in enumerate(attachments):
-            if not isinstance(item, dict) or not isinstance(item.get("name"), str):
-                raise ValueError(f"attachments[{index}] requires name")
-            require_sha256(item.get("sha256"), f"attachments[{index}].sha256")
+            if not isinstance(item, dict):
+                raise ValueError(
+                    f"attachments[{index}] must be an object"
+                )
+            require_identity(
+                item.get("name"),
+                f"attachments[{index}].name",
+            )
+            require_sha256(
+                item.get("sha256"),
+                f"attachments[{index}].sha256",
+            )
 
         if data.get("result") != "pass":
             raise ValueError("physical receipt result must be pass")
