@@ -148,6 +148,16 @@ def main() -> int:
                 "Base trust workflow is missing invariant: " + required
             )
 
+    for forbidden in (
+        "PR_NUMBER",
+        "github.event.pull_request.number",
+    ):
+        if forbidden in trust_workflow:
+            raise SystemExit(
+                "Base trust workflow must enforce the frozen-surface "
+                "scan for every non-maintenance PR: " + forbidden
+            )
+
     machine = json.loads(RETRO_MACHINE.read_text(encoding="utf-8"))
     emulator_patterns = machine["e3_emulator_identity"]["target_patterns"]
     emulator_samples = {
