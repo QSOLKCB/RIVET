@@ -20,7 +20,9 @@
     "fetches": 4,
     "downloads": 1,
     "source_revision_embedded": true,
-    "local_parsing_layout_rendering_required": true
+    "local_parsing_layout_rendering_required": true,
+    "single_proof_line_required": true,
+    "null_source_revision_forbidden": true
   },
   "e3_targets": [
     {
@@ -110,7 +112,7 @@
         "os_version_patterns": {
           "Classic Mac OS": "^(?:7\\.[0-9]+(?:\\.[0-9]+)?|8\\.[0-9]+(?:\\.[0-9]+)?|9\\.[0-9]+(?:\\.[0-9]+)?)$"
         },
-        "cpu_pattern": "(?i)(?:(?:(?:motorola|ibm|apple)\\s+)?(?:powerpc|ppc)(?:\\s+(?:601|603|604|750|g3|g4))?|(?:601|603|604|750|g3|g4))"
+        "cpu_pattern": "(?i)(?:(?:(?:motorola|ibm|apple)\\s+)?(?:powerpc|ppc)(?:\\s+(?:601|603|604e?|750|g3|g4))?|(?:601|603|604e?|750|g3|g4))"
       },
       "amiga-m68k": {
         "os_names": [
