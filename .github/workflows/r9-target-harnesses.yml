@@ -1,0 +1,95 @@
+name: R9 Historical Target Harnesses
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  frozen-r9-v1:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Verify merged R1-R9-v1 surfaces remain unchanged
+        run: |
+          baseline=7d260e0671c5d089b25d6075ab1b66fb0886c99e
+          failed=0
+
+          while IFS= read -r path; do
+            case "$path" in
+              AGENTS.md|README.md|ROADMAP.md|index.html)
+                continue
+                ;;
+            esac
+
+            if ! git diff --quiet "$baseline" -- "$path"; then
+              echo "Frozen pre-R9-v2 path changed: $path" >&2
+              failed=1
+            fi
+          done < <(git ls-tree -r --name-only "$baseline")
+
+          exit "$failed"
+
+      - name: Validate machine JSON
+        run: |
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          for path in sorted(Path("machine").rglob("*.json")):
+              json.loads(path.read_text(encoding="utf-8"))
+              print(path)
+          PY
+
+  receipt-contract:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: E3 and E4 receipt self-test
+        run: python3 tests/r9_e3_e4_receipt_selftest.py
+
+      - name: Python syntax
+        run: |
+          python3 -m py_compile             scripts/r9_e3_receipt.py             scripts/r9_validate_dispatch_inputs.py             scripts/r9_validate_physical_receipt.py
+
+      - name: Harness syntax
+        run: |
+          bash -n scripts/r9_build_windows9x_payload.sh
+          bash -n scripts/r9_windows9x_full_system.sh
+          bash -n scripts/r9_build_classic_mac_payload.sh
+          bash -n scripts/r9_classic_mac_full_system.sh
+          bash -n scripts/r9_build_amiga_payload.sh
+          bash -n scripts/r9_amiga_full_system.sh
+
+  windows9x-payload:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Win32 cross compiler
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends file mingw-w64
+      - name: Build source-bound Windows 9x payload
+        run: |
+          bash scripts/r9_build_windows9x_payload.sh             "$(git rev-parse HEAD)"             build/r9-windows9x-payload
+
+  classic-mac-payloads:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build source-bound Classic Mac 68k payload
+        run: |
+          bash scripts/r9_build_classic_mac_payload.sh             m68k "$(git rev-parse HEAD)" build/r9-mac-m68k-payload
+      - name: Build source-bound Classic Mac PowerPC payload
+        run: |
+          bash scripts/r9_build_classic_mac_payload.sh             powerpc "$(git rev-parse HEAD)" build/r9-mac-ppc-payload
+
+  amiga-payload:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build source-bound Amiga m68k payload
+        run: |
+          bash scripts/r9_build_amiga_payload.sh             "$(git rev-parse HEAD)"             build/r9-amiga-payload
