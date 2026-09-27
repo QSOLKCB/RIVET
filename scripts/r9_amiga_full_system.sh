@@ -33,7 +33,17 @@ Stack 131072
 SYS:RIVETR9 SYS:RIVET-R9-RECEIPT.TXT
 AMIGA
 
-xdftool "$GUEST" open "part=$PARTITION" +   write "$PAYLOAD" RIVETR9 +   write "$STARTUP" S/Startup-Sequence
+rm -f "$PROOF"
+
+if xdftool "$GUEST" open "part=$PARTITION" + \
+    list RIVET-R9-RECEIPT.TXT >/dev/null 2>&1; then
+  xdftool "$GUEST" open "part=$PARTITION" + \
+    delete RIVET-R9-RECEIPT.TXT
+fi
+
+xdftool "$GUEST" open "part=$PARTITION" + \
+  write "$PAYLOAD" RIVETR9 + \
+  write "$STARTUP" S/Startup-Sequence
 
 set +e
 timeout --signal=TERM --kill-after=20 "$TIMEOUT_SECONDS"   fs-uae     --amiga_model=A1200     --kickstart_file="$KICKSTART_ROM"     --hard_drive_0="$GUEST"     --sound_output=none     --fullscreen=0
