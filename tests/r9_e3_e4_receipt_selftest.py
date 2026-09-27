@@ -16,6 +16,7 @@ GUEST_LINE = (
 )
 WIN98_VER = "Microsoft Windows 98 [Version 4.10.2222]"
 XP_VER = "Microsoft Windows XP [Version 5.1.2600]"
+NT4_VER = "Microsoft Windows NT [Version 4.00.1381]"
 AMIGA_GUEST_LINE = (
     "rivet-r9-guest: target=amiga-m68k "
     f"source={SOURCE} pointer_bits=32 endian=big "
@@ -76,6 +77,11 @@ def base_e4():
         "execution": "physical-hardware",
         "target_profile": "classic-mac-m68k",
         "source_revision": SOURCE,
+        "software_environment": {
+            "os_name": "Classic Mac OS",
+            "os_version": "7.6.1",
+            "api": "Mac OS Toolbox",
+        },
         "hardware": {
             "manufacturer": "Apple",
             "model": "Quadra test",
@@ -132,6 +138,18 @@ def main() -> int:
         result = run_e3(xp, xp_output)
         assert result.returncode != 0
         assert not xp_output.exists()
+
+        nt4 = root / "proof-nt4.txt"
+        nt4.write_text(
+            GUEST_LINE + "\n" +
+            "startup_stage=winstart\n" +
+            NT4_VER + "\n",
+            encoding="utf-8",
+        )
+        nt4_output = root / "nt4.json"
+        result = run_e3(nt4, nt4_output)
+        assert result.returncode != 0
+        assert not nt4_output.exists()
 
         no_ver = root / "proof-no-ver.txt"
         no_ver.write_text(GUEST_LINE + "\n", encoding="utf-8")
@@ -243,6 +261,18 @@ def main() -> int:
         e4 = root / "e4.json"
         write_json(e4, base_e4())
         validate_e4(e4, check=True)
+
+        missing_software = base_e4()
+        del missing_software["software_environment"]
+        missing_software_path = root / "e4-missing-software.json"
+        write_json(missing_software_path, missing_software)
+        assert validate_e4(missing_software_path).returncode != 0
+
+        wrong_os = base_e4()
+        wrong_os["software_environment"]["os_name"] = "AROS"
+        wrong_os_path = root / "e4-wrong-os.json"
+        write_json(wrong_os_path, wrong_os)
+        assert validate_e4(wrong_os_path).returncode != 0
 
         relabeled = base_e4()
         relabeled["target_profile"] = "amiga-m68k"
