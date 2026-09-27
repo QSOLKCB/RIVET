@@ -13,6 +13,7 @@ SOURCE = subprocess.check_output(
 E4_SOURCE = SOURCE
 NONEXISTENT_SOURCE = "f" * 40
 PRE_PAYLOAD_SOURCE = "7d260e0671c5d089b25d6075ab1b66fb0886c99e"
+INITIAL_SOURCE = "c63bb846f93ac24b55518b3f6c0e6761e4faac3b"
 GUEST_LINE = (
     "rivet-r9-guest: target=windows9x-x86 "
     f"source={SOURCE} pointer_bits=32 endian=little "
@@ -458,6 +459,37 @@ def main() -> int:
         assert result.returncode != 0
         assert not amiga_cpu_only_output.exists()
 
+        amiga_pre_a1200 = root / "proof-amiga-pre-a1200.txt"
+        amiga_pre_a1200.write_text(
+            AMIGA_GUEST_LINE + "\n" +
+            "rivet-r9-os: target=amiga-m68k os=amigaos "
+            "exec_version=33 exec_revision=180 "
+            "dos_version=33 dos_revision=166 api=exec-dos\n",
+            encoding="utf-8",
+        )
+        amiga_pre_a1200_output = root / "amiga-pre-a1200.json"
+        result = subprocess.run(
+            [
+                sys.executable,
+                "scripts/r9_e3_receipt.py",
+                "--proof", str(amiga_pre_a1200),
+                "--output", str(amiga_pre_a1200_output),
+                "--target-profile", "amiga-m68k",
+                "--source-revision", SOURCE,
+                "--emulator", "fs-uae test",
+                "--guest-media-sha256", "1" * 64,
+                "--guest-media-label", "AmigaOS 1.2 test media",
+                "--payload-sha256", "2" * 64,
+                "--rom-sha256", "4" * 64,
+            ],
+            check=False,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+        )
+        assert result.returncode != 0
+        assert not amiga_pre_a1200_output.exists()
+
         amiga_with_rom = root / "amiga-with-rom.json"
         subprocess.run(
             [
@@ -732,6 +764,18 @@ def main() -> int:
                 m68k_nonexistent_release_path
             ).returncode != 0
         )
+
+        m68k_huge_memory = base_e4()
+        m68k_huge_memory["hardware"]["memory_bytes"] = 10 ** 100
+        m68k_huge_memory_path = root / "e4-m68k-huge-memory.json"
+        write_json(m68k_huge_memory_path, m68k_huge_memory)
+        assert validate_e4(m68k_huge_memory_path).returncode != 0
+
+        m68k_max_memory = base_e4()
+        m68k_max_memory["hardware"]["memory_bytes"] = 256 * 1024 * 1024
+        m68k_max_memory_path = root / "e4-m68k-max-memory.json"
+        write_json(m68k_max_memory_path, m68k_max_memory)
+        validate_e4(m68k_max_memory_path, check=True)
 
         m68k_low_memory = base_e4()
         m68k_low_memory["hardware"]["model"] = "Quadra 840AV"
@@ -1144,6 +1188,14 @@ def main() -> int:
         write_json(amiga_e4_path, amiga_e4)
         validate_e4(amiga_e4_path, check=True)
 
+        amiga_a1200_stock = json.loads(json.dumps(amiga_e4))
+        amiga_a1200_stock["software_environment"]["os_version"] = "3.1"
+        amiga_a1200_stock["hardware"]["cpu"] = "Motorola 68EC020"
+        amiga_a1200_stock["hardware"]["memory_bytes"] = 2 * 1024 * 1024
+        amiga_a1200_stock_path = root / "e4-amiga-a1200-stock.json"
+        write_json(amiga_a1200_stock_path, amiga_a1200_stock)
+        validate_e4(amiga_a1200_stock_path, check=True)
+
         amiga_invented = json.loads(json.dumps(amiga_e4))
         amiga_invented["software_environment"]["os_version"] = "3.99.99"
         amiga_invented_path = root / "e4-amiga-invented.json"
@@ -1189,6 +1241,13 @@ def main() -> int:
         null_source_path = root / "e4-null-source.json"
         write_json(null_source_path, null_source)
         assert validate_e4(null_source_path).returncode != 0
+
+        pre_web1_source = base_e4()
+        pre_web1_source["source_revision"] = INITIAL_SOURCE
+        pre_web1_source["browser_proof"]["source"] = INITIAL_SOURCE
+        pre_web1_source_path = root / "e4-pre-web1-source.json"
+        write_json(pre_web1_source_path, pre_web1_source)
+        assert validate_e4(pre_web1_source_path).returncode != 0
 
         nonexistent_source = base_e4()
         nonexistent_source["source_revision"] = "f" * 40
@@ -1251,6 +1310,25 @@ def main() -> int:
         boolean_counts_path = root / "e4-boolean-counts.json"
         write_json(boolean_counts_path, boolean_counts)
         assert validate_e4(boolean_counts_path).returncode != 0
+
+        for constant in ("NaN", "Infinity", "-Infinity"):
+            non_json_number = root / (
+                "e4-non-json-" + constant.replace("-", "minus-") + ".json"
+            )
+            non_json_text = json.dumps(
+                base_e4(),
+                separators=(",", ":"),
+            )
+            non_json_text = non_json_text[:-1] + (
+                ',"extra":' + constant + '}\n'
+            )
+            non_json_number.write_text(
+                non_json_text,
+                encoding="utf-8",
+            )
+            result = validate_e4(non_json_number)
+            assert result.returncode != 0
+            assert "non-JSON numeric constant" in result.stderr
 
         duplicate_top = root / "e4-duplicate-top.json"
         duplicate_top_text = json.dumps(

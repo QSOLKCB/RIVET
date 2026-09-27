@@ -152,7 +152,8 @@
             "4.90.3000"
           ]
         },
-        "os_release_rule": "software_environment.os_version must be one of the explicit published consumer Windows 95/98/Me build identities"
+        "os_release_rule": "software_environment.os_version must be one of the explicit published consumer Windows 95/98/Me build identities",
+        "maximum_memory_bytes": 2147483648
       },
       "classic-mac-m68k": {
         "os_names": [
@@ -217,7 +218,8 @@
           "8.0": "68040",
           "8.1": "68040"
         },
-        "cpu_generation_rule": "hardware.cpu must meet the selected Classic Mac OS release floor"
+        "cpu_generation_rule": "hardware.cpu must meet the selected Classic Mac OS release floor",
+        "maximum_memory_bytes": 268435456
       },
       "classic-mac-powerpc": {
         "os_names": [
@@ -291,7 +293,8 @@
           "9.2.1": "G3/750-class",
           "9.2.2": "G3/750-class"
         },
-        "cpu_generation_rule": "Mac OS 9.2.x physical evidence requires G3/750-class or newer"
+        "cpu_generation_rule": "Mac OS 9.2.x physical evidence requires G3/750-class or newer",
+        "maximum_memory_bytes": 2147483648
       },
       "amiga-m68k": {
         "os_names": [
@@ -301,7 +304,7 @@
         "os_version_patterns": {
           "AmigaOS": "^[1-3]\\.[0-9]+(?:\\.[0-9]+)?$"
         },
-        "cpu_pattern": "(?i)(?:(?:motorola\\s+)?m68k|(?:motorola\\s+)?(?:mc)?68(?:000|010|020|030|040|060))",
+        "cpu_pattern": "(?i)(?:(?:motorola\\s+)?m68k|(?:motorola\\s+)?(?:mc)?68(?:000|010|060|(?:EC)?(?:020|030|040)))",
         "memory_floor_rule": "AmigaOS 3.1.4/3.2.x require at least 2 MiB; AmigaOS 3.5/3.9 require at least 4 MiB; earlier accepted releases retain the 512 KiB baseline",
         "allowed_os_versions": [
           "1.0",
@@ -337,11 +340,17 @@
           "3.2.1": 2097152,
           "3.2.2": 2097152,
           "3.2.3": 2097152
-        }
+        },
+        "maximum_memory_bytes": 536870912,
+        "canonical_cpu_identities": [
+          "Motorola 68020",
+          "Motorola 68EC020"
+        ]
       }
     },
     "rule": "physical evidence is bound to target-compatible CPU architecture, exact OS version family, and API identity",
-    "cpu_identity_rule": "the entire hardware.cpu string must fully match one target-compatible physical CPU identity; mixed host/emulator descriptions are invalid"
+    "cpu_identity_rule": "the entire hardware.cpu string must fully match one target-compatible physical CPU identity; mixed host/emulator descriptions are invalid",
+    "memory_ceiling_rule": "hardware.memory_bytes must not exceed the selected target's realizable historical envelope"
   },
   "windows9x_payload_runtime": {
     "entrypoint": "mainCRTStartup",
@@ -376,7 +385,13 @@
     ],
     "forbidden_hardware_identity_prefixes": [
       "REPLACE-WITH-"
-    ]
+    ],
+    "source_revision_required_paths": [
+      "examples/r8_browser_proof.c",
+      "apps/browser/browser.c",
+      "include/rivet/browser.h"
+    ],
+    "source_revision_proof_rule": "the E4 source revision must contain the frozen WEB1 proof entrypoint, browser implementation, and public browser header"
   },
   "e3_windows_identity": {
     "required_identity_lines": 1,
@@ -474,8 +489,10 @@
       "line": "rivet-r9-os",
       "os": "amigaos",
       "api": "exec-dos",
-      "allowed_exec_versions": "33-45",
-      "allowed_dos_versions": "33-45"
+      "allowed_exec_versions": "39-45",
+      "allowed_dos_versions": "39-45",
+      "machine": "A1200",
+      "rule": "the fixed FS-UAE A1200 harness rejects pre-A1200 Exec/DOS major versions below 39"
     },
     "rule": "CPU-compatible or fabricated WEB1 proof text without a target-specific runtime OS witness cannot mint E3 evidence"
   },
@@ -495,9 +512,10 @@
   "e4_json_parsing": {
     "duplicate_keys_forbidden": true,
     "scope": "every JSON object at every nesting level",
-    "rule": "receipts are bounded to 65536 bytes before decoding/parsing, must have a JSON object root, and may not contain duplicate field names",
+    "rule": "receipts are bounded to 65536 bytes before decoding/parsing, must have a JSON object root, reject NaN/Infinity/-Infinity, and may not contain duplicate field names",
     "max_receipt_bytes": 65536,
-    "root_object_required": true
+    "root_object_required": true,
+    "reject_non_json_numeric_constants": true
   },
   "e3_output_publication": {
     "clear_requested_output_before_validation": true,

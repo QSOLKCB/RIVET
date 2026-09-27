@@ -9,6 +9,19 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 
 MAX_RECEIPT_BYTES = 64 * 1024
 
+E4_REQUIRED_SOURCE_PATHS = (
+    "examples/r8_browser_proof.c",
+    "apps/browser/browser.c",
+    "include/rivet/browser.h",
+)
+
+TARGET_MEMORY_MAX_BYTES = {
+    "windows9x-x86": 2 * 1024 * 1024 * 1024,
+    "classic-mac-m68k": 256 * 1024 * 1024,
+    "classic-mac-powerpc": 2 * 1024 * 1024 * 1024,
+    "amiga-m68k": 512 * 1024 * 1024,
+}
+
 CLASSIC_MAC_M68K_RELEASES = {
     "6.0",
     "6.0.1",
@@ -285,7 +298,7 @@ TARGETS = {
         "cpu_pattern": (
             r"(?i)(?:(?:motorola\s+)?m68k|"
             r"(?:motorola\s+)?(?:mc)?68"
-            r"(?:000|010|020|030|040|060))"
+            r"(?:000|010|060|(?:EC)?(?:020|030|040)))"
         ),
     },
 }
@@ -314,12 +327,14 @@ def m68k_cpu_generation(cpu_identity: str) -> int | None:
         return 0
     match = re.fullmatch(
         r"(?i)(?:motorola\s+)?(?:mc)?68"
-        r"(?P<generation>000|010|020|030|040|060)",
+        r"(?:(?:EC)?(?P<generation>020|030|040)|"
+        r"(?P<other>000|010|060))",
         cpu_identity,
     )
     if match is None:
         return None
-    return int(match.group("generation"))
+    generation = match.group("generation") or match.group("other")
+    return int(generation)
 
 def powerpc_cpu_generation(cpu_identity: str) -> int | None:
     match = re.fullmatch(
@@ -351,6 +366,9 @@ def read_bounded_receipt(path: Path) -> str:
             f"{MAX_RECEIPT_BYTES} bytes"
         )
     return raw.decode("utf-8", errors="strict")
+
+def reject_non_json_constant(value: str):
+    raise ValueError(f"non-JSON numeric constant: {value}")
 
 def require_identity(value: object, field: str) -> str:
     if not isinstance(value, str):
@@ -401,6 +419,27 @@ def require_git_commit(value: str) -> str:
         )
     return value
 
+def require_source_paths(value: str) -> None:
+    for source_path in E4_REQUIRED_SOURCE_PATHS:
+        result = subprocess.run(
+            [
+                "git",
+                "-C",
+                str(REPO_ROOT),
+                "cat-file",
+                "-e",
+                f"{value}:{source_path}",
+            ],
+            check=False,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+        )
+        if result.returncode != 0:
+            raise ValueError(
+                "source_revision does not contain required WEB1 "
+                f"proof implementation path: {source_path}"
+            )
+
 def require_sha256(value: object, field: str) -> str:
     if not isinstance(value, str) or not re.fullmatch(r"[0-9a-f]{64}", value):
         raise ValueError(f"{field} must be 64 lowercase hex characters")
@@ -418,6 +457,7 @@ def main() -> int:
         data = json.loads(
             read_bounded_receipt(path),
             object_pairs_hook=reject_duplicate_object,
+            parse_constant=reject_non_json_constant,
         )
     except (
         OSError,
@@ -447,6 +487,7 @@ def main() -> int:
         if source == "0" * 40:
             raise ValueError("source_revision must not be the Git null OID")
         require_git_commit(source)
+        require_source_paths(source)
 
         software = data.get("software_environment")
         if not isinstance(software, dict):
@@ -633,6 +674,12 @@ def main() -> int:
             raise ValueError(
                 "hardware.memory_bytes is below the minimum "
                 f"for {target}/{os_name} {os_version}"
+            )
+        maximum_memory = TARGET_MEMORY_MAX_BYTES[target]
+        if memory_bytes > maximum_memory:
+            raise ValueError(
+                "hardware.memory_bytes exceeds the realizable "
+                f"maximum for {target}: {maximum_memory}"
             )
 
         proof = data.get("browser_proof")

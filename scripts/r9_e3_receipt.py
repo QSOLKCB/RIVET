@@ -277,15 +277,15 @@ def amiga_identity(text: str) -> str:
 
     exec_version = int(match.group("exec_version"))
     dos_version = int(match.group("dos_version"))
-    if not (33 <= exec_version <= 45):
+    if not (39 <= exec_version <= 45):
         raise ValueError(
             "R9 E3 receipt: AmigaOS Exec version is outside "
-            "the classic AmigaOS envelope"
+            "the fixed A1200 runtime envelope"
         )
-    if not (33 <= dos_version <= 45):
+    if not (39 <= dos_version <= 45):
         raise ValueError(
             "R9 E3 receipt: AmigaOS DOS version is outside "
-            "the classic AmigaOS envelope"
+            "the fixed A1200 runtime envelope"
         )
     return line
 
