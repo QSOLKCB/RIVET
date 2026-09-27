@@ -7,6 +7,10 @@ import tempfile
 from pathlib import Path
 
 SOURCE = "0123456789abcdef0123456789abcdef01234567"
+E4_SOURCE = subprocess.check_output(
+    ["git", "rev-parse", "HEAD"],
+    text=True,
+).strip()
 GUEST_LINE = (
     "rivet-r9-guest: target=windows9x-x86 "
     f"source={SOURCE} pointer_bits=32 endian=little "
@@ -79,7 +83,7 @@ def base_e4():
         "evidence_class": "E4",
         "execution": "physical-hardware",
         "target_profile": "classic-mac-m68k",
-        "source_revision": SOURCE,
+        "source_revision": E4_SOURCE,
         "software_environment": {
             "os_name": "Classic Mac OS",
             "os_version": "7.6.1",
@@ -93,7 +97,7 @@ def base_e4():
         },
         "browser_proof": {
             "target": "classic-mac-m68k",
-            "source": SOURCE,
+            "source": E4_SOURCE,
             "pointer_bits": 32,
             "endian": "big",
             "document_fnv1a64": "75be6cc92698ac1a",
@@ -545,6 +549,13 @@ def main() -> int:
         write_json(null_source_path, null_source)
         assert validate_e4(null_source_path).returncode != 0
 
+        nonexistent_source = base_e4()
+        nonexistent_source["source_revision"] = "f" * 40
+        nonexistent_source["browser_proof"]["source"] = "f" * 40
+        nonexistent_source_path = root / "e4-nonexistent-source.json"
+        write_json(nonexistent_source_path, nonexistent_source)
+        assert validate_e4(nonexistent_source_path).returncode != 0
+
         wrong_source = base_e4()
         wrong_source["source_revision"] = "f" * 40
         wrong_source_path = root / "e4-wrong-source.json"
@@ -564,6 +575,14 @@ def main() -> int:
         zero_digest_path = root / "e4-zero-digest.json"
         write_json(zero_digest_path, zero_digest)
         assert validate_e4(zero_digest_path).returncode != 0
+
+        sentinel_name = base_e4()
+        sentinel_name["attachments"][0]["name"] = (
+            "REPLACE-WITH-EVIDENCE-FILENAME"
+        )
+        sentinel_name_path = root / "e4-sentinel-name.json"
+        write_json(sentinel_name_path, sentinel_name)
+        assert validate_e4(sentinel_name_path).returncode != 0
 
         unnamed_attachment = base_e4()
         unnamed_attachment["attachments"][0]["name"] = ""
