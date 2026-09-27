@@ -128,6 +128,35 @@ def main() -> int:
         raise SystemExit(
             "Frozen-surface gate must not enumerate only baseline paths"
         )
+    authority_baseline = (
+        "f7e340cf63b805885d3d977565ca234713277b11"
+    )
+    if (
+        f"authority_baseline={authority_baseline}"
+        not in target_workflow
+    ):
+        raise SystemExit(
+            "R9 v2 authority gate lost its pinned exact baseline"
+        )
+    if (
+        'git diff --quiet \\'
+        not in target_workflow
+        or '"$authority_baseline" HEAD -- "$authority"'
+        not in target_workflow
+    ):
+        raise SystemExit(
+            "R9 v2 authority gate must diff each authority "
+            "against the pinned baseline"
+        )
+    for authority in (
+        "RETRO-v2.md",
+        "machine/retro-v2.json",
+        "machine/project-v12.json",
+    ):
+        if authority not in target_workflow:
+            raise SystemExit(
+                "R9 v2 authority gate is missing: " + authority
+            )
     for required in (
         "evidence/r9_classic_mac_os_identity.c",
         "evidence/r9_amiga_os_identity.c",
