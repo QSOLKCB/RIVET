@@ -301,6 +301,23 @@ def main() -> int:
         write_json(wrong_cpu_path, wrong_cpu)
         assert validate_e4(wrong_cpu_path).returncode != 0
 
+        mixed_emulated_cpu = base_e4()
+        mixed_emulated_cpu["hardware"]["cpu"] = (
+            "Intel Core i9-14900K running a 68040 emulator"
+        )
+        mixed_emulated_cpu_path = (
+            root / "e4-mixed-emulated-cpu.json"
+        )
+        write_json(
+            mixed_emulated_cpu_path,
+            mixed_emulated_cpu,
+        )
+        assert (
+            validate_e4(
+                mixed_emulated_cpu_path
+            ).returncode != 0
+        )
+
         windows95 = base_e4()
         windows95["target_profile"] = "windows9x-x86"
         windows95["software_environment"] = {
