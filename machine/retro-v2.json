@@ -23,7 +23,9 @@
     "local_parsing_layout_rendering_required": true,
     "single_proof_line_required": true,
     "null_source_revision_forbidden": true,
-    "single_proof_line_rule": "exactly one line with the rivet-r9-guest: prefix is permitted; malformed duplicate-prefixed lines are invalid evidence"
+    "single_proof_line_rule": "exactly one line with the rivet-r9-guest: prefix is permitted; malformed duplicate-prefixed lines are invalid evidence",
+    "source_revision_must_resolve_to_commit": true,
+    "source_revision_resolution": "git cat-file -e <sha>^{commit} in the RIVET checkout"
   },
   "e3_targets": [
     {
@@ -181,5 +183,41 @@
     "injected_directory": "\\\\RIVET-R9",
     "payload_receipt_path": "RECEIPT.TXT",
     "rule": "the selected guest partition and DOS drive are supplied explicitly; WINSTART and RUN-R9 use that drive and the payload writes its receipt relative to the selected drive working directory"
+  },
+  "e3_guest_os_identity": {
+    "required_for_all_targets": true,
+    "windows9x_x86": {
+      "witness": "captured Windows VER output",
+      "rule": "exactly one consumer Windows 95/98/Me version identity line"
+    },
+    "classic_mac_m68k": {
+      "witness": "Gestalt(gestaltSystemVersion)",
+      "line": "rivet-r9-os",
+      "os": "classic-mac-os",
+      "api": "toolbox",
+      "allowed_versions": "6.x, 7.x, 8.0-8.1"
+    },
+    "classic_mac_powerpc": {
+      "witness": "Gestalt(gestaltSystemVersion)",
+      "line": "rivet-r9-os",
+      "os": "classic-mac-os",
+      "api": "toolbox",
+      "allowed_versions": "7.1.2+, 8.x, 9.x"
+    },
+    "amiga_m68k": {
+      "witness": "live ExecBase and dos.library versions",
+      "line": "rivet-r9-os",
+      "os": "amigaos",
+      "api": "exec-dos",
+      "allowed_exec_versions": "33-45",
+      "allowed_dos_versions": "33-45"
+    },
+    "rule": "CPU-compatible or fabricated WEB1 proof text without a target-specific runtime OS witness cannot mint E3 evidence"
+  },
+  "frozen_surface_gate": {
+    "baseline": "7d260e0671c5d089b25d6075ab1b66fb0886c99e",
+    "changed_path_command": "git diff --name-only --no-renames <baseline> HEAD",
+    "allowlist_required": true,
+    "rule": "newly added, deleted or modified paths outside the explicit R9-v2 allowlist fail the frozen-source gate"
   }
 }
