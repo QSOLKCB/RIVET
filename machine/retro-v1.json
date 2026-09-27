@@ -1,0 +1,86 @@
+{
+  "schema": "rivet.retro/v1",
+  "version": 1,
+  "authority": "RETRO-v1.md",
+  "framework_abi": false,
+  "frozen_stack": {
+    "through_phase": "R8",
+    "merge_commit": "f2522b83231b4547b11cbaf59e650bfcbdc54efe",
+    "browser_contract": "rivet.browser.web1/v1",
+    "platform_contract": "rivet.platform/v1",
+    "historical_contract": "rivet.historical/v1"
+  },
+  "automated_lanes": [
+    {
+      "id": "linux-m68k32-68020-qemu-user",
+      "cpu": "m68k-68020",
+      "pointer_bits": 32,
+      "endian": "big",
+      "os_api": "POSIX",
+      "execution": "qemu-user",
+      "evidence_class": "E2",
+      "compiler_baseline": "gcc--m68020",
+      "proofs": [
+        "platform-v1",
+        "browser-web1-v1"
+      ],
+      "claims": [
+        "linux-m68k32-user-space-execution",
+        "platform-v1-proof-pass",
+        "browser-web1-proof-pass"
+      ],
+      "non_claims": [
+        "classic-mac-os",
+        "amigaos",
+        "windows-9x",
+        "full-system-m68k",
+        "physical-m68k-hardware"
+      ]
+    }
+  ],
+  "platform_proof": {
+    "source": "examples/r5_platform_proof.c",
+    "backend": "posix-v1",
+    "os": "POSIX",
+    "pointer_bits": 32,
+    "endian": "big",
+    "bytes": 237,
+    "empty_bytes": 0,
+    "fnv1a64": "36aaff7f4aaa99ab",
+    "monotonic": "nondecreasing"
+  },
+  "browser_proof": {
+    "source": "examples/r8_browser_proof.c",
+    "document_fnv1a64": "75be6cc92698ac1a",
+    "source_fnv1a64": "5cf7c63a1fa3d9b4",
+    "history": 2,
+    "bookmarks": 1,
+    "fetches": 4,
+    "downloads": 1
+  },
+  "future_e3_targets": [
+    {
+      "id": "classic-mac-m68k",
+      "evidence_class": "E3",
+      "state": "unclaimed-receipt-required"
+    },
+    {
+      "id": "classic-mac-powerpc",
+      "evidence_class": "E3",
+      "state": "unclaimed-receipt-required"
+    },
+    {
+      "id": "amiga-m68k",
+      "evidence_class": "E3",
+      "state": "unclaimed-receipt-required"
+    },
+    {
+      "id": "windows9x-x86",
+      "evidence_class": "E3",
+      "state": "unclaimed-receipt-required"
+    }
+  ],
+  "receipt_schema": "rivet.retro-receipt/v1",
+  "receipt_source_revision": "git-rev-parse-HEAD-after-checkout",
+  "claim_rule": "cpu-or-user-mode-evidence-does-not-imply-os-family-support"
+}

@@ -192,7 +192,7 @@ The R7 parser is intentionally strict: browser-style malformed-markup recovery, 
 See [DOCUMENT-v1.md](DOCUMENT-v1.md).
 ## R8 — RIVET Browser / WEB1
 
-**Current phase.**
+**Complete in PR #10.**
 
 Implemented WEB1 slice:
 
@@ -216,17 +216,29 @@ See [BROWSER-WEB1-v1.md](BROWSER-WEB1-v1.md).
 
 ## R9 — Retro portability expansion
 
-Target multiple historical environments with honest evidence labels.
+**Current phase.**
 
-Candidate lanes:
+Implemented first R9 slice:
 
-- Windows 9x-class full-system emulation;
-- classic Macintosh m68k;
-- classic Macintosh PowerPC;
-- Amiga-family m68k;
-- physical systems where available.
+- [x] freeze the merged R1-R8 implementation at merge commit `f2522b83231b4547b11cbaf59e650bfcbdc54efe`;
+- [x] define a separate Retro v1 evidence contract without adding a framework ABI;
+- [x] add a static 32-bit big-endian Motorola 68020-baseline m68k cross-build;
+- [x] execute the frozen Platform v1 proof under `qemu-m68k` user-mode emulation;
+- [x] execute the frozen WEB1 browser tests and deterministic browser proof under the same m68k lane;
+- [x] retain a machine-readable `rivet.retro-receipt/v1` artifact with source revision, toolchain, emulator, proof identities, claims and explicit non-claims;
+- [x] label the automated lane as Linux/POSIX m68k E2 evidence only.
 
-A CPU-family pass is not promoted into an OS-family claim.
+Still separate and unclaimed until target-specific E3 receipts exist:
+
+- [ ] Windows 9x-class full-system execution;
+- [ ] classic Macintosh m68k;
+- [ ] classic Macintosh PowerPC;
+- [ ] Amiga-family m68k;
+- [ ] physical historical systems where available.
+
+A CPU-family or qemu-user pass is never promoted into an OS-family claim.
+
+See [RETRO-v1.md](RETRO-v1.md).
 
 ## R10 — Transport relay
 

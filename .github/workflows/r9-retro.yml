@@ -1,0 +1,92 @@
+name: R9 Retro Portability
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  frozen-r8:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Verify frozen R1-R8 surfaces remain unchanged
+        run: |
+          baseline=f2522b83231b4547b11cbaf59e650bfcbdc54efe
+          failed=0
+
+          while IFS= read -r path; do
+            case "$path" in
+              AGENTS.md|README.md|ROADMAP.md|index.html)
+                continue
+                ;;
+            esac
+
+            if ! git diff --quiet "$baseline" -- "$path"; then
+              echo "Frozen pre-R9 path changed: $path" >&2
+              failed=1
+            fi
+          done < <(git ls-tree -r --name-only "$baseline")
+
+          exit "$failed"
+
+      - name: Validate machine JSON
+        run: |
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+
+          for path in sorted(Path("machine").rglob("*.json")):
+              json.loads(path.read_text(encoding="utf-8"))
+              print(path)
+          PY
+
+  receipt-contract:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: R9 receipt self-test
+        run: python3 tests/r9_receipt_selftest.py
+
+      - name: R9 m68k harness syntax
+        run: bash -n scripts/r9_m68k.sh
+
+  m68k-e2:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install m68k cross-toolchain and qemu-user
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            file \
+            gcc-m68k-linux-gnu \
+            libc6-dev-m68k-cross \
+            qemu-user
+
+      - name: Execute m68k Platform v1 and WEB1 proofs
+        run: |
+          bash scripts/r9_m68k.sh
+
+          compiler="$(m68k-linux-gnu-gcc --version | head -n1)"
+          emulator="$(qemu-m68k --version | head -n1)"
+          source_revision="$(git rev-parse HEAD)"
+
+          python3 scripts/r9_receipt.py \
+            --platform-proof build/r9-m68k/platform-proof.txt \
+            --browser-proof build/r9-m68k/browser-proof.txt \
+            --output build/r9-m68k/receipt.json \
+            --source-revision "$source_revision" \
+            --compiler "$compiler" \
+            --emulator "$emulator"
+
+          cat build/r9-m68k/receipt.json
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: r9-linux-m68k32-e2-receipt
+          path: build/r9-m68k/

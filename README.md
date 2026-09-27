@@ -12,23 +12,26 @@ The eventual RIVET Browser is a proof application, not the definition of the fra
 
 ## Status
 
-**R8 — RIVET Browser / WEB1.**
+**R9 — Retro portability expansion.**
 
-R6 implementation is merged at `e6dd743286f8c7c7691bd554fa0e42382b18b8d1`; its Windows Server 2012 R2 E3 receipt remains a release-gated evidence item.
+R8 / WEB1 is merged and frozen at `f2522b83231b4547b11cbaf59e650bfcbdc54efe`.
 
-R7 is merged at `ff1da3727e170e1480b12d2c2bbe8b22ca5b09c6`. R8 composes the frozen core/UI/document layers into the first bounded WEB1 browser profile with link navigation, history/bookmarks, downloads, view source, user CSS, keyboard commands, inspectable config and software raster output.
+R9 adds evidence without redefining that stack. The first automated lane cross-builds a static **32-bit big-endian Motorola 68020-baseline m68k** target and executes both the frozen Platform v1 proof and frozen WEB1 browser tests/proof under `qemu-m68k`.
 
-## R8 quick proof
+That lane is deliberately labeled **Linux/POSIX m68k E2 user-mode evidence**. It is not a Classic Mac OS, AmigaOS, Windows 9x, full-system, or physical-hardware claim.
+
+R6's Windows Server 2012 R2 E3 receipt remains separately release-gated.
+
+## R9 quick evidence
 
 ```sh
-make test-browser
-make browser
-./build/rivet-web1-proof build/rivet-web1-proof.ppm
+bash scripts/r9_m68k.sh
+python3 tests/r9_receipt_selftest.py
 ```
 
-WEB1 deliberately keeps resource transport behind an explicit host service. It does not make HTTP/TLS, JavaScript, GPU rendering, persistence adapters or browser-style malformed-markup recovery universal requirements.
+CI installs the m68k cross-toolchain and qemu-user before running the harness.
 
-See [BROWSER-WEB1-v1.md](BROWSER-WEB1-v1.md) and [DOCUMENT-v1.md](DOCUMENT-v1.md).
+See [RETRO-v1.md](RETRO-v1.md), [BROWSER-WEB1-v1.md](BROWSER-WEB1-v1.md), and [PORTABILITY-v2.md](PORTABILITY-v2.md).
 ## Mission
 
 RIVET exists to make it practical to build software that is:
@@ -128,7 +131,8 @@ The GitHub Pages site is intentionally static HTML/CSS with no framework, analyt
 
 ## Repository guide
 
-- [BROWSER-WEB1-v1.md](BROWSER-WEB1-v1.md) — R8 first bounded non-JavaScript browser profile.
+- [RETRO-v1.md](RETRO-v1.md) — R9 retro portability evidence and target-claim boundary.
+- [BROWSER-WEB1-v1.md](BROWSER-WEB1-v1.md) — frozen R8 first bounded non-JavaScript browser profile.
 - [DOCUMENT-v1.md](DOCUMENT-v1.md) — frozen R7 bounded URL/stream/UTF-8/HTML/CSS/layout/image contract.
 - [HISTORICAL-v1.md](HISTORICAL-v1.md) — frozen R6 constrained/historical execution and receipt contract.
 - [PLATFORM-v1.md](PLATFORM-v1.md) — frozen R5 POSIX/Win32 platform ABI and evidence contract.
@@ -147,7 +151,9 @@ The GitHub Pages site is intentionally static HTML/CSS with no framework, analyt
 - [RUNTIME-PLAN-v1.md](RUNTIME-PLAN-v1.md) — donor-derived runtime and memory plan for R1+.
 - [DONORS-v1.md](DONORS-v1.md) — frozen donor/provenance map for runtime-plan v1.
 - [AGENTS.md](AGENTS.md) — rules for coding agents and contributors.
-- [machine/project-v10.json](machine/project-v10.json) — current machine entrypoint for R8.
+- [machine/project-v11.json](machine/project-v11.json) — current machine entrypoint for R9.
+- [machine/retro-v1.json](machine/retro-v1.json) — R9 retro evidence contract.
+- [machine/project-v10.json](machine/project-v10.json) — frozen R8 project contract.
 - [machine/project-v9.json](machine/project-v9.json) — frozen R7 project contract.
 - [machine/project-v8.json](machine/project-v8.json) — frozen R6 project contract.
 - [machine/project-v7.json](machine/project-v7.json) — frozen R5 project contract.
