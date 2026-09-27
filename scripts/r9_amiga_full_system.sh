@@ -49,7 +49,7 @@ set +e
 timeout --signal=TERM --kill-after=20 "$TIMEOUT_SECONDS"   fs-uae     --amiga_model=A1200     --kickstart_file="$KICKSTART_ROM"     --hard_drive_0="$GUEST"     --sound_output=none     --fullscreen=0
 FSUAE_STATUS=$?
 set -e
-if [[ $FSUAE_STATUS -ne 0 && $FSUAE_STATUS -ne 124 ]]; then
+if [[ $FSUAE_STATUS -ne 0 && $FSUAE_STATUS -ne 124 && $FSUAE_STATUS -ne 137 ]]; then
   exit "$FSUAE_STATUS"
 fi
 
