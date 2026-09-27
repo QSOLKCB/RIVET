@@ -104,22 +104,29 @@ def validate_identity(
         )
     return value
 
-def parse_proof(path: Path) -> dict:
-    text = path.read_text(encoding="utf-8", errors="strict")
+def parse_proof_text(text: str) -> dict:
+    matches = []
     for line in text.splitlines():
         match = PROOF_RE.match(line.strip())
         if match:
-            data = match.groupdict()
-            for key in (
-                "pointer_bits",
-                "history",
-                "bookmarks",
-                "fetches",
-                "downloads",
-            ):
-                data[key] = int(data[key])
-            return data
-    raise ValueError("R9 guest proof line not found")
+            matches.append(match)
+
+    if len(matches) != 1:
+        raise ValueError(
+            "R9 guest proof must contain exactly one "
+            "rivet-r9-guest proof line"
+        )
+
+    data = matches[0].groupdict()
+    for key in (
+        "pointer_bits",
+        "history",
+        "bookmarks",
+        "fetches",
+        "downloads",
+    ):
+        data[key] = int(data[key])
+    return data
 
 def main() -> int:
     parser = argparse.ArgumentParser()
@@ -136,7 +143,15 @@ def main() -> int:
     args = parser.parse_args()
 
     if not re.fullmatch(r"[0-9a-f]{40}", args.source_revision):
-        raise SystemExit("R9 E3 receipt: source revision must be 40 lowercase hex characters")
+        raise SystemExit(
+            "R9 E3 receipt: source revision must be "
+            "40 lowercase hex characters"
+        )
+    if args.source_revision == "0" * 40:
+        raise SystemExit(
+            "R9 E3 receipt: source revision must not be "
+            "the Git null OID"
+        )
     for label, value in (
         ("guest media", args.guest_media_sha256),
         ("payload", args.payload_sha256),
@@ -160,7 +175,7 @@ def main() -> int:
             encoding="utf-8",
             errors="strict",
         )
-        proof = parse_proof(proof_path)
+        proof = parse_proof_text(proof_text)
         media_label = validate_identity(
             args.guest_media_label,
             "guest media label",
