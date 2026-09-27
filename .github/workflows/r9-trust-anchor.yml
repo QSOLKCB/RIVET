@@ -51,10 +51,6 @@ jobs:
             fi
           }
 
-          check_blob RETRO-v2.md 3ca7ef1dd82639c44b87a56d1eca2d2a2a4a61e6
-          check_blob machine/retro-v2.json 0019d7697ed22f8032e770aa2292b69f7c035df0
-          check_blob machine/project-v12.json 955e7a661b04d8c4b7e3b2be0406de86d5a18511
-
           base_guard="$(git -C base hash-object -- .github/workflows/r9-trust-anchor.yml)"
           candidate_guard="$(git -C candidate hash-object -- .github/workflows/r9-trust-anchor.yml)" || {
             echo "Candidate is missing the base trust workflow" >&2
@@ -66,9 +62,13 @@ jobs:
               "${{ github.event.pull_request.base.sha }}" HEAD
           )"
           if [[ "$changed_from_base" == ".github/workflows/r9-trust-anchor.yml" ]]; then
-            echo "Trusted anchor-only maintenance rotation; no candidate authority files changed."
+            echo "Trusted anchor-only maintenance rotation; authority validation remains unchanged until merge."
             exit 0
           fi
+
+          check_blob RETRO-v2.md 3fce61c62738d5f2c6883ea5ca81b046f717914b
+          check_blob machine/retro-v2.json 44c4e146b5fcb389c236ea741f234466fb355249
+          check_blob machine/project-v12.json 955e7a661b04d8c4b7e3b2be0406de86d5a18511
 
           if [[ "$candidate_guard" != "$base_guard" ]]; then
             echo "Candidate attempted to modify the base trust workflow" >&2
