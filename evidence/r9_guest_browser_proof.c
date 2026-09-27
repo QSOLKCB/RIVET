@@ -20,6 +20,8 @@
 #define EXPECTED_DOCUMENT_FNV1A64 0x75be6cc92698ac1aULL
 #define EXPECTED_SOURCE_FNV1A64 0x5cf7c63a1fa3d9b4ULL
 
+int rivet_r9_write_os_identity(FILE *file);
+
 typedef struct proof_resource {
     const unsigned char *url;
     size_t url_length;
@@ -337,6 +339,10 @@ int main(int argc, char **argv)
         (unsigned long)io_state.fetch_count,
         (unsigned long)io_state.download_count
     );
+
+    if (!rivet_r9_write_os_identity(receipt)) {
+        return fail(receipt, "os-identity");
+    }
 
     if (fclose(receipt) != 0) {
         return 1;
