@@ -1308,6 +1308,9 @@ rivet_result rivet_browser_download_selected(
     if (link == NULL || link->href.length == 0u) {
         return RIVET_ERR_NOT_FOUND;
     }
+    if (link->href.length > RIVET_BROWSER_URL_MAX) {
+        return RIVET_ERR_CAPACITY;
+    }
 
     url = browser->document.source +
           link->href.offset;
