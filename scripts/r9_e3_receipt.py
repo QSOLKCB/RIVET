@@ -21,31 +21,32 @@ PROOF_RE = re.compile(
     r"downloads=(?P<downloads>[0-9]+)$"
 )
 
-WINDOWS_9X_VER_PATTERNS = (
-    re.compile(
-        r"^(?P<identity>.*\bWindows 95\b.*"
-        r"\[Version 4\.00"
-        r"(?:\.[0-9A-Za-z]+)*\].*)$",
-        re.IGNORECASE,
-    ),
-    re.compile(
-        r"^(?P<identity>.*\bWindows 98\b.*"
-        r"\[Version 4\.10"
-        r"(?:\.[0-9A-Za-z]+)*\].*)$",
-        re.IGNORECASE,
-    ),
-    re.compile(
-        r"^(?P<identity>.*\bWindows "
-        r"(?:Me|Millennium)\b.*"
-        r"\[Version 4\.90"
-        r"(?:\.[0-9A-Za-z]+)*\].*)$",
-        re.IGNORECASE,
-    ),
+WINDOWS_IDENTITY_RE = re.compile(
+    r"(?P<identity>(?:Microsoft\s+)?Windows\b"
+    r"[^\[\r\n]*?\[Version [^\]\r\n]+\])",
+    re.IGNORECASE,
 )
 
-WINDOWS_VERSION_LINE_RE = re.compile(
-    r"^.*\bWindows\b.*\[Version [^\]]+\].*$",
-    re.IGNORECASE,
+WINDOWS_9X_VER_PATTERNS = (
+    re.compile(
+        r"^(?P<identity>(?:Microsoft\s+)?Windows 95 "
+        r"\[Version 4\.00"
+        r"(?:\.[0-9A-Za-z]+)*\])$",
+        re.IGNORECASE,
+    ),
+    re.compile(
+        r"^(?P<identity>(?:Microsoft\s+)?Windows 98 "
+        r"\[Version 4\.10"
+        r"(?:\.[0-9A-Za-z]+)*\])$",
+        re.IGNORECASE,
+    ),
+    re.compile(
+        r"^(?P<identity>(?:Microsoft\s+)?Windows "
+        r"(?:Me|Millennium) "
+        r"\[Version 4\.90"
+        r"(?:\.[0-9A-Za-z]+)*\])$",
+        re.IGNORECASE,
+    ),
 )
 
 CLASSIC_MAC_OS_RE = re.compile(
@@ -99,20 +100,19 @@ def require_windows_9x_proof_exit(text: str) -> None:
         )
 
 def windows_9x_identity(text: str) -> str:
-    identity_lines = [
-        line.strip()
-        for line in text.splitlines()
-        if WINDOWS_VERSION_LINE_RE.match(line.strip())
+    identities = [
+        match.group("identity")
+        for match in WINDOWS_IDENTITY_RE.finditer(text)
     ]
-    if len(identity_lines) != 1:
+    if len(identities) != 1:
         raise ValueError(
             "R9 E3 receipt: Windows proof must contain exactly "
-            "one Windows [Version ...] identity line"
+            "one Windows [Version ...] identity occurrence"
         )
 
-    identity = identity_lines[0]
+    identity = identities[0]
     for pattern in WINDOWS_9X_VER_PATTERNS:
-        match = pattern.match(identity)
+        match = pattern.fullmatch(identity)
         if match:
             return match.group("identity")
 
