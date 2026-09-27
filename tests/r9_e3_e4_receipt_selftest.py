@@ -301,6 +301,25 @@ def main() -> int:
         write_json(wrong_cpu_path, wrong_cpu)
         assert validate_e4(wrong_cpu_path).returncode != 0
 
+        itanium = base_e4()
+        itanium["target_profile"] = "windows9x-x86"
+        itanium["software_environment"] = {
+            "os_name": "Windows 95",
+            "os_version": "4.00.950",
+            "api": "Win32",
+        }
+        itanium["hardware"] = {
+            "manufacturer": "HP",
+            "model": "Integrity rx2600",
+            "cpu": "Intel Itanium 2",
+            "memory_bytes": 1024 * 1024 * 1024,
+        }
+        itanium["browser_proof"]["target"] = "windows9x-x86"
+        itanium["browser_proof"]["endian"] = "little"
+        itanium_path = root / "e4-itanium.json"
+        write_json(itanium_path, itanium)
+        assert validate_e4(itanium_path).returncode != 0
+
         relabeled = base_e4()
         relabeled["target_profile"] = "amiga-m68k"
         relabeled_path = root / "e4-relabeled.json"
