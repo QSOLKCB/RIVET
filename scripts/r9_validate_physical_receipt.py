@@ -7,6 +7,49 @@ from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 
+WINDOWS_CPU_MIN_GENERATION = {
+    "Windows 95": 3,
+    "Windows 98": 4,
+    "Windows Me": 5,
+}
+
+WINDOWS_CPU_GENERATION_PATTERNS = (
+    (
+        3,
+        re.compile(
+            r"(?i)(?:(?:intel\s+)?"
+            r"(?:(?:80|i)?386(?:dx|sx)?)|"
+            r"(?:amd\s+)?am386(?:dx|sx)?)"
+        ),
+    ),
+    (
+        4,
+        re.compile(
+            r"(?i)(?:(?:intel\s+)?"
+            r"(?:(?:80|i)?486(?:dx(?:2|4)?|sx)?)|"
+            r"(?:amd\s+)?am486(?:dx(?:2|4)?|sx)?)"
+        ),
+    ),
+    (
+        5,
+        re.compile(
+            r"(?i)(?:(?:intel\s+)?"
+            r"(?:i586|pentium(?:\s+mmx)?)|"
+            r"(?:amd\s+)?k[56](?:-[23])?|"
+            r"cyrix\s+6x86)"
+        ),
+    ),
+    (
+        6,
+        re.compile(
+            r"(?i)(?:(?:intel\s+)?"
+            r"(?:i686|pentium\s+(?:pro|ii|iii|4)|celeron)|"
+            r"(?:amd\s+)?(?:athlon(?:\s+xp)?|duron)|"
+            r"via\s+c3)"
+        ),
+    ),
+)
+
 TARGETS = {
     "windows9x-x86": {
         "pointer_bits": 32,
@@ -88,6 +131,22 @@ TARGETS = {
     },
 }
 
+def reject_duplicate_object(pairs):
+    result = {}
+    for key, value in pairs:
+        if key in result:
+            raise ValueError(
+                f"duplicate JSON field: {key}"
+            )
+        result[key] = value
+    return result
+
+def windows_cpu_generation(cpu_identity: str) -> int | None:
+    for generation, pattern in WINDOWS_CPU_GENERATION_PATTERNS:
+        if pattern.fullmatch(cpu_identity):
+            return generation
+    return None
+
 def require_identity(value: object, field: str) -> str:
     if not isinstance(value, str):
         raise ValueError(f"{field} must be a string")
@@ -151,8 +210,16 @@ def main() -> int:
 
     path = Path(args.receipt)
     try:
-        data = json.loads(path.read_text(encoding="utf-8"))
-    except (OSError, UnicodeError, json.JSONDecodeError) as exc:
+        data = json.loads(
+            path.read_text(encoding="utf-8"),
+            object_pairs_hook=reject_duplicate_object,
+        )
+    except (
+        OSError,
+        UnicodeError,
+        json.JSONDecodeError,
+        ValueError,
+    ) as exc:
         raise SystemExit(str(exc))
 
     try:
@@ -232,6 +299,21 @@ def main() -> int:
                 "hardware.cpu is incompatible with "
                 f"{target}"
             )
+        if target == "windows9x-x86":
+            cpu_generation = windows_cpu_generation(
+                cpu_identity
+            )
+            minimum_generation = (
+                WINDOWS_CPU_MIN_GENERATION[os_name]
+            )
+            if (
+                cpu_generation is None
+                or cpu_generation < minimum_generation
+            ):
+                raise ValueError(
+                    "hardware.cpu is below the minimum "
+                    f"for {os_name}"
+                )
         require_integer(
             hardware["memory_bytes"],
             "hardware.memory_bytes",
