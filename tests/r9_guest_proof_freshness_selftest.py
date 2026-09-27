@@ -141,7 +141,7 @@ def main() -> int:
     mac = MAC.read_text(encoding="utf-8")
     require_before(
         mac,
-        'hdel "RIVET-R9-RECEIPT.TXT"',
+        'hdel ":RIVET-R9-RECEIPT.TXT"',
         'timeout --signal=TERM --kill-after=20 "$TIMEOUT_SECONDS"',
         "Classic Mac freshness",
     )
@@ -151,6 +151,27 @@ def main() -> int:
             "Classic Mac harness must accept timeout "
             "kill-after status 137"
         )
+
+    for required in (
+        'hls ":RIVET-R9-RECEIPT.TXT"',
+        'hdel ":RIVET-R9-RECEIPT.TXT"',
+        'hcopy -m "$PAYLOAD" ":RIVETR9"',
+        'hcopy -t ":RIVET-R9-RECEIPT.TXT" "$PROOF"',
+    ):
+        if required not in mac:
+            raise SystemExit(
+                "Classic Mac HFS operand must be colon-qualified: "
+                + required
+            )
+    for forbidden in (
+        'hcopy -m "$PAYLOAD" "RIVETR9"',
+        'hcopy -t "RIVET-R9-RECEIPT.TXT" "$PROOF"',
+    ):
+        if forbidden in mac:
+            raise SystemExit(
+                "Classic Mac HFS operand lost its explicit colon: "
+                + forbidden
+            )
 
     amiga = AMIGA.read_text(encoding="utf-8")
     require_before(
