@@ -109,6 +109,29 @@ int memcmp(const void *left, const void *right, size_t count)
     return 0;
 }
 
+void *memmove(void *target, const void *source, size_t count)
+{
+    unsigned char *out = (unsigned char *)target;
+    const unsigned char *in = (const unsigned char *)source;
+    size_t i;
+
+    if (out == in || count == 0u) {
+        return target;
+    }
+    if (out < in) {
+        for (i = 0u; i < count; ++i) {
+            out[i] = in[i];
+        }
+    } else {
+        i = count;
+        while (i > 0u) {
+            --i;
+            out[i] = in[i];
+        }
+    }
+    return target;
+}
+
 static size_t text_length(const char *text)
 {
     size_t length = 0u;
