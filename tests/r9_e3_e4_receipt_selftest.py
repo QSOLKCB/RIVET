@@ -690,6 +690,14 @@ def main() -> int:
         write_json(sentinel_name_path, sentinel_name)
         assert validate_e4(sentinel_name_path).returncode != 0
 
+        sentinel_model = base_e4()
+        sentinel_model["hardware"]["model"] = (
+            "REPLACE-WITH-EXACT-MODEL"
+        )
+        sentinel_model_path = root / "e4-sentinel-model.json"
+        write_json(sentinel_model_path, sentinel_model)
+        assert validate_e4(sentinel_model_path).returncode != 0
+
         unnamed_attachment = base_e4()
         unnamed_attachment["attachments"][0]["name"] = ""
         unnamed_attachment_path = root / "e4-unnamed-attachment.json"
