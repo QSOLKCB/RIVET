@@ -143,6 +143,58 @@ def write_json(path: Path, data):
         encoding="utf-8",
     )
 
+def git_mktree(entries):
+    payload = "".join(
+        f"{mode} {kind} {sha}\t{name}\n"
+        for mode, kind, sha, name in entries
+    )
+    return subprocess.check_output(
+        ["git", "mktree"],
+        input=payload,
+        text=True,
+    ).strip()
+
+def zero_web1_source_commit():
+    empty_blob = subprocess.check_output(
+        ["git", "hash-object", "-w", "--stdin"],
+        input="",
+        text=True,
+    ).strip()
+    examples = git_mktree([
+        ("100644", "blob", empty_blob, "r8_browser_proof.c"),
+    ])
+    apps_browser = git_mktree([
+        ("100644", "blob", empty_blob, "browser.c"),
+    ])
+    apps = git_mktree([
+        ("040000", "tree", apps_browser, "browser"),
+    ])
+    include_rivet = git_mktree([
+        ("100644", "blob", empty_blob, "browser.h"),
+    ])
+    include = git_mktree([
+        ("040000", "tree", include_rivet, "rivet"),
+    ])
+    root = git_mktree([
+        ("040000", "tree", examples, "examples"),
+        ("040000", "tree", apps, "apps"),
+        ("040000", "tree", include, "include"),
+    ])
+    env = os.environ.copy()
+    env.update(
+        {
+            "GIT_AUTHOR_NAME": "RIVET self-test",
+            "GIT_AUTHOR_EMAIL": "rivet-selftest@example.invalid",
+            "GIT_COMMITTER_NAME": "RIVET self-test",
+            "GIT_COMMITTER_EMAIL": "rivet-selftest@example.invalid",
+        }
+    )
+    return subprocess.check_output(
+        ["git", "commit-tree", root, "-m", "zero WEB1 sources"],
+        text=True,
+        env=env,
+    ).strip()
+
 def main() -> int:
     with tempfile.TemporaryDirectory() as tmp:
         root = Path(tmp)
@@ -723,6 +775,18 @@ def main() -> int:
         write_json(mc68040_path, mc68040)
         validate_e4(mc68040_path, check=True)
 
+        lc040 = base_e4()
+        lc040["software_environment"]["os_version"] = "7.5.5"
+        lc040["hardware"] = {
+            "manufacturer": "Apple",
+            "model": "Macintosh LC 475",
+            "cpu": "Motorola 68LC040",
+            "memory_bytes": 8 * 1024 * 1024,
+        }
+        lc040_path = root / "e4-lc040.json"
+        write_json(lc040_path, lc040)
+        validate_e4(lc040_path, check=True)
+
         m68k_cpu_floor = base_e4()
         m68k_cpu_floor["software_environment"]["os_version"] = "8.1"
         m68k_cpu_floor["hardware"] = {
@@ -1249,6 +1313,16 @@ def main() -> int:
         write_json(pre_web1_source_path, pre_web1_source)
         assert validate_e4(pre_web1_source_path).returncode != 0
 
+        zero_source = zero_web1_source_commit()
+        zero_web1 = base_e4()
+        zero_web1["source_revision"] = zero_source
+        zero_web1["browser_proof"]["source"] = zero_source
+        zero_web1_path = root / "e4-zero-web1-blobs.json"
+        write_json(zero_web1_path, zero_web1)
+        result = validate_e4(zero_web1_path)
+        assert result.returncode != 0
+        assert "does not contain frozen WEB1 blob" in result.stderr
+
         nonexistent_source = base_e4()
         nonexistent_source["source_revision"] = "f" * 40
         nonexistent_source["browser_proof"]["source"] = "f" * 40
@@ -1261,6 +1335,22 @@ def main() -> int:
         wrong_source_path = root / "e4-wrong-source.json"
         write_json(wrong_source_path, wrong_source)
         assert validate_e4(wrong_source_path).returncode != 0
+
+        controlled_manufacturer = base_e4()
+        controlled_manufacturer["hardware"]["manufacturer"] = "\nApple\n"
+        controlled_manufacturer_path = root / "e4-controlled-manufacturer.json"
+        write_json(controlled_manufacturer_path, controlled_manufacturer)
+        controlled_result = validate_e4(controlled_manufacturer_path)
+        assert controlled_result.returncode != 0
+        assert "contains control characters" in controlled_result.stderr
+
+        controlled_attachment = base_e4()
+        controlled_attachment["attachments"][0]["name"] = "\rreceipt.jpg\n"
+        controlled_attachment_path = root / "e4-controlled-attachment.json"
+        write_json(controlled_attachment_path, controlled_attachment)
+        controlled_attachment_result = validate_e4(controlled_attachment_path)
+        assert controlled_attachment_result.returncode != 0
+        assert "contains control characters" in controlled_attachment_result.stderr
 
         anonymous = base_e4()
         anonymous["hardware"]["manufacturer"] = ""

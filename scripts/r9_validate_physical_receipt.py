@@ -9,11 +9,14 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 
 MAX_RECEIPT_BYTES = 64 * 1024
 
-E4_REQUIRED_SOURCE_PATHS = (
-    "examples/r8_browser_proof.c",
-    "apps/browser/browser.c",
-    "include/rivet/browser.h",
-)
+E4_REQUIRED_SOURCE_BLOBS = {
+    "examples/r8_browser_proof.c":
+        "70b368992094b92bc7050ea36a393e46b7199bf2",
+    "apps/browser/browser.c":
+        "a808edfc81b71f3b624cce5fc395e64e024d0093",
+    "include/rivet/browser.h":
+        "a7b2eac03cf08a12cd0baba8c348b04bc7f113de",
+}
 
 TARGET_MEMORY_MAX_BYTES = {
     "windows9x-x86": 2 * 1024 * 1024 * 1024,
@@ -267,7 +270,7 @@ TARGETS = {
         "cpu_pattern": (
             r"(?i)(?:(?:motorola\s+)?m68k|"
             r"(?:motorola\s+)?(?:mc)?68"
-            r"(?:000|010|020|030|040|060))"
+            r"(?:000|010|060|(?:EC|LC)?(?:020|030|040)))"
         ),
     },
     "classic-mac-powerpc": {
@@ -327,7 +330,7 @@ def m68k_cpu_generation(cpu_identity: str) -> int | None:
         return 0
     match = re.fullmatch(
         r"(?i)(?:motorola\s+)?(?:mc)?68"
-        r"(?:(?:EC)?(?P<generation>020|030|040)|"
+        r"(?:(?:EC|LC)?(?P<generation>020|030|040)|"
         r"(?P<other>000|010|060))",
         cpu_identity,
     )
@@ -373,12 +376,12 @@ def reject_non_json_constant(value: str):
 def require_identity(value: object, field: str) -> str:
     if not isinstance(value, str):
         raise ValueError(f"{field} must be a string")
-    value = value.strip()
-    if not value or len(value) > 160:
-        raise ValueError(f"{field} must be 1..160 non-whitespace characters")
     if any(ord(ch) < 0x20 or ord(ch) == 0x7f for ch in value):
         raise ValueError(f"{field} contains control characters")
-    return value
+    normalized = value.strip()
+    if not normalized or len(normalized) > 160:
+        raise ValueError(f"{field} must be 1..160 non-whitespace characters")
+    return normalized
 
 def require_integer(
     value: object,
@@ -419,25 +422,30 @@ def require_git_commit(value: str) -> str:
         )
     return value
 
-def require_source_paths(value: str) -> None:
-    for source_path in E4_REQUIRED_SOURCE_PATHS:
+def require_source_blobs(value: str) -> None:
+    for source_path, expected_blob in E4_REQUIRED_SOURCE_BLOBS.items():
         result = subprocess.run(
             [
                 "git",
                 "-C",
                 str(REPO_ROOT),
-                "cat-file",
-                "-e",
+                "rev-parse",
+                "--verify",
                 f"{value}:{source_path}",
             ],
             check=False,
-            stdout=subprocess.DEVNULL,
+            stdout=subprocess.PIPE,
             stderr=subprocess.DEVNULL,
+            text=True,
         )
-        if result.returncode != 0:
+        actual_blob = result.stdout.strip()
+        if (
+            result.returncode != 0
+            or actual_blob != expected_blob
+        ):
             raise ValueError(
-                "source_revision does not contain required WEB1 "
-                f"proof implementation path: {source_path}"
+                "source_revision does not contain frozen WEB1 "
+                f"blob {expected_blob} at {source_path}"
             )
 
 def require_sha256(value: object, field: str) -> str:
@@ -487,7 +495,7 @@ def main() -> int:
         if source == "0" * 40:
             raise ValueError("source_revision must not be the Git null OID")
         require_git_commit(source)
-        require_source_paths(source)
+        require_source_blobs(source)
 
         software = data.get("software_environment")
         if not isinstance(software, dict):

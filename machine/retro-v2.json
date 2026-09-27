@@ -163,7 +163,7 @@
         "os_version_patterns": {
           "Classic Mac OS": "^(?:6\\.[0-9]+(?:\\.[0-9]+)?|7\\.[0-9]+(?:\\.[0-9]+)?|8\\.[01](?:\\.[0-9]+)?)$"
         },
-        "cpu_pattern": "(?i)(?:(?:motorola\\s+)?m68k|(?:motorola\\s+)?(?:mc)?68(?:000|010|020|030|040|060))",
+        "cpu_pattern": "(?i)(?:(?:motorola\\s+)?m68k|(?:motorola\\s+)?(?:mc)?68(?:000|010|060|(?:EC|LC)?(?:020|030|040)))",
         "allowed_os_versions": [
           "6.0",
           "6.0.1",
@@ -219,7 +219,12 @@
           "8.1": "68040"
         },
         "cpu_generation_rule": "hardware.cpu must meet the selected Classic Mac OS release floor",
-        "maximum_memory_bytes": 268435456
+        "maximum_memory_bytes": 268435456,
+        "canonical_m68k_identities": [
+          "MC68040",
+          "Motorola MC68040",
+          "Motorola 68LC040"
+        ]
       },
       "classic-mac-powerpc": {
         "os_names": [
@@ -350,7 +355,8 @@
     },
     "rule": "physical evidence is bound to target-compatible CPU architecture, exact OS version family, and API identity",
     "cpu_identity_rule": "the entire hardware.cpu string must fully match one target-compatible physical CPU identity; mixed host/emulator descriptions are invalid",
-    "memory_ceiling_rule": "hardware.memory_bytes must not exceed the selected target's realizable historical envelope"
+    "memory_ceiling_rule": "hardware.memory_bytes must not exceed the selected target's realizable historical envelope",
+    "identity_control_rule": "identity and evidence-name strings are inspected for C0/DEL control characters before whitespace trimming"
   },
   "windows9x_payload_runtime": {
     "entrypoint": "mainCRTStartup",
@@ -386,12 +392,12 @@
     "forbidden_hardware_identity_prefixes": [
       "REPLACE-WITH-"
     ],
-    "source_revision_required_paths": [
-      "examples/r8_browser_proof.c",
-      "apps/browser/browser.c",
-      "include/rivet/browser.h"
-    ],
-    "source_revision_proof_rule": "the E4 source revision must contain the frozen WEB1 proof entrypoint, browser implementation, and public browser header"
+    "source_revision_proof_rule": "the E4 source revision must resolve each required WEB1 path to the exact frozen Git blob identity",
+    "source_revision_required_blobs": {
+      "examples/r8_browser_proof.c": "70b368992094b92bc7050ea36a393e46b7199bf2",
+      "apps/browser/browser.c": "a808edfc81b71f3b624cce5fc395e64e024d0093",
+      "include/rivet/browser.h": "a7b2eac03cf08a12cd0baba8c348b04bc7f113de"
+    }
   },
   "e3_windows_identity": {
     "required_identity_lines": 1,
