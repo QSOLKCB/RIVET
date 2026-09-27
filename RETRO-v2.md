@@ -39,6 +39,8 @@ The payload embeds:
 - pointer width;
 - byte order.
 
+Every E3 receipt also requires that source revision to resolve to an actual commit in the RIVET checkout.
+
 It must reproduce:
 
 ```text
@@ -101,6 +103,8 @@ Payloads are built with the Retro68 cross-toolchain from current RIVET sources.
 
 The m68k payload is a Classic Mac APPL built for 68k. The PowerPC payload is a Classic Mac PEF/APPL.
 
+Both Classic Mac payloads query the running guest with the real Classic Mac `Gestalt(gestaltSystemVersion, ...)` API and append exactly one `rivet-r9-os` identity line. E3 validation requires that runtime version to match the selected Classic Mac target envelope; a CPU-compatible proof without this Toolbox-derived OS witness cannot mint E3 evidence.
+
 Harness:
 
 - user-supplied bootable HFS disk image;
@@ -126,7 +130,8 @@ Payload:
 - m68k AmigaOS executable;
 - built from current RIVET sources with the maintained Amiga GCC toolchain;
 - 68020 baseline;
-- frozen WEB1 proof linked locally.
+- frozen WEB1 proof linked locally;
+- runtime OS witness reads the live ExecBase version and opens `dos.library` in the guest, retaining Exec/DOS versions in a `rivet-r9-os` identity line.
 
 Harness:
 
@@ -150,7 +155,7 @@ rivet.retro-e3-receipt/v1
 
 The receipt binds:
 
-- exact source revision;
+- exact source revision that resolves to a RIVET commit;
 - exact target profile;
 - E3 evidence class;
 - emulator identity;
@@ -158,9 +163,10 @@ The receipt binds:
 - optional/required ROM SHA-256;
 - payload SHA-256;
 - exact frozen WEB1 proof;
+- target-specific runtime guest OS identity;
 - result.
 
-A harness file existing in the repository is **not** an E3 pass. Only a retained passing receipt from guest execution is E3 evidence.
+A harness file existing in the repository is **not** an E3 pass. Only a retained passing receipt from guest execution is E3 evidence. Windows requires its validated `VER` identity, Classic Mac requires a Gestalt-derived system version, and Amiga requires live Exec/DOS library versions. CPU-family execution alone is never promoted to an OS-family E3 claim.
 
 ## Physical hardware E4
 
@@ -210,7 +216,7 @@ R9 implementation machinery is complete when:
 - Classic Mac PowerPC E3 harness is source-bound and validated;
 - Amiga m68k E3 harness is source-bound and validated;
 - physical E4 receipt validation exists;
-- merged R1-R9-v1 source is frozen by CI.
+- merged R1-R9-v1 source is frozen by CI using the complete baseline-to-HEAD changed-path set; newly added frozen-surface paths are rejected unless explicitly allowlisted as R9-v2 evidence machinery.
 
 Platform-support claims remain evidence-dependent. A target stays unclaimed until its passing E3 or E4 receipt is actually retained.
 
