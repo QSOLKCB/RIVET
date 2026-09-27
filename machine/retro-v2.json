@@ -90,7 +90,7 @@
           "Windows 98": "^4\\.10(?:\\.[0-9A-Za-z]+)*$",
           "Windows Me": "^4\\.90(?:\\.[0-9A-Za-z]+)*$"
         },
-        "cpu_pattern": "(?i)(?:\\bx86\\b|\\b(?:(?:80|i)?386(?:dx|sx)?|(?:80|i)?486(?:dx(?:2|4)?|sx)?)\\b|\\bi[5-6]86\\b|\\bpentium(?:\\s+(?:pro|ii|iii|4|mmx))?\\b|\\bceleron\\b|\\bathlon(?:\\s+xp)?\\b|\\bduron\\b|\\bk[56](?:-[23])?\\b|\\bcyrix\\s+6x86\\b|\\bvia\\s+c3\\b)"
+        "cpu_pattern": "(?i)(?:(?:intel\\s+)?(?:x86|(?:80|i)?386(?:dx|sx)?|(?:80|i)?486(?:dx(?:2|4)?|sx)?|i[5-6]86|pentium(?:\\s+(?:pro|ii|iii|4|mmx))?|celeron)|(?:amd\\s+)?(?:athlon(?:\\s+xp)?|duron|k[56](?:-[23])?)|cyrix\\s+6x86|via\\s+c3)"
       },
       "classic-mac-m68k": {
         "os_names": [
@@ -100,7 +100,7 @@
         "os_version_patterns": {
           "Classic Mac OS": "^(?:6\\.[0-9]+(?:\\.[0-9]+)?|7\\.[0-9]+(?:\\.[0-9]+)?|8\\.[01](?:\\.[0-9]+)?)$"
         },
-        "cpu_pattern": "(?i)(?:m68k|(?:motorola\\s+)?68(?:000|010|020|030|040|060))"
+        "cpu_pattern": "(?i)(?:(?:motorola\\s+)?m68k|(?:motorola\\s+)?68(?:000|010|020|030|040|060))"
       },
       "classic-mac-powerpc": {
         "os_names": [
@@ -110,7 +110,7 @@
         "os_version_patterns": {
           "Classic Mac OS": "^(?:7\\.[0-9]+(?:\\.[0-9]+)?|8\\.[0-9]+(?:\\.[0-9]+)?|9\\.[0-9]+(?:\\.[0-9]+)?)$"
         },
-        "cpu_pattern": "(?i)(?:powerpc|\\bppc\\b|\\b60[134]\\b|\\b750\\b|\\bg[34]\\b)"
+        "cpu_pattern": "(?i)(?:(?:(?:motorola|ibm|apple)\\s+)?(?:powerpc|ppc)(?:\\s+(?:601|603|604|750|g3|g4))?|(?:601|603|604|750|g3|g4))"
       },
       "amiga-m68k": {
         "os_names": [
@@ -120,10 +120,11 @@
         "os_version_patterns": {
           "AmigaOS": "^[1-3]\\.[0-9]+(?:\\.[0-9]+)?$"
         },
-        "cpu_pattern": "(?i)(?:m68k|(?:motorola\\s+)?68(?:000|010|020|030|040|060))"
+        "cpu_pattern": "(?i)(?:(?:motorola\\s+)?m68k|(?:motorola\\s+)?68(?:000|010|020|030|040|060))"
       }
     },
-    "rule": "physical evidence is bound to target-compatible CPU architecture, exact OS version family, and API identity"
+    "rule": "physical evidence is bound to target-compatible CPU architecture, exact OS version family, and API identity",
+    "cpu_identity_rule": "the entire hardware.cpu string must fully match one target-compatible physical CPU identity; mixed host/emulator descriptions are invalid"
   },
   "windows9x_payload_runtime": {
     "entrypoint": "mainCRTStartup",
