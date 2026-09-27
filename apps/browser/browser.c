@@ -933,6 +933,12 @@ static void browser_invalidate_loaded(
 )
 {
     browser->loaded = 0;
+    browser->document.source = NULL;
+    browser->document.source_bytes = 0u;
+    browser->document.nodes = NULL;
+    browser->document.node_capacity = 0u;
+    browser->document.node_count = 0u;
+    browser->document.requirements = 0u;
     browser->document_bytes = 0u;
     browser->rule_count = 0u;
     browser->box_count = 0u;
@@ -2562,6 +2568,15 @@ rivet_result rivet_browser_render(
         bounds.height >
             surface->height -
             (unsigned long)bounds.y) {
+        return RIVET_ERR_INVALID_ARGUMENT;
+    }
+
+    if (browser_byte_ranges_overlap(
+            (const unsigned char *)
+                (const void *)surface,
+            sizeof(*surface),
+            surface->pixels,
+            surface->buffer_bytes)) {
         return RIVET_ERR_INVALID_ARGUMENT;
     }
 
