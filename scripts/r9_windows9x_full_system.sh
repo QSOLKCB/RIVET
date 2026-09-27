@@ -72,7 +72,7 @@ timeout --signal=TERM --kill-after=20 "$TIMEOUT_SECONDS"   qemu-system-i386     
 QEMU_STATUS=$?
 set -e
 
-if [[ $QEMU_STATUS -ne 0 && $QEMU_STATUS -ne 124 ]]; then
+if [[ $QEMU_STATUS -ne 0 && $QEMU_STATUS -ne 124 && $QEMU_STATUS -ne 137 ]]; then
   echo "Windows 9x QEMU exited unexpectedly: $QEMU_STATUS" >&2
   exit "$QEMU_STATUS"
 fi
