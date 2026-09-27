@@ -1,18 +1,19 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-if [[ $# -lt 6 || $# -gt 7 ]]; then
-  echo "usage: $0 GUEST_IMAGE GUEST_PARTITION WINDOWS_DIRECTORY PAYLOAD SOURCE_REVISION TIMEOUT_SECONDS [OUT_DIR]" >&2
+if [[ $# -lt 7 || $# -gt 8 ]]; then
+  echo "usage: $0 GUEST_IMAGE GUEST_PARTITION DOS_DRIVE WINDOWS_DIRECTORY PAYLOAD SOURCE_REVISION TIMEOUT_SECONDS [OUT_DIR]" >&2
   exit 2
 fi
 
 SOURCE_IMAGE="$1"
 GUEST_PARTITION="$2"
-WINDOWS_DIRECTORY="$3"
-PAYLOAD="$4"
-SOURCE_REVISION="$5"
-TIMEOUT_SECONDS="$6"
-OUT_DIR="${7:-build/r9-windows9x}"
+DOS_DRIVE="$3"
+WINDOWS_DIRECTORY="$4"
+PAYLOAD="$5"
+SOURCE_REVISION="$6"
+TIMEOUT_SECONDS="$7"
+OUT_DIR="${8:-build/r9-windows9x}"
 GUEST="$OUT_DIR/windows9x.qcow2"
 RUN_BAT="$OUT_DIR/RUN-R9.BAT"
 WINSTART="$OUT_DIR/WINSTART.BAT"
@@ -28,7 +29,13 @@ done
 
 [[ "$SOURCE_REVISION" =~ ^[0-9a-f]{40}$ ]] || exit 2
 [[ "$TIMEOUT_SECONDS" =~ ^[0-9]+$ ]] || exit 2
+[[ "$DOS_DRIVE" =~ ^[A-Za-z]:$ ]] || {
+  echo "DOS drive must look like C: or D:" >&2
+  exit 2
+}
 [[ -f "$SOURCE_IMAGE" && -f "$PAYLOAD" ]] || exit 2
+
+DOS_DRIVE="${DOS_DRIVE^^}"
 
 mkdir -p "$OUT_DIR"
 qemu-img convert -p -O qcow2 "$SOURCE_IMAGE" "$GUEST"
