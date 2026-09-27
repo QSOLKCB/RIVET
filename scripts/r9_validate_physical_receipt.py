@@ -7,6 +7,30 @@ from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 
+CLASSIC_MAC_POWERPC_RELEASES = {
+    "7.1.2",
+    "7.5",
+    "7.5.1",
+    "7.5.2",
+    "7.5.3",
+    "7.5.5",
+    "7.6",
+    "7.6.1",
+    "8.0",
+    "8.1",
+    "8.5",
+    "8.5.1",
+    "8.6",
+    "9.0",
+    "9.0.2",
+    "9.0.3",
+    "9.0.4",
+    "9.1",
+    "9.2",
+    "9.2.1",
+    "9.2.2",
+}
+
 WINDOWS_CPU_MIN_GENERATION = {
     "Windows 95": 3,
     "Windows 98": 4,
@@ -106,11 +130,7 @@ TARGETS = {
         "os_names": {"Classic Mac OS"},
         "os_versions": {
             "Classic Mac OS": (
-                r"^(?:7\.(?:"
-                r"1\.(?:[2-9]|[1-9][0-9]+)|"
-                r"[2-9](?:\.[0-9]+)?)|"
-                r"8\.[0-9]+(?:\.[0-9]+)?|"
-                r"9\.[0-9]+(?:\.[0-9]+)?)$"
+                r"^[0-9]+\.[0-9]+(?:\.[0-9]+)?$"
             ),
         },
         "api": "Mac OS Toolbox",
@@ -283,6 +303,14 @@ def main() -> int:
             raise ValueError(
                 "software_environment.os_version does not match "
                 f"{target}/{os_name}"
+            )
+        if (
+            target == "classic-mac-powerpc"
+            and os_version not in CLASSIC_MAC_POWERPC_RELEASES
+        ):
+            raise ValueError(
+                "software_environment.os_version is not a "
+                "published Classic Mac OS PowerPC release"
             )
 
         hardware = data.get("hardware")
