@@ -45,14 +45,20 @@ def windows_9x_identity(text: str) -> str:
         "(4.00/4.10/4.90) not found"
     )
 
-def validate_label(value: str) -> str:
-    if not value or len(value) > 160:
+def validate_identity(
+    value: str,
+    field: str,
+    maximum: int = 240,
+) -> str:
+    value = value.strip()
+    if not value or len(value) > maximum:
         raise ValueError(
-            "R9 E3 receipt: guest media label must be 1..160 characters"
+            f"R9 E3 receipt: {field} must be 1..{maximum} "
+            "non-whitespace characters"
         )
     if any(ord(ch) < 0x20 or ord(ch) == 0x7f for ch in value):
         raise ValueError(
-            "R9 E3 receipt: guest media label contains control characters"
+            f"R9 E3 receipt: {field} contains control characters"
         )
     return value
 
@@ -105,7 +111,15 @@ def main() -> int:
             errors="strict",
         )
         proof = parse_proof(proof_path)
-        media_label = validate_label(args.guest_media_label)
+        media_label = validate_identity(
+            args.guest_media_label,
+            "guest media label",
+            160,
+        )
+        emulator_identity = validate_identity(
+            args.emulator,
+            "emulator identity",
+        )
         guest_os_identity = (
             windows_9x_identity(proof_text)
             if args.target_profile == "windows9x-x86"
@@ -140,7 +154,7 @@ def main() -> int:
         "target_profile": args.target_profile,
         "evidence_class": "E3",
         "execution": "full-system-emulation",
-        "emulator": args.emulator,
+        "emulator": emulator_identity,
         "guest_media": {
             "label": media_label,
             "sha256": args.guest_media_sha256,
