@@ -16,14 +16,16 @@ TARGETS = {
         },
         "api": "Win32",
         "cpu_pattern": (
-            r"(?i)(?:\bx86\b|"
-            r"\b(?:(?:80|i)?386(?:dx|sx)?|"
-            r"(?:80|i)?486(?:dx(?:2|4)?|sx)?)\b|"
-            r"\bi[5-6]86\b|\bpentium(?:\s+"
-            r"(?:pro|ii|iii|4|mmx))?\b|\bceleron\b|"
-            r"\bathlon(?:\s+xp)?\b|\bduron\b|"
-            r"\bk[56](?:-[23])?\b|\bcyrix\s+6x86\b|"
-            r"\bvia\s+c3\b)"
+            r"(?i)(?:"
+            r"(?:intel\s+)?(?:x86|"
+            r"(?:80|i)?386(?:dx|sx)?|"
+            r"(?:80|i)?486(?:dx(?:2|4)?|sx)?|"
+            r"i[5-6]86|pentium(?:\s+"
+            r"(?:pro|ii|iii|4|mmx))?|celeron)|"
+            r"(?:amd\s+)?(?:athlon(?:\s+xp)?|"
+            r"duron|k[56](?:-[23])?)|"
+            r"cyrix\s+6x86|via\s+c3"
+            r")"
         ),
     },
     "classic-mac-m68k": {
@@ -39,8 +41,9 @@ TARGETS = {
         },
         "api": "Mac OS Toolbox",
         "cpu_pattern": (
-            r"(?i)(?:m68k|(?:motorola\s+)?"
-            r"68(?:000|010|020|030|040|060))"
+            r"(?i)(?:(?:motorola\s+)?m68k|"
+            r"(?:motorola\s+)?68"
+            r"(?:000|010|020|030|040|060))"
         ),
     },
     "classic-mac-powerpc": {
@@ -56,8 +59,10 @@ TARGETS = {
         },
         "api": "Mac OS Toolbox",
         "cpu_pattern": (
-            r"(?i)(?:powerpc|\bppc\b|\b60[134]\b|"
-            r"\b750\b|\bg[34]\b)"
+            r"(?i)(?:(?:(?:motorola|ibm|apple)\s+)?"
+            r"(?:powerpc|ppc)(?:\s+"
+            r"(?:601|603|604|750|g3|g4))?|"
+            r"(?:601|603|604|750|g3|g4))"
         ),
     },
     "amiga-m68k": {
@@ -69,8 +74,9 @@ TARGETS = {
         },
         "api": "AmigaOS",
         "cpu_pattern": (
-            r"(?i)(?:m68k|(?:motorola\s+)?"
-            r"68(?:000|010|020|030|040|060))"
+            r"(?i)(?:(?:motorola\s+)?m68k|"
+            r"(?:motorola\s+)?68"
+            r"(?:000|010|020|030|040|060))"
         ),
     },
 }
@@ -175,7 +181,7 @@ def main() -> int:
         for field in ("manufacturer", "model", "cpu"):
             require_identity(hardware[field], f"hardware.{field}")
         cpu_identity = hardware["cpu"].strip()
-        if re.search(
+        if re.fullmatch(
             target_contract["cpu_pattern"],
             cpu_identity,
         ) is None:
