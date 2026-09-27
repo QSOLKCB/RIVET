@@ -12,6 +12,7 @@ SOURCE = subprocess.check_output(
 ).strip()
 E4_SOURCE = SOURCE
 NONEXISTENT_SOURCE = "f" * 40
+PRE_PAYLOAD_SOURCE = "7d260e0671c5d089b25d6075ab1b66fb0886c99e"
 GUEST_LINE = (
     "rivet-r9-guest: target=windows9x-x86 "
     f"source={SOURCE} pointer_bits=32 endian=little "
@@ -253,6 +254,26 @@ def main() -> int:
         assert result.returncode != 0
         assert not null_source_output.exists()
 
+        pre_payload_proof = root / "proof-pre-payload-source.txt"
+        pre_payload_proof.write_text(
+            GUEST_LINE.replace(
+                SOURCE,
+                PRE_PAYLOAD_SOURCE,
+            ) + "\n" +
+            "proof_exit=0\n" +
+            "startup_stage=winstart\n" +
+            WIN98_VER + "\n",
+            encoding="utf-8",
+        )
+        pre_payload_output = root / "pre-payload-source.json"
+        result = run_e3(
+            pre_payload_proof,
+            pre_payload_output,
+            source_revision=PRE_PAYLOAD_SOURCE,
+        )
+        assert result.returncode != 0
+        assert not pre_payload_output.exists()
+
         ambiguous = root / "proof-multiple-lines.txt"
         ambiguous.write_text(
             GUEST_LINE + "\n" +
@@ -453,6 +474,55 @@ def main() -> int:
         assert result.returncode != 0
         assert not mac_without_rom.exists()
 
+        mac_system6_proof = root / "proof-mac-system6.txt"
+        mac_system6_proof.write_text(
+            MAC_M68K_GUEST_LINE + "\n" +
+            "rivet-r9-os: target=classic-mac-m68k "
+            "os=classic-mac-os version=6.0.8 api=toolbox\n",
+            encoding="utf-8",
+        )
+        mac_system6_output = root / "mac-system6.json"
+        result = subprocess.run(
+            [
+                sys.executable,
+                "scripts/r9_e3_receipt.py",
+                "--proof", str(mac_system6_proof),
+                "--output", str(mac_system6_output),
+                "--target-profile", "classic-mac-m68k",
+                "--source-revision", SOURCE,
+                "--emulator", "QEMU q800",
+                "--guest-media-sha256", "1" * 64,
+                "--guest-media-label", "System 6.0.8 test media",
+                "--payload-sha256", "2" * 64,
+                "--rom-sha256", "4" * 64,
+            ],
+            check=False,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+        )
+        assert result.returncode != 0
+        assert not mac_system6_output.exists()
+
+        mac_m68k_with_rom = root / "mac-m68k-with-rom.json"
+        subprocess.run(
+            [
+                sys.executable,
+                "scripts/r9_e3_receipt.py",
+                "--proof", str(mac_m68k_proof),
+                "--output", str(mac_m68k_with_rom),
+                "--target-profile", "classic-mac-m68k",
+                "--source-revision", SOURCE,
+                "--emulator", "QEMU q800",
+                "--guest-media-sha256", "1" * 64,
+                "--guest-media-label", "Classic Mac OS 7.6.1 test",
+                "--payload-sha256", "2" * 64,
+                "--rom-sha256", "4" * 64,
+            ],
+            check=True,
+        )
+        assert mac_m68k_with_rom.exists()
+
         mac_ppc_proof = root / "proof-mac-ppc.txt"
         mac_ppc_proof.write_text(
             MAC_PPC_GUEST_LINE + "\n" +
@@ -601,6 +671,25 @@ def main() -> int:
         ppc7400_path = root / "e4-powerpc-7400.json"
         write_json(ppc7400_path, ppc7400)
         validate_e4(ppc7400_path, check=True)
+
+        ppc_nonexistent_release = json.loads(
+            json.dumps(ppc7400)
+        )
+        ppc_nonexistent_release["software_environment"][
+            "os_version"
+        ] = "9.99.99"
+        ppc_nonexistent_release_path = (
+            root / "e4-powerpc-nonexistent-release.json"
+        )
+        write_json(
+            ppc_nonexistent_release_path,
+            ppc_nonexistent_release,
+        )
+        assert (
+            validate_e4(
+                ppc_nonexistent_release_path
+            ).returncode != 0
+        )
 
         ppc_pre_floor = base_e4()
         ppc_pre_floor["target_profile"] = "classic-mac-powerpc"
