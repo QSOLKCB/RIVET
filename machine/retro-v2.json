@@ -100,7 +100,7 @@
         "os_version_patterns": {
           "Classic Mac OS": "^(?:6\\.[0-9]+(?:\\.[0-9]+)?|7\\.[0-9]+(?:\\.[0-9]+)?|8\\.[01](?:\\.[0-9]+)?)$"
         },
-        "cpu_pattern": "(?i)(?:(?:motorola\\s+)?m68k|(?:motorola\\s+)?68(?:000|010|020|030|040|060))"
+        "cpu_pattern": "(?i)(?:(?:motorola\\s+)?m68k|(?:motorola\\s+)?(?:mc)?68(?:000|010|020|030|040|060))"
       },
       "classic-mac-powerpc": {
         "os_names": [
@@ -120,7 +120,7 @@
         "os_version_patterns": {
           "AmigaOS": "^[1-3]\\.[0-9]+(?:\\.[0-9]+)?$"
         },
-        "cpu_pattern": "(?i)(?:(?:motorola\\s+)?m68k|(?:motorola\\s+)?68(?:000|010|020|030|040|060))"
+        "cpu_pattern": "(?i)(?:(?:motorola\\s+)?m68k|(?:motorola\\s+)?(?:mc)?68(?:000|010|020|030|040|060))"
       }
     },
     "rule": "physical evidence is bound to target-compatible CPU architecture, exact OS version family, and API identity",
@@ -143,5 +143,14 @@
       137
     ],
     "rule": "timeout status is not evidence; fresh guest proof validation remains mandatory"
+  },
+  "e3_windows_proof_exit": {
+    "required_marker": "proof_exit=0",
+    "rule": "exactly one successful Windows guest proof exit marker is required before E3 evidence can be minted"
+  },
+  "e4_provenance_sentinels": {
+    "forbidden_source_revision": "0000000000000000000000000000000000000000",
+    "forbidden_attachment_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+    "rule": "placeholder/null provenance identifiers cannot satisfy exact-source or attachment evidence requirements"
   }
 }
