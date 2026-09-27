@@ -21,7 +21,7 @@
      RIVET_GFX_PIXEL_BYTES)
 #define EXPECTED_DOCUMENT_FNV1A64 0x75be6cc92698ac1aULL
 #define EXPECTED_SOURCE_FNV1A64 0x5cf7c63a1fa3d9b4ULL
-#define RECEIPT_PATH "C:\\RIVET-R9\\RECEIPT.TXT"
+#define RECEIPT_PATH "RECEIPT.TXT"
 
 typedef struct proof_resource {
     const unsigned char *url;
