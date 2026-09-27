@@ -154,7 +154,12 @@
   "e4_provenance_sentinels": {
     "forbidden_source_revision": "0000000000000000000000000000000000000000",
     "forbidden_attachment_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
-    "rule": "placeholder/null provenance identifiers cannot satisfy exact-source or attachment evidence requirements"
+    "rule": "placeholder/null provenance identifiers cannot satisfy exact-source or attachment evidence requirements",
+    "source_revision_must_resolve_to_commit": true,
+    "source_revision_resolution": "git cat-file -e <sha>^{commit} in the RIVET checkout",
+    "forbidden_attachment_name_prefixes": [
+      "REPLACE-WITH-"
+    ]
   },
   "e3_windows_identity": {
     "required_identity_lines": 1,
@@ -169,5 +174,12 @@
       "rom_sha256"
     ],
     "rule": "all-zero placeholder digests cannot bind E3 media, payloads or ROMs"
+  },
+  "windows9x_guest_location": {
+    "dos_drive_required": true,
+    "dos_drive_pattern": "^[A-Za-z]:$",
+    "injected_directory": "\\\\RIVET-R9",
+    "payload_receipt_path": "RECEIPT.TXT",
+    "rule": "the selected guest partition and DOS drive are supplied explicitly; WINSTART and RUN-R9 use that drive and the payload writes its receipt relative to the selected drive working directory"
   }
 }
