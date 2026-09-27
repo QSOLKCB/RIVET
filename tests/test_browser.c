@@ -492,6 +492,14 @@ static int test_browser_flow(void)
         &config,
         &storage,
         120ul) == RIVET_OK);
+    CHECK(browser.document.source == NULL);
+    CHECK(browser.document.nodes == NULL);
+    CHECK(browser.document.source_bytes == 0u);
+    CHECK(browser.document.node_capacity == 0u);
+    CHECK(browser.document.node_count == 0u);
+    CHECK(browser.document.requirements == 0u);
+    CHECK(!browser.loaded);
+    CHECK(!browser.source_mode);
     CHECK(rivet_browser_home(
         &browser) == RIVET_OK);
     CHECK(browser.loaded);
