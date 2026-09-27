@@ -1,0 +1,576 @@
+{
+  "schema": "rivet.retro/v2",
+  "version": 2,
+  "supersedes": "rivet.retro/v1",
+  "authority": "RETRO-v2.md",
+  "framework_abi": false,
+  "frozen_stack": {
+    "through_phase": "R9-v1",
+    "merge_commit": "7d260e0671c5d089b25d6075ab1b66fb0886c99e",
+    "browser_contract": "rivet.browser.web1/v1",
+    "retro_v1_contract": "rivet.retro/v1"
+  },
+  "guest_proof": {
+    "source": "evidence/r9_guest_browser_proof.c",
+    "schema": "rivet-r9-guest-line/v1",
+    "document_fnv1a64": "75be6cc92698ac1a",
+    "source_fnv1a64": "5cf7c63a1fa3d9b4",
+    "history": 2,
+    "bookmarks": 1,
+    "fetches": 4,
+    "downloads": 1,
+    "source_revision_embedded": true,
+    "local_parsing_layout_rendering_required": true,
+    "single_proof_line_required": true,
+    "null_source_revision_forbidden": true,
+    "single_proof_line_rule": "exactly one line with the rivet-r9-guest: prefix is permitted; malformed duplicate-prefixed lines are invalid evidence",
+    "source_revision_must_resolve_to_commit": true,
+    "source_revision_resolution": "git cat-file -e <sha>^{commit} in the RIVET checkout",
+    "source_revision_must_contain_target_payload": true,
+    "target_required_source_paths": {
+      "windows9x-x86": [
+        "evidence/r9_win9x_browser_proof.c",
+        "scripts/r9_build_windows9x_payload.sh"
+      ],
+      "classic-mac-m68k": [
+        "evidence/r9_guest_browser_proof.c",
+        "evidence/r9_classic_mac_os_identity.c",
+        "scripts/r9_build_classic_mac_payload.sh"
+      ],
+      "classic-mac-powerpc": [
+        "evidence/r9_guest_browser_proof.c",
+        "evidence/r9_classic_mac_os_identity.c",
+        "scripts/r9_build_classic_mac_payload.sh"
+      ],
+      "amiga-m68k": [
+        "evidence/r9_guest_browser_proof.c",
+        "evidence/r9_amiga_os_identity.c",
+        "scripts/r9_build_amiga_payload.sh"
+      ]
+    },
+    "source_revision_payload_rule": "the claimed source commit must resolve every target-specific payload source/build path to the exact frozen Git blob identity",
+    "max_proof_bytes": 65536,
+    "proof_size_rule": "guest-controlled proof input is read with a 65536-byte hard limit before UTF-8 decoding or parsing",
+    "target_required_source_blobs": {
+      "windows9x-x86": {
+        "evidence/r9_win9x_browser_proof.c": "7758623c70bf686ccecd8ff261d1c1fbbb0259f6",
+        "scripts/r9_build_windows9x_payload.sh": "f851ee04f410e06528f06bbfae3176f4f14eca36"
+      },
+      "classic-mac-m68k": {
+        "evidence/r9_guest_browser_proof.c": "96eca03a3062fab51f85e1d585149cc3cf309dce",
+        "evidence/r9_classic_mac_os_identity.c": "329c32517937a6a56f899d1f7febf70bedaff3ac",
+        "scripts/r9_build_classic_mac_payload.sh": "01954eca1a9a97cef71bb8969750df97b10fca9f"
+      },
+      "classic-mac-powerpc": {
+        "evidence/r9_guest_browser_proof.c": "96eca03a3062fab51f85e1d585149cc3cf309dce",
+        "evidence/r9_classic_mac_os_identity.c": "329c32517937a6a56f899d1f7febf70bedaff3ac",
+        "scripts/r9_build_classic_mac_payload.sh": "01954eca1a9a97cef71bb8969750df97b10fca9f"
+      },
+      "amiga-m68k": {
+        "evidence/r9_guest_browser_proof.c": "96eca03a3062fab51f85e1d585149cc3cf309dce",
+        "evidence/r9_amiga_os_identity.c": "80576a18ca63c0e193efb830080ae952276a0ffc",
+        "scripts/r9_build_amiga_payload.sh": "b1199f2d3eb87d91edd0dff3aa2c35fb7362471a"
+      }
+    }
+  },
+  "e3_targets": [
+    {
+      "id": "windows9x-x86",
+      "execution": "qemu-full-system",
+      "payload": "PE32 Win32 x86",
+      "media": "user-supplied-bootable-disk",
+      "media_sha256_required": true,
+      "rom_sha256_required": false,
+      "workflow": ".github/workflows/r9-windows9x.yml",
+      "state": "harness-ready-receipt-required"
+    },
+    {
+      "id": "classic-mac-m68k",
+      "execution": "qemu-full-system-q800",
+      "payload": "Retro68 m68k APPL MacBinary",
+      "media": "user-supplied-HFS-boot-disk",
+      "media_sha256_required": true,
+      "rom_sha256_required": true,
+      "workflow": ".github/workflows/r9-classic-mac.yml",
+      "state": "harness-ready-receipt-required"
+    },
+    {
+      "id": "classic-mac-powerpc",
+      "execution": "qemu-full-system-mac99",
+      "payload": "Retro68 PowerPC PEF/APPL MacBinary",
+      "media": "user-supplied-HFS-boot-disk",
+      "media_sha256_required": true,
+      "rom_sha256_required": false,
+      "workflow": ".github/workflows/r9-classic-mac.yml",
+      "state": "harness-ready-receipt-required"
+    },
+    {
+      "id": "amiga-m68k",
+      "execution": "fs-uae-full-system",
+      "payload": "AmigaOS m68k executable",
+      "cpu_baseline": "68020",
+      "media": "user-supplied-bootable-HDF",
+      "media_sha256_required": true,
+      "rom_sha256_required": true,
+      "workflow": ".github/workflows/r9-amiga.yml",
+      "state": "harness-ready-receipt-required"
+    }
+  ],
+  "e3_receipt_schema": "rivet.retro-e3-receipt/v1",
+  "e4_receipt_schema": "rivet.retro-e4-receipt/v1",
+  "e4_validator": "scripts/r9_validate_physical_receipt.py",
+  "media_redistributed_by_rivet": false,
+  "implementation_completion": "all-target-harnesses-and-receipt-validators-present",
+  "support_claim_rule": "target-support-remains-unclaimed-until-passing-target-specific-e3-or-e4-receipt-is-retained",
+  "e4_software_environment": {
+    "required_fields": [
+      "os_name",
+      "os_version",
+      "api"
+    ],
+    "target_requirements": {
+      "windows9x-x86": {
+        "os_names": [
+          "Windows 95",
+          "Windows 98",
+          "Windows Me"
+        ],
+        "api": "Win32",
+        "os_version_patterns": {
+          "Windows 95": "^4\\.00(?:\\.[0-9A-Za-z]+)*$",
+          "Windows 98": "^4\\.10(?:\\.[0-9A-Za-z]+)*$",
+          "Windows Me": "^4\\.90(?:\\.[0-9A-Za-z]+)*$"
+        },
+        "cpu_pattern": "(?i)(?:(?:intel\\s+)?(?:x86|(?:80|i)?386(?:dx|sx)?|(?:80|i)?486(?:dx(?:2|4)?|sx)?|i[5-6]86|pentium(?:\\s+(?:pro|ii|iii|4|mmx))?|celeron)|(?:amd\\s+)?(?:am386(?:dx|sx)?|am486(?:dx(?:2|4)?|sx)?|athlon(?:\\s+xp)?|duron|k[56](?:-[23])?)|cyrix\\s+6x86|via\\s+c3)",
+        "minimum_cpu_generation": {
+          "Windows 95": "386",
+          "Windows 98": "486",
+          "Windows Me": "Pentium-class"
+        },
+        "cpu_generation_rule": "accepted x86 CPU identity must meet the minimum generation for the selected Windows product",
+        "minimum_memory_bytes": {
+          "Windows 95": 4194304,
+          "Windows 98": 16777216,
+          "Windows Me": 33554432
+        },
+        "memory_floor_rule": "hardware.memory_bytes must meet the minimum RAM for the selected Windows product",
+        "allowed_os_versions": {
+          "Windows 95": [
+            "4.00.950",
+            "4.00.950A",
+            "4.00.950B",
+            "4.00.950C",
+            "4.00.1111",
+            "4.00.1212",
+            "4.00.1214"
+          ],
+          "Windows 98": [
+            "4.10.1998",
+            "4.10.2222",
+            "4.10.2222A"
+          ],
+          "Windows Me": [
+            "4.90.3000"
+          ]
+        },
+        "os_release_rule": "software_environment.os_version must be one of the explicit published consumer Windows 95/98/Me build identities",
+        "maximum_memory_bytes": 2147483648
+      },
+      "classic-mac-m68k": {
+        "os_names": [
+          "Classic Mac OS"
+        ],
+        "api": "Mac OS Toolbox",
+        "os_version_patterns": {
+          "Classic Mac OS": "^(?:6\\.[0-9]+(?:\\.[0-9]+)?|7\\.[0-9]+(?:\\.[0-9]+)?|8\\.[01](?:\\.[0-9]+)?)$"
+        },
+        "cpu_pattern": "(?i)(?:(?:motorola\\s+)?m68k|(?:motorola\\s+)?(?:mc)?68(?:000|010|060|(?:EC|LC)?(?:020|030|040)))",
+        "allowed_os_versions": [
+          "6.0",
+          "6.0.1",
+          "6.0.2",
+          "6.0.3",
+          "6.0.4",
+          "6.0.5",
+          "6.0.7",
+          "6.0.8",
+          "7.0",
+          "7.0.1",
+          "7.1",
+          "7.1.1",
+          "7.5",
+          "7.5.1",
+          "7.5.2",
+          "7.5.3",
+          "7.5.5",
+          "7.6",
+          "7.6.1",
+          "8.0",
+          "8.1"
+        ],
+        "os_release_rule": "the version must be an explicitly published Classic Mac OS m68k release; arbitrary numeric versions are invalid",
+        "minimum_memory_bytes": {
+          "6.0": 1048576,
+          "6.0.1": 1048576,
+          "6.0.2": 1048576,
+          "6.0.3": 1048576,
+          "6.0.4": 1048576,
+          "6.0.5": 1048576,
+          "6.0.7": 1048576,
+          "6.0.8": 1048576,
+          "7.0": 2097152,
+          "7.0.1": 2097152,
+          "7.1": 2097152,
+          "7.1.1": 2097152,
+          "7.5": 4194304,
+          "7.5.1": 4194304,
+          "7.5.2": 4194304,
+          "7.5.3": 4194304,
+          "7.5.5": 4194304,
+          "7.6": 8388608,
+          "7.6.1": 8388608,
+          "8.0": 12582912,
+          "8.1": 12582912
+        },
+        "memory_floor_rule": "hardware.memory_bytes must meet the minimum RAM for the selected Classic Mac OS m68k release",
+        "minimum_cpu_generation": {
+          "7.6": "68030",
+          "7.6.1": "68030",
+          "8.0": "68040",
+          "8.1": "68040"
+        },
+        "cpu_generation_rule": "hardware.cpu must meet the selected Classic Mac OS release floor",
+        "maximum_memory_bytes": 268435456,
+        "canonical_m68k_identities": [
+          "MC68040",
+          "Motorola MC68040",
+          "Motorola 68LC040"
+        ]
+      },
+      "classic-mac-powerpc": {
+        "os_names": [
+          "Classic Mac OS"
+        ],
+        "api": "Mac OS Toolbox",
+        "os_version_patterns": {
+          "Classic Mac OS": "^[0-9]+\\.[0-9]+(?:\\.[0-9]+)?$"
+        },
+        "cpu_pattern": "(?i)(?:(?:(?:motorola|ibm|apple)\\s+)?(?:powerpc|ppc)(?:\\s+(?:601|603e?|604e?|750|7400|g3|g4))?|(?:601|603e?|604e?|750|7400|g3|g4))",
+        "canonical_g4_identities": [
+          "PowerPC 7400",
+          "G4"
+        ],
+        "canonical_powerpc_identities": [
+          "PowerPC 603e",
+          "PowerPC 604e",
+          "PowerPC 7400",
+          "G4"
+        ],
+        "allowed_os_versions": [
+          "7.1.2",
+          "7.5",
+          "7.5.1",
+          "7.5.2",
+          "7.5.3",
+          "7.5.5",
+          "7.6",
+          "7.6.1",
+          "8.0",
+          "8.1",
+          "8.5",
+          "8.5.1",
+          "8.6",
+          "9.0",
+          "9.0.2",
+          "9.0.3",
+          "9.0.4",
+          "9.1",
+          "9.2",
+          "9.2.1",
+          "9.2.2"
+        ],
+        "os_release_rule": "the version must be an explicitly published Classic Mac OS PowerPC release; arbitrary numeric values such as 9.99.99 are invalid",
+        "minimum_memory_bytes": {
+          "7.1.2": 8388608,
+          "7.5": 8388608,
+          "7.5.1": 8388608,
+          "7.5.2": 8388608,
+          "7.5.3": 8388608,
+          "7.5.5": 8388608,
+          "7.6": 8388608,
+          "7.6.1": 8388608,
+          "8.0": 12582912,
+          "8.1": 12582912,
+          "8.5": 25165824,
+          "8.5.1": 25165824,
+          "8.6": 25165824,
+          "9.0": 33554432,
+          "9.0.2": 33554432,
+          "9.0.3": 33554432,
+          "9.0.4": 33554432,
+          "9.1": 33554432,
+          "9.2": 33554432,
+          "9.2.1": 33554432,
+          "9.2.2": 33554432
+        },
+        "memory_floor_rule": "hardware.memory_bytes must meet the minimum RAM for the selected Classic Mac OS PowerPC release",
+        "minimum_cpu_generation": {
+          "9.2": "G3/750-class",
+          "9.2.1": "G3/750-class",
+          "9.2.2": "G3/750-class"
+        },
+        "cpu_generation_rule": "Mac OS 9.2.x physical evidence requires G3/750-class or newer",
+        "maximum_memory_bytes": 2147483648
+      },
+      "amiga-m68k": {
+        "os_names": [
+          "AmigaOS"
+        ],
+        "api": "AmigaOS",
+        "os_version_patterns": {
+          "AmigaOS": "^[1-3]\\.[0-9]+(?:\\.[0-9]+)?$"
+        },
+        "cpu_pattern": "(?i)(?:(?:motorola\\s+)?m68k|(?:motorola\\s+)?(?:mc)?68(?:000|010|060|(?:EC)?(?:020|030|040)))",
+        "memory_floor_rule": "AmigaOS 3.1.4/3.2.x require at least 2 MiB; AmigaOS 3.5/3.9 require at least 4 MiB; earlier accepted releases retain the 512 KiB baseline",
+        "allowed_os_versions": [
+          "1.0",
+          "1.1",
+          "1.2",
+          "1.3",
+          "2.0",
+          "2.04",
+          "2.05",
+          "2.1",
+          "3.0",
+          "3.1",
+          "3.1.4",
+          "3.2",
+          "3.2.1",
+          "3.2.2",
+          "3.2.3",
+          "3.5",
+          "3.9"
+        ],
+        "os_release_rule": "the version must be an explicitly published AmigaOS/Workbench m68k release; arbitrary numeric versions are invalid",
+        "minimum_cpu_generation": {
+          "3.5": "68020",
+          "3.9": "68020"
+        },
+        "cpu_generation_rule": "AmigaOS 3.5/3.9 physical evidence requires 68020-class or newer",
+        "minimum_memory_bytes_default": 524288,
+        "minimum_memory_bytes_overrides": {
+          "3.5": 4194304,
+          "3.9": 4194304,
+          "3.1.4": 2097152,
+          "3.2": 2097152,
+          "3.2.1": 2097152,
+          "3.2.2": 2097152,
+          "3.2.3": 2097152
+        },
+        "maximum_memory_bytes": 536870912,
+        "canonical_cpu_identities": [
+          "Motorola 68020",
+          "Motorola 68EC020"
+        ]
+      }
+    },
+    "rule": "physical evidence is bound to target-compatible CPU architecture, exact OS version family, and API identity",
+    "cpu_identity_rule": "the entire hardware.cpu string must fully match one target-compatible physical CPU identity; mixed host/emulator descriptions are invalid",
+    "memory_ceiling_rule": "hardware.memory_bytes must not exceed the selected target's realizable historical envelope",
+    "identity_control_rule": "identity and evidence-name strings are inspected for C0/DEL control characters before whitespace trimming"
+  },
+  "windows9x_payload_runtime": {
+    "entrypoint": "mainCRTStartup",
+    "allowed_import_family": "Kernel32",
+    "forbidden_imports": [
+      "MSVCRT",
+      "UCRTBASE",
+      "api-ms-win-crt"
+    ],
+    "proof_source": "evidence/r9_win9x_browser_proof.c"
+  },
+  "full_system_timeout_statuses": {
+    "proceed_to_proof_extraction": [
+      0,
+      124,
+      137
+    ],
+    "rule": "timeout status is not evidence; fresh guest proof validation remains mandatory"
+  },
+  "e3_windows_proof_exit": {
+    "required_marker": "proof_exit=0",
+    "rule": "exactly one successful Windows guest proof exit marker is required before E3 evidence can be minted"
+  },
+  "e4_provenance_sentinels": {
+    "forbidden_source_revision": "0000000000000000000000000000000000000000",
+    "forbidden_attachment_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+    "rule": "placeholder/null provenance identifiers cannot satisfy exact-source or attachment evidence requirements",
+    "source_revision_must_resolve_to_commit": true,
+    "source_revision_resolution": "git cat-file -e <sha>^{commit} in the RIVET checkout",
+    "forbidden_attachment_name_prefixes": [
+      "REPLACE-WITH-"
+    ],
+    "forbidden_hardware_identity_prefixes": [
+      "REPLACE-WITH-"
+    ],
+    "source_revision_proof_rule": "the E4 source revision must resolve each required WEB1 path to the exact frozen Git blob identity",
+    "source_revision_required_blobs": {
+      "examples/r8_browser_proof.c": "70b368992094b92bc7050ea36a393e46b7199bf2",
+      "apps/browser/browser.c": "a808edfc81b71f3b624cce5fc395e64e024d0093",
+      "include/rivet/browser.h": "a7b2eac03cf08a12cd0baba8c348b04bc7f113de"
+    },
+    "attachment_rule": "each attachment name is a relative path under the receipt directory, must resolve to a retained regular file without escaping that directory tree, and its actual bytes must match the declared SHA-256"
+  },
+  "e3_windows_identity": {
+    "required_identity_lines": 1,
+    "line_shape": "Windows ... [Version ...]",
+    "rule": "exactly one Windows version identity occurrence is permitted and it must match an explicit published consumer Windows 95/98/Me build",
+    "required_identity_occurrences": 1,
+    "canonical_windows95_punctuation": [
+      "Windows 95. [Version 4.00.950]"
+    ],
+    "allowed_versions": {
+      "Windows 95": [
+        "4.00.950",
+        "4.00.950A",
+        "4.00.950B",
+        "4.00.950C",
+        "4.00.1111",
+        "4.00.1212",
+        "4.00.1214"
+      ],
+      "Windows 98": [
+        "4.10.1998",
+        "4.10.2222",
+        "4.10.2222A"
+      ],
+      "Windows Me": [
+        "4.90.3000"
+      ]
+    }
+  },
+  "e3_provenance_sentinels": {
+    "forbidden_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+    "applies_to": [
+      "guest_media_sha256",
+      "payload_sha256",
+      "rom_sha256"
+    ],
+    "rule": "all-zero placeholder digests cannot bind E3 media, payloads or ROMs"
+  },
+  "windows9x_guest_location": {
+    "dos_drive_required": true,
+    "dos_drive_pattern": "^[A-Za-z]:$",
+    "injected_directory": "\\\\RIVET-R9",
+    "payload_receipt_path": "RECEIPT.TXT",
+    "rule": "the selected guest partition and DOS drive are supplied explicitly; WINSTART and RUN-R9 use that drive and the payload writes its receipt relative to the selected drive working directory"
+  },
+  "e3_guest_os_identity": {
+    "required_for_all_targets": true,
+    "windows9x_x86": {
+      "witness": "captured Windows VER output",
+      "rule": "exactly one consumer Windows 95/98/Me version identity line"
+    },
+    "classic_mac_m68k": {
+      "witness": "Gestalt(gestaltSystemVersion)",
+      "line": "rivet-r9-os",
+      "os": "classic-mac-os",
+      "api": "toolbox",
+      "allowed_versions": [
+        "7.1.0",
+        "7.1.1",
+        "7.5.0",
+        "7.5.1",
+        "7.5.2",
+        "7.5.3",
+        "7.5.5",
+        "7.6.0",
+        "7.6.1",
+        "8.0.0",
+        "8.1.0"
+      ],
+      "machine": "q800",
+      "cpu": "68040",
+      "rule": "only explicit published releases compatible with the fixed q800/68040 harness may mint E3 evidence"
+    },
+    "classic_mac_powerpc": {
+      "witness": "Gestalt(gestaltSystemVersion)",
+      "line": "rivet-r9-os",
+      "os": "classic-mac-os",
+      "api": "toolbox",
+      "allowed_versions": [
+        "8.6.0",
+        "9.0.0",
+        "9.0.2",
+        "9.0.3",
+        "9.0.4",
+        "9.1.0",
+        "9.2.0",
+        "9.2.1",
+        "9.2.2"
+      ],
+      "machine": "mac99",
+      "rule": "only explicit published releases compatible with the fixed mac99 harness may mint E3 evidence; pre-mac99 PowerPC releases are invalid"
+    },
+    "amiga_m68k": {
+      "witness": "live ExecBase and dos.library versions",
+      "line": "rivet-r9-os",
+      "os": "amigaos",
+      "api": "exec-dos",
+      "allowed_exec_versions": "39-45",
+      "allowed_dos_versions": "39-45",
+      "machine": "A1200",
+      "rule": "the fixed FS-UAE A1200 harness rejects pre-A1200 Exec/DOS major versions below 39"
+    },
+    "rule": "CPU-compatible or fabricated WEB1 proof text without a target-specific runtime OS witness cannot mint E3 evidence"
+  },
+  "frozen_surface_gate": {
+    "baseline": "7d260e0671c5d089b25d6075ab1b66fb0886c99e",
+    "changed_path_command": "git diff --name-only --no-renames <baseline> HEAD",
+    "allowlist_required": true,
+    "enforced_by": ".github/workflows/r9-trust-anchor.yml from the base branch",
+    "rule": "the fixed baseline-to-HEAD allowlist is evaluated by pull_request_target code from main for every non-maintenance PR, including PRs opened after R9 v2 merges",
+    "applies_to": "every non-maintenance pull request"
+  },
+  "classic_mac_hfs_operands": {
+    "explicit_hfs_prefix_required": true,
+    "payload_destination": ":RIVETR9",
+    "receipt_path": ":RIVET-R9-RECEIPT.TXT",
+    "rule": "relative HFS operands passed to hfsutils must be colon-qualified so they are not parsed as host paths"
+  },
+  "e4_json_parsing": {
+    "duplicate_keys_forbidden": true,
+    "scope": "every JSON object at every nesting level",
+    "rule": "receipts are bounded to 65536 bytes before decoding/parsing, must have a JSON object root, reject NaN/Infinity/-Infinity, and may not contain duplicate field names",
+    "max_receipt_bytes": 65536,
+    "root_object_required": true,
+    "reject_non_json_numeric_constants": true
+  },
+  "e3_output_publication": {
+    "clear_requested_output_before_validation": true,
+    "temporary_suffix": ".tmp",
+    "atomic_replace_after_validation": true,
+    "failure_rule": "failed validation or publication leaves no receipt at the requested output path"
+  },
+  "v2_authority_freeze": {
+    "paths": [
+      "RETRO-v2.md",
+      "machine/retro-v2.json",
+      "machine/project-v12.json"
+    ],
+    "baseline_pinned_by": ".github/workflows/r9-trust-anchor.yml",
+    "execution_source": "trusted-base-branch-pull_request_target",
+    "addressing": "git-blob-sha",
+    "candidate_guard_must_match_base": true,
+    "rule": "the base-branch guard owns authority blob pins and the R9-v2 changed-path allowlist; candidate changes cannot rewrite either trust anchor"
+  },
+  "e3_emulator_identity": {
+    "target_patterns": {
+      "windows9x-x86": "^qemu-system-i386(?:\\s|:|$)",
+      "classic-mac-m68k": "^qemu-system-m68k(?:\\s|:|$)",
+      "classic-mac-powerpc": "^qemu-system-ppc(?:\\s|:|$)",
+      "amiga-m68k": "^fs-uae(?:\\s|:|$)"
+    },
+    "rule": "E3 emulator identity must name the target-specific full-system harness executable family; unrelated emulators and user-mode programs are invalid"
+  }
+}

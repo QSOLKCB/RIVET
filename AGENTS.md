@@ -134,10 +134,10 @@ Published versioned machine contracts and the versioned human authority paths th
 
 R0 remains frozen in immutable `v0.1.0`.
 
-R1 Core v1 through R8 Browser WEB1 v1 are merged and frozen at the R8 merge commit `f2522b83231b4547b11cbaf59e650bfcbdc54efe`. R6's full-system Windows E3 receipt remains release-gated evidence rather than a reason to rewrite historical contracts.
+R1 Core v1 through R8 Browser WEB1 v1 are merged and frozen. The merged R9 v1 evidence slice is frozen at `7d260e0671c5d089b25d6075ab1b66fb0886c99e`. R6's Windows Server 2012 R2 E3 receipt remains separately release-gated.
 
-R9 may add only retro-portability evidence machinery described by [RETRO-v1.md](RETRO-v1.md): target-specific build/emulation harnesses, receipts, evidence contracts, tests and documentation. R9 must not redefine frozen R1-R8 APIs or browser semantics.
+R9 v2 may add only the target-specific evidence machinery described by [RETRO-v2.md](RETRO-v2.md): source-bound guest payloads, full-system emulator harnesses, media/ROM digest gates, E3/E4 receipts, tests and documentation. It must not redefine frozen R1-R8 APIs or WEB1 semantics.
 
-A cross-build or qemu-user result is CPU/ABI evidence only. Do not promote m68k execution into Classic Mac OS or AmigaOS support, PowerPC execution into one universal PPC platform, or any user-mode run into an E3 full-system claim.
+A harness existing or a payload compiling is not an OS-support claim. Windows 9x, Classic Mac and Amiga support may be claimed only when the named guest executes the source-bound proof and a passing target-specific E3/E4 receipt is retained.
 
 Do not pull R10 relay implementation, R11 caches/incremental-layout/threads/SIMD, JavaScript, cookies, tabs, GPU APIs or speculative browser machinery into R9.

@@ -12,13 +12,15 @@ The eventual RIVET Browser is a proof application, not the definition of the fra
 
 ## Status
 
-**R9 — Retro portability expansion.**
+**R9 — Retro portability expansion; target harness implementation complete.**
 
 R8 / WEB1 is merged and frozen at `f2522b83231b4547b11cbaf59e650bfcbdc54efe`.
 
-R9 adds evidence without redefining that stack. The first automated lane cross-builds a static **32-bit big-endian Motorola 68020-baseline m68k** target and executes both the frozen Platform v1 proof and frozen WEB1 browser tests/proof under `qemu-m68k`.
+R9 now has two evidence layers. The automated v1 lane cross-builds a static **32-bit big-endian Motorola 68020-baseline m68k** target and executes the frozen Platform v1 and WEB1 proofs under `qemu-m68k`.
 
-That lane is deliberately labeled **Linux/POSIX m68k E2 user-mode evidence**. It is not a Classic Mac OS, AmigaOS, Windows 9x, full-system, or physical-hardware claim.
+Retro v2 adds source-bound, media-gated **full-system E3 harnesses** for Windows 9x, Classic Mac m68k, Classic Mac PowerPC and Amiga m68k, plus a strict physical-hardware E4 receipt validator.
+
+Those harnesses do not create support claims by themselves. Each OS-family remains unclaimed until the guest actually reproduces the frozen WEB1 proof and a passing target-specific E3/E4 receipt is retained.
 
 R6's Windows Server 2012 R2 E3 receipt remains separately release-gated.
 
@@ -31,7 +33,7 @@ python3 tests/r9_receipt_selftest.py
 
 CI installs the m68k cross-toolchain and qemu-user before running the harness.
 
-See [RETRO-v1.md](RETRO-v1.md), [BROWSER-WEB1-v1.md](BROWSER-WEB1-v1.md), and [PORTABILITY-v2.md](PORTABILITY-v2.md).
+See [RETRO-v2.md](RETRO-v2.md), [RETRO-v1.md](RETRO-v1.md), [BROWSER-WEB1-v1.md](BROWSER-WEB1-v1.md), and [PORTABILITY-v2.md](PORTABILITY-v2.md).
 ## Mission
 
 RIVET exists to make it practical to build software that is:
@@ -131,7 +133,8 @@ The GitHub Pages site is intentionally static HTML/CSS with no framework, analyt
 
 ## Repository guide
 
-- [RETRO-v1.md](RETRO-v1.md) — R9 retro portability evidence and target-claim boundary.
+- [RETRO-v2.md](RETRO-v2.md) — R9 full-system E3 / physical E4 target evidence contract.
+- [RETRO-v1.md](RETRO-v1.md) — frozen R9 CPU/ABI evidence contract.
 - [BROWSER-WEB1-v1.md](BROWSER-WEB1-v1.md) — frozen R8 first bounded non-JavaScript browser profile.
 - [DOCUMENT-v1.md](DOCUMENT-v1.md) — frozen R7 bounded URL/stream/UTF-8/HTML/CSS/layout/image contract.
 - [HISTORICAL-v1.md](HISTORICAL-v1.md) — frozen R6 constrained/historical execution and receipt contract.
@@ -151,7 +154,9 @@ The GitHub Pages site is intentionally static HTML/CSS with no framework, analyt
 - [RUNTIME-PLAN-v1.md](RUNTIME-PLAN-v1.md) — donor-derived runtime and memory plan for R1+.
 - [DONORS-v1.md](DONORS-v1.md) — frozen donor/provenance map for runtime-plan v1.
 - [AGENTS.md](AGENTS.md) — rules for coding agents and contributors.
-- [machine/project-v11.json](machine/project-v11.json) — current machine entrypoint for R9.
+- [machine/project-v12.json](machine/project-v12.json) — current machine entrypoint for R9 target harnesses.
+- [machine/retro-v2.json](machine/retro-v2.json) — R9 E3/E4 target evidence contract.
+- [machine/project-v11.json](machine/project-v11.json) — frozen R9-v1 project contract.
 - [machine/retro-v1.json](machine/retro-v1.json) — R9 retro evidence contract.
 - [machine/project-v10.json](machine/project-v10.json) — frozen R8 project contract.
 - [machine/project-v9.json](machine/project-v9.json) — frozen R7 project contract.
