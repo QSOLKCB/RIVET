@@ -56,7 +56,7 @@ user-css=<single-line Document-v1 CSS>
 
 Unknown lines, reordered fields, malformed URLs, malformed booleans, CR line endings, trailing bytes, or invalid CSS fail explicitly.
 
-The configuration bytes remain caller-owned. The parsed configuration stores slices into those bytes.
+The configuration bytes remain caller-owned. The parsed configuration stores slices into those bytes. The parser output object must be disjoint from the retained source byte range so publishing the parsed structure cannot overwrite its own authority bytes.
 
 ## Browsing semantics
 
