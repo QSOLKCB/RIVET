@@ -161,6 +161,9 @@
     "source_revision_resolution": "git cat-file -e <sha>^{commit} in the RIVET checkout",
     "forbidden_attachment_name_prefixes": [
       "REPLACE-WITH-"
+    ],
+    "forbidden_hardware_identity_prefixes": [
+      "REPLACE-WITH-"
     ]
   },
   "e3_windows_identity": {
@@ -219,5 +222,11 @@
     "changed_path_command": "git diff --name-only --no-renames <baseline> HEAD",
     "allowlist_required": true,
     "rule": "newly added, deleted or modified paths outside the explicit R9-v2 allowlist fail the frozen-source gate"
+  },
+  "classic_mac_hfs_operands": {
+    "explicit_hfs_prefix_required": true,
+    "payload_destination": ":RIVETR9",
+    "receipt_path": ":RIVET-R9-RECEIPT.TXT",
+    "rule": "relative HFS operands passed to hfsutils must be colon-qualified so they are not parsed as host paths"
   }
 }
