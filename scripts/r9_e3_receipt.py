@@ -40,6 +40,11 @@ WINDOWS_9X_VER_PATTERNS = (
     ),
 )
 
+WINDOWS_VERSION_LINE_RE = re.compile(
+    r"^.*\bWindows\b.*\[Version [^\]]+\].*$",
+    re.IGNORECASE,
+)
+
 TARGETS = {
     "windows9x-x86": (32, "little"),
     "classic-mac-m68k": (32, "big"),
