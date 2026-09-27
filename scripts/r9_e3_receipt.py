@@ -18,12 +18,43 @@ PROOF_RE = re.compile(
     r"downloads=(?P<downloads>[0-9]+)$"
 )
 
+WINDOWS_9X_VER_RE = re.compile(
+    r"^(?P<identity>.*\\bWindows\\b.*"
+    r"\\[Version 4\\.(?:00|10|90)"
+    r"(?:\\.[0-9A-Za-z]+)*\\].*)$",
+    re.IGNORECASE,
+)
+
 TARGETS = {
     "windows9x-x86": (32, "little"),
     "classic-mac-m68k": (32, "big"),
     "classic-mac-powerpc": (32, "big"),
     "amiga-m68k": (32, "big"),
 }
+
+def windows_9x_identity(text: str) -> str:
+    for line in text.splitlines():
+        stripped = line.strip()
+        if stripped.startswith("rivet-r9-guest:"):
+            continue
+        match = WINDOWS_9X_VER_RE.match(stripped)
+        if match:
+            return match.group("identity")
+    raise ValueError(
+        "R9 E3 receipt: Windows 9x VER identity "
+        "(4.00/4.10/4.90) not found"
+    )
+
+def validate_label(value: str) -> str:
+    if not value or len(value) > 160:
+        raise ValueError(
+            "R9 E3 receipt: guest media label must be 1..160 characters"
+        )
+    if any(ord(ch) < 0x20 or ord(ch) == 0x7f for ch in value):
+        raise ValueError(
+            "R9 E3 receipt: guest media label contains control characters"
+        )
+    return value
 
 def parse_proof(path: Path) -> dict:
     text = path.read_text(encoding="utf-8", errors="strict")
@@ -68,7 +99,18 @@ def main() -> int:
         raise SystemExit("R9 E3 receipt: ROM SHA-256 must be 64 lowercase hex characters")
 
     try:
-        proof = parse_proof(Path(args.proof))
+        proof_path = Path(args.proof)
+        proof_text = proof_path.read_text(
+            encoding="utf-8",
+            errors="strict",
+        )
+        proof = parse_proof(proof_path)
+        media_label = validate_label(args.guest_media_label)
+        guest_os_identity = (
+            windows_9x_identity(proof_text)
+            if args.target_profile == "windows9x-x86"
+            else None
+        )
     except (OSError, UnicodeError, ValueError) as exc:
         raise SystemExit(str(exc))
 
@@ -100,12 +142,13 @@ def main() -> int:
         "execution": "full-system-emulation",
         "emulator": args.emulator,
         "guest_media": {
-            "label": args.guest_media_label,
+            "label": media_label,
             "sha256": args.guest_media_sha256,
             "redistributed_by_rivet": False,
         },
         "payload_sha256": args.payload_sha256,
         "rom_sha256": args.rom_sha256 or None,
+        "guest_os_identity": guest_os_identity,
         "browser_proof": proof,
         "notes": args.notes or None,
         "result": "pass",
