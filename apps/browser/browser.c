@@ -398,18 +398,16 @@ static rivet_result browser_array_bytes(
     return RIVET_OK;
 }
 
-static rivet_result browser_storage_validate(
+static rivet_result browser_storage_ranges(
     const rivet_browser_storage *storage,
-    const rivet_browser_config *config
+    const unsigned char **starts,
+    size_t *sizes
 )
 {
-    const unsigned char *starts[7];
-    size_t sizes[7];
-    size_t i;
-    size_t j;
     rivet_result result;
 
-    if (storage == NULL || config == NULL ||
+    if (storage == NULL || starts == NULL ||
+        sizes == NULL ||
         storage->document_bytes == NULL ||
         storage->document_capacity == 0u ||
         storage->nodes == NULL ||
@@ -487,9 +485,71 @@ static rivet_result browser_storage_validate(
 
     starts[6] = storage->scratch_bytes;
     sizes[6] = storage->scratch_capacity;
+    return RIVET_OK;
+}
+
+static rivet_result browser_storage_validate(
+    const rivet_browser *browser,
+    const rivet_browser_io *io,
+    const rivet_browser_storage *storage,
+    const rivet_browser_config *config
+)
+{
+    const unsigned char *starts[7];
+    size_t sizes[7];
+    const unsigned char *browser_bytes =
+        (const unsigned char *)(const void *)browser;
+    size_t i;
+    size_t j;
+    rivet_result result;
+
+    if (browser == NULL || io == NULL ||
+        storage == NULL || config == NULL) {
+        return RIVET_ERR_INVALID_ARGUMENT;
+    }
+
+    result = browser_storage_ranges(
+        storage,
+        starts,
+        sizes
+    );
+    if (result != RIVET_OK) {
+        return result;
+    }
+
+    if (browser_byte_ranges_overlap(
+            browser_bytes,
+            sizeof(*browser),
+            (const unsigned char *)
+                (const void *)io,
+            sizeof(*io)) ||
+        browser_byte_ranges_overlap(
+            browser_bytes,
+            sizeof(*browser),
+            (const unsigned char *)
+                (const void *)config,
+            sizeof(*config)) ||
+        browser_byte_ranges_overlap(
+            browser_bytes,
+            sizeof(*browser),
+            (const unsigned char *)
+                (const void *)storage,
+            sizeof(*storage)) ||
+        browser_byte_ranges_overlap(
+            browser_bytes,
+            sizeof(*browser),
+            config->source,
+            config->source_bytes)) {
+        return RIVET_ERR_INVALID_ARGUMENT;
+    }
 
     for (i = 0u; i < 7u; ++i) {
         if (browser_byte_ranges_overlap(
+                browser_bytes,
+                sizeof(*browser),
+                starts[i],
+                sizes[i]) ||
+            browser_byte_ranges_overlap(
                 config->source,
                 config->source_bytes,
                 starts[i],
@@ -504,6 +564,62 @@ static rivet_result browser_storage_validate(
                     sizes[j])) {
                 return RIVET_ERR_INVALID_ARGUMENT;
             }
+        }
+    }
+
+    return RIVET_OK;
+}
+
+static rivet_result browser_live_bytes_overlap(
+    const rivet_browser *browser,
+    const unsigned char *bytes,
+    size_t byte_count,
+    int *overlap
+)
+{
+    const unsigned char *starts[7];
+    size_t sizes[7];
+    size_t i;
+    rivet_result result;
+
+    if (browser == NULL || bytes == NULL ||
+        byte_count == 0u || overlap == NULL) {
+        return RIVET_ERR_INVALID_ARGUMENT;
+    }
+
+    *overlap = 0;
+    if (browser_byte_ranges_overlap(
+            (const unsigned char *)
+                (const void *)browser,
+            sizeof(*browser),
+            bytes,
+            byte_count) ||
+        browser_byte_ranges_overlap(
+            browser->config.source,
+            browser->config.source_bytes,
+            bytes,
+            byte_count)) {
+        *overlap = 1;
+        return RIVET_OK;
+    }
+
+    result = browser_storage_ranges(
+        &browser->storage,
+        starts,
+        sizes
+    );
+    if (result != RIVET_OK) {
+        return result;
+    }
+
+    for (i = 0u; i < 7u; ++i) {
+        if (browser_byte_ranges_overlap(
+                starts[i],
+                sizes[i],
+                bytes,
+                byte_count)) {
+            *overlap = 1;
+            break;
         }
     }
 
@@ -591,6 +707,8 @@ rivet_result rivet_browser_init(
         return RIVET_ERR_INVALID_ARGUMENT;
     }
     result = browser_storage_validate(
+        browser,
+        io,
         storage,
         config
     );
@@ -2325,6 +2443,7 @@ rivet_result rivet_browser_render(
     rivet_surface chrome_surface;
     rivet_surface content_surface;
     rivet_result result;
+    int pixel_overlap;
 
     if (surface == NULL || browser == NULL ||
         rivet_surface_validate(surface) !=
@@ -2346,6 +2465,19 @@ rivet_result rivet_browser_render(
         bounds.height >
             surface->height -
             (unsigned long)bounds.y) {
+        return RIVET_ERR_INVALID_ARGUMENT;
+    }
+
+    result = browser_live_bytes_overlap(
+        browser,
+        surface->pixels,
+        surface->buffer_bytes,
+        &pixel_overlap
+    );
+    if (result != RIVET_OK) {
+        return result;
+    }
+    if (pixel_overlap) {
         return RIVET_ERR_INVALID_ARGUMENT;
     }
 
