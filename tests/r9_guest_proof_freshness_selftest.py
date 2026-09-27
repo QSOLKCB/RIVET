@@ -31,12 +31,12 @@ def main() -> int:
     )
     require_before(
         windows,
-        "CALL C:\\\\RIVET-R9\\\\RUN-R9.BAT",
+        "CALL %s\\\\RIVET-R9\\\\RUN-R9.BAT",
         'cat "$WINSTART_ORIGINAL" >> "$WINSTART"',
         "Windows startup ordering",
     )
     if '>> "$WINSTART"' in windows and (
-        "CALL C:\\\\RIVET-R9\\\\RUN-R9.BAT" in windows[
+        "CALL %s\\\\RIVET-R9\\\\RUN-R9.BAT" in windows[
             windows.find('cat "$WINSTART_ORIGINAL" >> "$WINSTART"') :
         ]
     ):
