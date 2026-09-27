@@ -79,6 +79,27 @@ static int bytes_equal(
            memcmp(left, right, left_count) == 0;
 }
 
+static int url_tail_zero(
+    const rivet_browser_url *url
+)
+{
+    size_t i;
+
+    if (url == NULL ||
+        url->length > RIVET_BROWSER_URL_MAX) {
+        return 0;
+    }
+
+    for (i = url->length;
+         i < RIVET_BROWSER_URL_MAX;
+         ++i) {
+        if (url->bytes[i] != 0u) {
+            return 0;
+        }
+    }
+    return 1;
+}
+
 static rivet_result test_fetch(
     void *context,
     const unsigned char *url,
@@ -476,6 +497,8 @@ static int test_browser_flow(void)
     CHECK(browser.loaded);
     CHECK(browser.history_count == 1u);
     CHECK(browser.history_index == 0u);
+    CHECK(url_tail_zero(&browser.current_url));
+    CHECK(url_tail_zero(&history[0]));
     CHECK(browser.selected_link_node !=
           RIVET_DOCUMENT_NO_PARENT);
     CHECK(find_red_text(&browser));
@@ -502,6 +525,8 @@ static int test_browser_flow(void)
         &browser) == RIVET_OK);
     CHECK(browser.history_count == 2u);
     CHECK(browser.history_index == 1u);
+    CHECK(url_tail_zero(&browser.current_url));
+    CHECK(url_tail_zero(&history[1]));
     CHECK(bytes_equal(
         browser.current_url.bytes,
         browser.current_url.length,
@@ -511,6 +536,7 @@ static int test_browser_flow(void)
     CHECK(rivet_browser_bookmark_current(
         &browser) == RIVET_OK);
     CHECK(browser.bookmark_count == 1u);
+    CHECK(url_tail_zero(&bookmarks[0]));
     CHECK(rivet_browser_bookmark_current(
         &browser) == RIVET_ERR_DUPLICATE);
 
@@ -664,6 +690,8 @@ static int test_review_regressions(void)
         "home=https://site.test/home\n"
         "downloads=0\n"
         "user-css=p{color:#010203;}a{color:#040506;}\n";
+    static const unsigned char bare_url_source[] =
+        "https://site.test/home";
     unsigned char document_bytes[1024];
     unsigned char scratch_bytes[256];
     rivet_doc_node nodes[32];
@@ -675,12 +703,20 @@ static int test_review_regressions(void)
     rivet_browser_config config;
     rivet_browser_config crowded;
     rivet_browser_config aliased_config;
+    rivet_browser_config malformed_config;
+    rivet_browser_config tampered_config;
     rivet_browser_io io;
     rivet_browser browser;
     union {
         rivet_browser browser;
         unsigned char bytes[sizeof(rivet_browser)];
     } browser_alias;
+    union {
+        rivet_command_slot slots[32];
+        unsigned char bytes[
+            32u * sizeof(rivet_command_slot)
+        ];
+    } command_alias;
     test_io_state io_state;
     unsigned char pixels[120u * 64u * 4u];
     rivet_surface surface;
@@ -739,6 +775,34 @@ static int test_review_regressions(void)
         &crowded,
         crowded_css,
         sizeof(crowded_css) - 1u) == RIVET_OK);
+
+    memset(&malformed_config, 0, sizeof(malformed_config));
+    malformed_config.source = bare_url_source;
+    malformed_config.source_bytes =
+        sizeof(bare_url_source) - 1u;
+    malformed_config.home_url.offset = 0u;
+    malformed_config.home_url.length =
+        sizeof(bare_url_source) - 1u;
+    malformed_config.user_css.offset =
+        sizeof(bare_url_source) - 1u;
+    malformed_config.user_css.length = 0u;
+    malformed_config.downloads_enabled = 0;
+    CHECK(rivet_browser_init(
+        &browser,
+        &io,
+        &malformed_config,
+        &storage,
+        120ul) == RIVET_ERR_UNSUPPORTED);
+
+    tampered_config = config;
+    tampered_config.user_css.offset = 0u;
+    tampered_config.user_css.length = 0u;
+    CHECK(rivet_browser_init(
+        &browser,
+        &io,
+        &tampered_config,
+        &storage,
+        120ul) == RIVET_ERR_INVALID_ARGUMENT);
 
     storage.rule_capacity = 1u;
     CHECK(rivet_browser_init(
@@ -879,6 +943,39 @@ static int test_review_regressions(void)
         &storage,
         120ul) == RIVET_OK);
     CHECK(rivet_browser_home(&browser) == RIVET_OK);
+
+    {
+        rivet_browser alias_browser;
+        rivet_browser_storage alias_storage = storage;
+        rivet_command_registry alias_commands;
+
+        alias_storage.document_bytes =
+            command_alias.bytes;
+        alias_storage.document_capacity =
+            sizeof(command_alias.bytes);
+
+        CHECK(rivet_browser_init(
+            &alias_browser,
+            &io,
+            &config,
+            &alias_storage,
+            120ul) == RIVET_OK);
+        CHECK(rivet_browser_home(
+            &alias_browser) == RIVET_OK);
+        CHECK(rivet_commands_init(
+            &alias_commands,
+            command_alias.slots,
+            sizeof(command_alias.slots) /
+                sizeof(command_alias.slots[0])) ==
+            RIVET_OK);
+        CHECK(rivet_browser_register_commands(
+            &alias_browser,
+            &alias_commands) ==
+            RIVET_ERR_INVALID_ARGUMENT);
+        CHECK(alias_browser.loaded);
+        CHECK(rivet_browser_open_selected_link(
+            &alias_browser) == RIVET_OK);
+    }
 
     browser.io.fetch = test_zero_success_fetch;
     CHECK(rivet_browser_reload(&browser) ==
