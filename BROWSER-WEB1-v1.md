@@ -26,7 +26,7 @@ apps/browser/browser.c
 
 WEB1 requires no heap allocation. Browser bytes, HTML nodes, CSS rules, layout boxes, history, bookmarks, download scratch space, and pixels remain caller-owned and explicitly bounded.
 
-The live browser state, retained configuration source, and mutable browser backing regions must be mutually disjoint. A render surface's pixel buffer must also be disjoint from those live regions; rendering never uses live browser storage as scratch or framebuffer memory.
+The live browser state, retained configuration source, and mutable browser backing regions must be mutually disjoint. Mutable output storage supplied to browser operations, including command-registry slots and render-surface pixels, must also be disjoint from those live regions; WEB1 never uses live browser storage as command scratch or framebuffer memory.
 
 ## Resource service boundary
 
@@ -59,6 +59,8 @@ Unknown lines, reordered fields, malformed URLs, malformed booleans, CR line end
 The configuration bytes remain caller-owned. The parsed configuration stores slices into those bytes.
 
 ## Browsing semantics
+
+WEB1 requires the R7 document capabilities it exercises, including `document.html`, `document.css`, `document.layout`, `document.links`, and `document.forms`.
 
 WEB1 supports:
 
