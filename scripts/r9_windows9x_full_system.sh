@@ -63,7 +63,7 @@ else
   : > "$WINSTART_ORIGINAL"
 fi
 
-printf '@ECHO OFF\r\nCALL C:\\RIVET-R9\\RUN-R9.BAT\r\n' > "$WINSTART"
+printf '@ECHO OFF\r\nCALL %s\\RIVET-R9\\RUN-R9.BAT\r\n' "$DOS_DRIVE" > "$WINSTART"
 cat "$WINSTART_ORIGINAL" >> "$WINSTART"
 
 rm -f "$PROOF"
