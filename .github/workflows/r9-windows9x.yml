@@ -16,6 +16,11 @@ on:
         required: true
         default: /dev/sda1
         type: string
+      windows_directory:
+        description: Windows directory inside the guest filesystem
+        required: true
+        default: /WINDOWS
+        type: string
       timeout_seconds:
         description: Maximum guest runtime
         required: true
@@ -34,6 +39,9 @@ jobs:
       RIVET_INPUT_MEDIA_SHA256: ${{ inputs.media_sha256 }}
       RIVET_INPUT_ROM_SHA256: ""
       RIVET_INPUT_TIMEOUT_SECONDS: ${{ inputs.timeout_seconds }}
+      RIVET_INPUT_MEDIA_LABEL: ${{ inputs.media_label }}
+      RIVET_INPUT_GUEST_PARTITION: ${{ inputs.guest_partition }}
+      RIVET_INPUT_WINDOWS_DIRECTORY: ${{ inputs.windows_directory }}
     steps:
       - uses: actions/checkout@v4
 
@@ -72,7 +80,7 @@ jobs:
           source_revision="$(git rev-parse HEAD)"
           payload_sha="$(sha256sum build/r9-win9x-payload/RIVETR9.EXE | awk '{print $1}')"
 
-          python3 scripts/r9_e3_receipt.py             --proof build/r9-windows9x/guest-proof.txt             --output build/r9-windows9x/receipt.json             --target-profile windows9x-x86             --source-revision "$source_revision"             --emulator "$emulator"             --guest-media-sha256 "$RIVET_VALIDATED_MEDIA_SHA256"             --guest-media-label "${{ inputs.media_label }}"             --payload-sha256 "$payload_sha"             --notes "Windows VER output retained in guest-proof.txt"
+          python3 scripts/r9_e3_receipt.py             --proof build/r9-windows9x/guest-proof.txt             --output build/r9-windows9x/receipt.json             --target-profile windows9x-x86             --source-revision "$source_revision"             --emulator "$emulator"             --guest-media-sha256 "$RIVET_VALIDATED_MEDIA_SHA256"             --guest-media-label "$RIVET_VALIDATED_MEDIA_LABEL"             --payload-sha256 "$payload_sha"             --notes "Windows VER output retained in guest-proof.txt"
 
       - uses: actions/upload-artifact@v4
         with:
