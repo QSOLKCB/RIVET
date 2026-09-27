@@ -29,7 +29,7 @@ WINDOWS_IDENTITY_RE = re.compile(
 
 WINDOWS_9X_VER_PATTERNS = (
     re.compile(
-        r"^(?P<identity>(?:Microsoft\s+)?Windows 95 "
+        r"^(?P<identity>(?:Microsoft\s+)?Windows 95\.? "
         r"\[Version 4\.00"
         r"(?:\.[0-9A-Za-z]+)*\])$",
         re.IGNORECASE,
