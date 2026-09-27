@@ -20,6 +20,13 @@ static rivet_result browser_utf8_one(
     size_t *used
 );
 
+static int browser_byte_ranges_overlap(
+    const unsigned char *left,
+    size_t left_count,
+    const unsigned char *right,
+    size_t right_count
+);
+
 static int browser_space(unsigned int codepoint)
 {
     return codepoint == 0x09u ||
@@ -212,6 +219,14 @@ rivet_result rivet_browser_config_parse(
 
     if (config == NULL || bytes == NULL ||
         byte_count == 0u) {
+        return RIVET_ERR_INVALID_ARGUMENT;
+    }
+    if (browser_byte_ranges_overlap(
+            (const unsigned char *)
+                (const void *)config,
+            sizeof(*config),
+            bytes,
+            byte_count)) {
         return RIVET_ERR_INVALID_ARGUMENT;
     }
 
