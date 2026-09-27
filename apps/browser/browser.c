@@ -12,6 +12,13 @@
 #define BROWSER_LINE_HEIGHT 8ul
 #define BROWSER_SCROLL_STEP 8ul
 
+static const unsigned char BROWSER_LABEL_WEB1[] = {
+    0x57u,0x45u,0x42u,0x31u,0u
+};
+static const unsigned char BROWSER_LABEL_SOURCE[] = {
+    0x53u,0x4fu,0x55u,0x52u,0x43u,0x45u,0u
+};
+
 static rivet_result browser_utf8_one(
     const unsigned char *bytes,
     size_t byte_count,
@@ -738,13 +745,34 @@ rivet_result rivet_browser_init(
         return RIVET_ERR_CAPACITY;
     }
 
-    memset(browser, 0, sizeof(*browser));
     browser->io = *io;
     browser->config = *config;
     browser->storage = *storage;
+    browser->document.source = NULL;
+    browser->document.source_bytes = 0u;
+    browser->document.nodes = NULL;
+    browser->document.node_capacity = 0u;
+    browser->document.node_count = 0u;
+    browser->document.requirements = 0u;
+    browser->document_bytes = 0u;
+    browser->rule_count = 0u;
+    browser->box_count = 0u;
+    browser->document_height = 0ul;
     browser->viewport_width = viewport_width;
+    browser->scroll_y = 0ul;
+    memset(
+        browser->current_url.bytes,
+        0,
+        sizeof(browser->current_url.bytes)
+    );
+    browser->current_url.length = 0u;
+    browser->history_count = 0u;
+    browser->history_index = 0u;
+    browser->bookmark_count = 0u;
     browser->selected_link_node =
         RIVET_DOCUMENT_NO_PARENT;
+    browser->loaded = 0;
+    browser->source_mode = 0;
     return RIVET_OK;
 }
 
@@ -2404,27 +2432,26 @@ static rivet_result browser_draw_word(
     rivet_surface *surface,
     long x,
     long y,
-    const char *word,
+    const unsigned char *word,
     rivet_rgba8 color
 )
 {
     size_t i = 0u;
 
-    while (word[i] != '\0') {
+    while (word[i] != 0u) {
         rivet_result result =
             browser_draw_glyph(
                 surface,
                 x,
                 y,
-                (unsigned int)
-                    (unsigned char)word[i],
+                (unsigned int)word[i],
                 color
             );
         if (result != RIVET_OK) {
             return result;
         }
         ++i;
-        if (word[i] != '\0') {
+        if (word[i] != 0u) {
             if (x >
                 LONG_MAX -
                 (long)BROWSER_GLYPH_ADVANCE) {
@@ -2593,8 +2620,8 @@ rivet_result rivet_browser_render(
         bounds.x + 2L,
         bounds.y + 1L,
         browser->source_mode ?
-            "SOURCE" :
-            "WEB1",
+            BROWSER_LABEL_SOURCE :
+            BROWSER_LABEL_WEB1,
         style.chrome_foreground
     );
     if (result != RIVET_OK) {
