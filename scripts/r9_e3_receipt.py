@@ -101,6 +101,21 @@ TARGETS = {
     "amiga-m68k": (32, "big"),
 }
 
+TARGET_EMULATOR_PATTERNS = {
+    "windows9x-x86": re.compile(
+        r"(?i)^qemu-system-i386(?:\s|:|$)"
+    ),
+    "classic-mac-m68k": re.compile(
+        r"(?i)^qemu-system-m68k(?:\s|:|$)"
+    ),
+    "classic-mac-powerpc": re.compile(
+        r"(?i)^qemu-system-ppc(?:\s|:|$)"
+    ),
+    "amiga-m68k": re.compile(
+        r"(?i)^fs-uae(?:\s|:|$)"
+    ),
+}
+
 ROM_REQUIRED_TARGETS = {
     "classic-mac-m68k",
     "amiga-m68k",
@@ -306,6 +321,16 @@ def validate_identity(
         )
     return value
 
+def validate_emulator_identity(value: str, target: str) -> str:
+    value = validate_identity(value, "emulator identity")
+    pattern = TARGET_EMULATOR_PATTERNS[target]
+    if pattern.match(value) is None:
+        raise ValueError(
+            "R9 E3 receipt: emulator identity is incompatible "
+            f"with {target}"
+        )
+    return value
+
 def read_bounded_proof(path: Path) -> str:
     with path.open("rb") as handle:
         raw = handle.read(MAX_PROOF_BYTES + 1)
@@ -422,9 +447,9 @@ def main() -> int:
             "guest media label",
             160,
         )
-        emulator_identity = validate_identity(
+        emulator_identity = validate_emulator_identity(
             args.emulator,
-            "emulator identity",
+            args.target_profile,
         )
         if args.target_profile == "windows9x-x86":
             require_windows_9x_startup(proof_text)

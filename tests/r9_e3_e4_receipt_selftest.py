@@ -380,6 +380,15 @@ def main() -> int:
         assert result.returncode != 0
         assert not empty_emulator.exists()
 
+        wrong_emulator = root / "wrong-emulator.json"
+        result = run_e3(
+            good,
+            wrong_emulator,
+            emulator="FS-UAE 3.1.66",
+        )
+        assert result.returncode != 0
+        assert not wrong_emulator.exists()
+
         amiga_proof = root / "proof-amiga.txt"
         amiga_proof.write_text(
             AMIGA_GUEST_LINE + "\n" +
@@ -499,7 +508,7 @@ def main() -> int:
                 "--output", str(mac_system6_output),
                 "--target-profile", "classic-mac-m68k",
                 "--source-revision", SOURCE,
-                "--emulator", "QEMU q800",
+                "--emulator", "qemu-system-m68k test",
                 "--guest-media-sha256", "1" * 64,
                 "--guest-media-label", "System 6.0.8 test media",
                 "--payload-sha256", "2" * 64,
@@ -522,7 +531,7 @@ def main() -> int:
                 "--output", str(mac_m68k_with_rom),
                 "--target-profile", "classic-mac-m68k",
                 "--source-revision", SOURCE,
-                "--emulator", "QEMU q800",
+                "--emulator", "qemu-system-m68k test",
                 "--guest-media-sha256", "1" * 64,
                 "--guest-media-label", "Classic Mac OS 7.6.1 test",
                 "--payload-sha256", "2" * 64,
@@ -572,7 +581,7 @@ def main() -> int:
                 "--output", str(pre_mac99_ppc_output),
                 "--target-profile", "classic-mac-powerpc",
                 "--source-revision", SOURCE,
-                "--emulator", "QEMU mac99",
+                "--emulator", "qemu-system-ppc test",
                 "--guest-media-sha256", "1" * 64,
                 "--guest-media-label", "System 7.1.2 test media",
                 "--payload-sha256", "2" * 64,
@@ -639,6 +648,25 @@ def main() -> int:
         )
         assert validate_e4(template).returncode != 0
 
+        non_object = root / "e4-non-object.json"
+        non_object.write_text("[]\n", encoding="utf-8")
+        non_object_result = validate_e4(non_object)
+        assert non_object_result.returncode != 0
+        assert "E4 receipt root must be a JSON object" in (
+            non_object_result.stderr
+        )
+        assert "Traceback" not in non_object_result.stderr
+
+        oversized_e4 = root / "e4-oversized.json"
+        oversized_data = base_e4()
+        oversized_data["padding"] = "X" * (64 * 1024)
+        write_json(oversized_e4, oversized_data)
+        oversized_e4_result = validate_e4(oversized_e4)
+        assert oversized_e4_result.returncode != 0
+        assert "E4 receipt exceeds 65536 bytes" in (
+            oversized_e4_result.stderr
+        )
+
         e4 = root / "e4.json"
         write_json(e4, base_e4())
         validate_e4(e4, check=True)
@@ -649,6 +677,25 @@ def main() -> int:
         mc68040_path = root / "e4-mc68040.json"
         write_json(mc68040_path, mc68040)
         validate_e4(mc68040_path, check=True)
+
+        m68k_cpu_floor = base_e4()
+        m68k_cpu_floor["software_environment"]["os_version"] = "8.1"
+        m68k_cpu_floor["hardware"] = {
+            "manufacturer": "Apple",
+            "model": "Macintosh IIci",
+            "cpu": "Motorola 68030",
+            "memory_bytes": 32 * 1024 * 1024,
+        }
+        m68k_cpu_floor_path = root / "e4-m68k-cpu-floor.json"
+        write_json(m68k_cpu_floor_path, m68k_cpu_floor)
+        assert validate_e4(m68k_cpu_floor_path).returncode != 0
+
+        m68k_cpu_floor_ok = json.loads(json.dumps(m68k_cpu_floor))
+        m68k_cpu_floor_ok["hardware"]["model"] = "Quadra 840AV"
+        m68k_cpu_floor_ok["hardware"]["cpu"] = "Motorola MC68040"
+        m68k_cpu_floor_ok_path = root / "e4-m68k-cpu-floor-ok.json"
+        write_json(m68k_cpu_floor_ok_path, m68k_cpu_floor_ok)
+        validate_e4(m68k_cpu_floor_ok_path, check=True)
 
         m68k_nonexistent_release = base_e4()
         m68k_nonexistent_release["software_environment"][
@@ -766,6 +813,13 @@ def main() -> int:
         ppc7400_path = root / "e4-powerpc-7400.json"
         write_json(ppc7400_path, ppc7400)
         validate_e4(ppc7400_path, check=True)
+
+        ppc_9_2_old_cpu = json.loads(json.dumps(ppc7400))
+        ppc_9_2_old_cpu["hardware"]["model"] = "Power Macintosh 9600"
+        ppc_9_2_old_cpu["hardware"]["cpu"] = "PowerPC 604e"
+        ppc_9_2_old_cpu_path = root / "e4-ppc-9.2-old-cpu.json"
+        write_json(ppc_9_2_old_cpu_path, ppc_9_2_old_cpu)
+        assert validate_e4(ppc_9_2_old_cpu_path).returncode != 0
 
         ppc_nonexistent_release = json.loads(
             json.dumps(ppc7400)
@@ -1039,6 +1093,42 @@ def main() -> int:
         relabeled_path = root / "e4-relabeled.json"
         write_json(relabeled_path, relabeled)
         assert validate_e4(relabeled_path).returncode != 0
+
+        amiga_e4 = base_e4()
+        amiga_e4["target_profile"] = "amiga-m68k"
+        amiga_e4["software_environment"] = {
+            "os_name": "AmigaOS",
+            "os_version": "3.9",
+            "api": "AmigaOS",
+        }
+        amiga_e4["hardware"] = {
+            "manufacturer": "Commodore",
+            "model": "Amiga 1200",
+            "cpu": "Motorola 68020",
+            "memory_bytes": 8 * 1024 * 1024,
+        }
+        amiga_e4["browser_proof"]["target"] = "amiga-m68k"
+        amiga_e4_path = root / "e4-amiga-3.9.json"
+        write_json(amiga_e4_path, amiga_e4)
+        validate_e4(amiga_e4_path, check=True)
+
+        amiga_invented = json.loads(json.dumps(amiga_e4))
+        amiga_invented["software_environment"]["os_version"] = "3.99.99"
+        amiga_invented_path = root / "e4-amiga-invented.json"
+        write_json(amiga_invented_path, amiga_invented)
+        assert validate_e4(amiga_invented_path).returncode != 0
+
+        amiga_old_cpu = json.loads(json.dumps(amiga_e4))
+        amiga_old_cpu["hardware"]["cpu"] = "Motorola 68000"
+        amiga_old_cpu_path = root / "e4-amiga-old-cpu.json"
+        write_json(amiga_old_cpu_path, amiga_old_cpu)
+        assert validate_e4(amiga_old_cpu_path).returncode != 0
+
+        amiga_low_memory = json.loads(json.dumps(amiga_e4))
+        amiga_low_memory["hardware"]["memory_bytes"] = 512 * 1024
+        amiga_low_memory_path = root / "e4-amiga-low-memory.json"
+        write_json(amiga_low_memory_path, amiga_low_memory)
+        assert validate_e4(amiga_low_memory_path).returncode != 0
 
         null_source = base_e4()
         null_source["source_revision"] = "0" * 40

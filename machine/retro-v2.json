@@ -190,7 +190,14 @@
           "8.0": 12582912,
           "8.1": 12582912
         },
-        "memory_floor_rule": "hardware.memory_bytes must meet the minimum RAM for the selected Classic Mac OS m68k release"
+        "memory_floor_rule": "hardware.memory_bytes must meet the minimum RAM for the selected Classic Mac OS m68k release",
+        "minimum_cpu_generation": {
+          "7.6": "68030",
+          "7.6.1": "68030",
+          "8.0": "68040",
+          "8.1": "68040"
+        },
+        "cpu_generation_rule": "hardware.cpu must meet the selected Classic Mac OS release floor"
       },
       "classic-mac-powerpc": {
         "os_names": [
@@ -258,7 +265,13 @@
           "9.2.1": 33554432,
           "9.2.2": 33554432
         },
-        "memory_floor_rule": "hardware.memory_bytes must meet the minimum RAM for the selected Classic Mac OS PowerPC release"
+        "memory_floor_rule": "hardware.memory_bytes must meet the minimum RAM for the selected Classic Mac OS PowerPC release",
+        "minimum_cpu_generation": {
+          "9.2": "G3/750-class",
+          "9.2.1": "G3/750-class",
+          "9.2.2": "G3/750-class"
+        },
+        "cpu_generation_rule": "Mac OS 9.2.x physical evidence requires G3/750-class or newer"
       },
       "amiga-m68k": {
         "os_names": [
@@ -269,8 +282,37 @@
           "AmigaOS": "^[1-3]\\.[0-9]+(?:\\.[0-9]+)?$"
         },
         "cpu_pattern": "(?i)(?:(?:motorola\\s+)?m68k|(?:motorola\\s+)?(?:mc)?68(?:000|010|020|030|040|060))",
-        "minimum_memory_bytes": 524288,
-        "memory_floor_rule": "hardware.memory_bytes must be at least 512 KiB"
+        "memory_floor_rule": "AmigaOS 3.5/3.9 require at least 4 MiB; other accepted releases retain the 512 KiB baseline",
+        "allowed_os_versions": [
+          "1.0",
+          "1.1",
+          "1.2",
+          "1.3",
+          "2.0",
+          "2.04",
+          "2.05",
+          "2.1",
+          "3.0",
+          "3.1",
+          "3.1.4",
+          "3.2",
+          "3.2.1",
+          "3.2.2",
+          "3.2.3",
+          "3.5",
+          "3.9"
+        ],
+        "os_release_rule": "the version must be an explicitly published AmigaOS/Workbench m68k release; arbitrary numeric versions are invalid",
+        "minimum_cpu_generation": {
+          "3.5": "68020",
+          "3.9": "68020"
+        },
+        "cpu_generation_rule": "AmigaOS 3.5/3.9 physical evidence requires 68020-class or newer",
+        "minimum_memory_bytes_default": 524288,
+        "minimum_memory_bytes_overrides": {
+          "3.5": 4194304,
+          "3.9": 4194304
+        }
       }
     },
     "rule": "physical evidence is bound to target-compatible CPU architecture, exact OS version family, and API identity",
@@ -408,7 +450,9 @@
   "e4_json_parsing": {
     "duplicate_keys_forbidden": true,
     "scope": "every JSON object at every nesting level",
-    "rule": "receipts with duplicate field names are ambiguous and invalid"
+    "rule": "receipts are bounded to 65536 bytes before decoding/parsing, must have a JSON object root, and may not contain duplicate field names",
+    "max_receipt_bytes": 65536,
+    "root_object_required": true
   },
   "e3_output_publication": {
     "clear_requested_output_before_validation": true,
@@ -425,5 +469,14 @@
     "baseline_pinned_by": ".github/workflows/r9-target-harnesses.yml",
     "addressing": "git-blob-sha",
     "rule": "after publication, each authority file must retain its pinned Git blob SHA; no historical baseline commit is required or referenced"
+  },
+  "e3_emulator_identity": {
+    "target_patterns": {
+      "windows9x-x86": "^qemu-system-i386(?:\\\\s|:|$)",
+      "classic-mac-m68k": "^qemu-system-m68k(?:\\\\s|:|$)",
+      "classic-mac-powerpc": "^qemu-system-ppc(?:\\\\s|:|$)",
+      "amiga-m68k": "^fs-uae(?:\\\\s|:|$)"
+    },
+    "rule": "E3 emulator identity must name the target-specific full-system harness executable family; unrelated emulators and user-mode programs are invalid"
   }
 }

@@ -75,7 +75,7 @@ jobs:
 
       - name: Mint E3 receipt
         run: |
-          emulator="$(fs-uae --version | head -n1)"
+          emulator="fs-uae: $(fs-uae --version | head -n1)"
           source_revision="$(git rev-parse HEAD)"
           payload_sha="$(sha256sum build/r9-amiga-payload/RIVETR9 | awk '{print $1}')"
 

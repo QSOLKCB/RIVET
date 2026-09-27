@@ -96,10 +96,10 @@ jobs:
         run: |
           if [[ "$RIVET_VALIDATED_ARCHITECTURE" == "m68k" ]]; then
             target=classic-mac-m68k
-            emulator="$(qemu-system-m68k --version | head -n1)"
+            emulator="qemu-system-m68k: $(qemu-system-m68k --version | head -n1)"
           else
             target=classic-mac-powerpc
-            emulator="$(qemu-system-ppc --version | head -n1)"
+            emulator="qemu-system-ppc: $(qemu-system-ppc --version | head -n1)"
           fi
           source_revision="$(git rev-parse HEAD)"
           payload_sha="$(sha256sum build/r9-mac-payload/RIVETR9.bin | awk '{print $1}')"

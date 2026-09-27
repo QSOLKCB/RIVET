@@ -7,6 +7,8 @@ from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 
+MAX_RECEIPT_BYTES = 64 * 1024
+
 CLASSIC_MAC_M68K_RELEASES = {
     "6.0",
     "6.0.1",
@@ -29,6 +31,26 @@ CLASSIC_MAC_M68K_RELEASES = {
     "7.6.1",
     "8.0",
     "8.1",
+}
+
+AMIGA_OS_RELEASES = {
+    "1.0",
+    "1.1",
+    "1.2",
+    "1.3",
+    "2.0",
+    "2.04",
+    "2.05",
+    "2.1",
+    "3.0",
+    "3.1",
+    "3.1.4",
+    "3.2",
+    "3.2.1",
+    "3.2.2",
+    "3.2.3",
+    "3.5",
+    "3.9",
 }
 
 CLASSIC_MAC_POWERPC_RELEASES = {
@@ -103,7 +125,25 @@ CLASSIC_MAC_POWERPC_MEMORY_MIN_BYTES = {
     "9.2.2": 32 * 1024 * 1024,
 }
 
+CLASSIC_MAC_M68K_CPU_MIN_GENERATION = {
+    "7.6": 30,
+    "7.6.1": 30,
+    "8.0": 40,
+    "8.1": 40,
+}
+
+CLASSIC_MAC_POWERPC_CPU_MIN_GENERATION = {
+    "9.2": 4,
+    "9.2.1": 4,
+    "9.2.2": 4,
+}
+
 AMIGA_MEMORY_MIN_BYTES = 512 * 1024
+AMIGA_HIGH_MEMORY_MIN_BYTES = 4 * 1024 * 1024
+AMIGA_CPU_MIN_GENERATION = {
+    "3.5": 20,
+    "3.9": 20,
+}
 
 WINDOWS_CPU_MIN_GENERATION = {
     "Windows 95": 3,
@@ -247,6 +287,52 @@ def windows_cpu_generation(cpu_identity: str) -> int | None:
             return generation
     return None
 
+def m68k_cpu_generation(cpu_identity: str) -> int | None:
+    if re.fullmatch(
+        r"(?i)(?:motorola\s+)?m68k",
+        cpu_identity,
+    ):
+        return 0
+    match = re.fullmatch(
+        r"(?i)(?:motorola\s+)?(?:mc)?68"
+        r"(?P<generation>000|010|020|030|040|060)",
+        cpu_identity,
+    )
+    if match is None:
+        return None
+    return int(match.group("generation"))
+
+def powerpc_cpu_generation(cpu_identity: str) -> int | None:
+    match = re.fullmatch(
+        r"(?i)(?:(?:motorola|ibm|apple)\s+)?"
+        r"(?:(?:powerpc|ppc)(?:\s+"
+        r"(?P<model>601|603e?|604e?|750|7400|g3|g4))?"
+        r"|(?P<bare>601|603e?|604e?|750|7400|g3|g4))",
+        cpu_identity,
+    )
+    if match is None:
+        return None
+    model = (match.group("model") or match.group("bare") or "601").lower()
+    if model in {"7400", "g4"}:
+        return 5
+    if model in {"750", "g3"}:
+        return 4
+    if model.startswith("604"):
+        return 3
+    if model.startswith("603"):
+        return 2
+    return 1
+
+def read_bounded_receipt(path: Path) -> str:
+    with path.open("rb") as handle:
+        raw = handle.read(MAX_RECEIPT_BYTES + 1)
+    if len(raw) > MAX_RECEIPT_BYTES:
+        raise ValueError(
+            "E4 receipt exceeds "
+            f"{MAX_RECEIPT_BYTES} bytes"
+        )
+    return raw.decode("utf-8", errors="strict")
+
 def require_identity(value: object, field: str) -> str:
     if not isinstance(value, str):
         raise ValueError(f"{field} must be a string")
@@ -311,7 +397,7 @@ def main() -> int:
     path = Path(args.receipt)
     try:
         data = json.loads(
-            path.read_text(encoding="utf-8"),
+            read_bounded_receipt(path),
             object_pairs_hook=reject_duplicate_object,
         )
     except (
@@ -323,6 +409,10 @@ def main() -> int:
         raise SystemExit(str(exc))
 
     try:
+        if not isinstance(data, dict):
+            raise ValueError(
+                "E4 receipt root must be a JSON object"
+            )
         if data.get("schema") != "rivet.retro-e4-receipt/v1":
             raise ValueError("unexpected E4 receipt schema")
         if data.get("evidence_class") != "E4":
@@ -394,6 +484,14 @@ def main() -> int:
                 "software_environment.os_version is not a "
                 "published Classic Mac OS PowerPC release"
             )
+        if (
+            target == "amiga-m68k"
+            and os_version not in AMIGA_OS_RELEASES
+        ):
+            raise ValueError(
+                "software_environment.os_version is not a "
+                "published AmigaOS m68k release"
+            )
 
         hardware = data.get("hardware")
         if not isinstance(hardware, dict):
@@ -430,6 +528,52 @@ def main() -> int:
                     "hardware.cpu is below the minimum "
                     f"for {os_name}"
                 )
+        elif target == "classic-mac-m68k":
+            cpu_generation = m68k_cpu_generation(cpu_identity)
+            minimum_generation = (
+                CLASSIC_MAC_M68K_CPU_MIN_GENERATION.get(
+                    os_version,
+                    0,
+                )
+            )
+            if (
+                cpu_generation is None
+                or cpu_generation < minimum_generation
+            ):
+                raise ValueError(
+                    "hardware.cpu is below the minimum "
+                    f"for Classic Mac OS {os_version}"
+                )
+        elif target == "classic-mac-powerpc":
+            cpu_generation = powerpc_cpu_generation(cpu_identity)
+            minimum_generation = (
+                CLASSIC_MAC_POWERPC_CPU_MIN_GENERATION.get(
+                    os_version,
+                    1,
+                )
+            )
+            if (
+                cpu_generation is None
+                or cpu_generation < minimum_generation
+            ):
+                raise ValueError(
+                    "hardware.cpu is below the minimum "
+                    f"for Classic Mac OS {os_version}"
+                )
+        else:
+            cpu_generation = m68k_cpu_generation(cpu_identity)
+            minimum_generation = AMIGA_CPU_MIN_GENERATION.get(
+                os_version,
+                0,
+            )
+            if (
+                cpu_generation is None
+                or cpu_generation < minimum_generation
+            ):
+                raise ValueError(
+                    "hardware.cpu is below the minimum "
+                    f"for AmigaOS {os_version}"
+                )
         memory_bytes = require_integer(
             hardware["memory_bytes"],
             "hardware.memory_bytes",
@@ -446,7 +590,11 @@ def main() -> int:
                 os_version
             ]
         else:
-            minimum_memory = AMIGA_MEMORY_MIN_BYTES
+            minimum_memory = (
+                AMIGA_HIGH_MEMORY_MIN_BYTES
+                if os_version in {"3.5", "3.9"}
+                else AMIGA_MEMORY_MIN_BYTES
+            )
         if memory_bytes < minimum_memory:
             raise ValueError(
                 "hardware.memory_bytes is below the minimum "

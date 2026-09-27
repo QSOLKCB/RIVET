@@ -82,7 +82,7 @@ jobs:
 
       - name: Mint E3 receipt
         run: |
-          emulator="$(qemu-system-i386 --version | head -n1)"
+          emulator="qemu-system-i386: $(qemu-system-i386 --version | head -n1)"
           source_revision="$(git rev-parse HEAD)"
           payload_sha="$(sha256sum build/r9-win9x-payload/RIVETR9.EXE | awk '{print $1}')"
 
