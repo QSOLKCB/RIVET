@@ -1,0 +1,89 @@
+name: R9 Amiga E3 Full-System
+
+on:
+  workflow_dispatch:
+    inputs:
+      media_sha256:
+        description: SHA-256 of the user-supplied bootable Amiga HDF
+        required: true
+        type: string
+      rom_sha256:
+        description: SHA-256 of the user-supplied Kickstart ROM
+        required: true
+        type: string
+      media_label:
+        description: Exact AmigaOS/Workbench product/media label
+        required: true
+        type: string
+      partition:
+        description: Boot HDF partition name
+        required: true
+        default: DH0
+        type: string
+      timeout_seconds:
+        description: Maximum guest runtime
+        required: true
+        default: "600"
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  amiga-e3:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 150
+    env:
+      RIVET_AMIGA_HDF_URL: ${{ secrets.RIVET_AMIGA_HDF_URL }}
+      RIVET_AMIGA_KICKSTART_URL: ${{ secrets.RIVET_AMIGA_KICKSTART_URL }}
+      RIVET_INPUT_MEDIA_SHA256: ${{ inputs.media_sha256 }}
+      RIVET_INPUT_ROM_SHA256: ${{ inputs.rom_sha256 }}
+      RIVET_INPUT_TIMEOUT_SECONDS: ${{ inputs.timeout_seconds }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate dispatch inputs and media URLs
+        run: |
+          test -n "$RIVET_AMIGA_HDF_URL"
+          test -n "$RIVET_AMIGA_KICKSTART_URL"
+          python3 scripts/r9_validate_dispatch_inputs.py --github-env "$GITHUB_ENV"
+
+      - name: Install full-system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends             curl file fs-uae python3-pip
+          python3 -m pip install --user --break-system-packages amitools
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+
+      - name: Download and verify guest media
+        run: |
+          mkdir -p build/r9-amiga-media
+          curl -L --fail --retry 3 "$RIVET_AMIGA_HDF_URL"             -o build/r9-amiga-media/guest.hdf
+          curl -L --fail --retry 3 "$RIVET_AMIGA_KICKSTART_URL"             -o build/r9-amiga-media/kick.rom
+          printf '%s  %s\n' "$RIVET_VALIDATED_MEDIA_SHA256"             build/r9-amiga-media/guest.hdf | sha256sum -c -
+          printf '%s  %s\n' "$RIVET_VALIDATED_ROM_SHA256"             build/r9-amiga-media/kick.rom | sha256sum -c -
+
+      - name: Build source-bound Amiga payload
+        run: |
+          bash scripts/r9_build_amiga_payload.sh             "$(git rev-parse HEAD)" build/r9-amiga-payload
+
+      - name: Execute Amiga full-system proof
+        run: |
+          bash scripts/r9_amiga_full_system.sh             build/r9-amiga-media/guest.hdf             "${{ inputs.partition }}"             build/r9-amiga-payload/RIVETR9             build/r9-amiga-media/kick.rom             "$(git rev-parse HEAD)"             "$RIVET_VALIDATED_TIMEOUT_SECONDS"             build/r9-amiga
+
+      - name: Mint E3 receipt
+        run: |
+          emulator="$(fs-uae --version | head -n1)"
+          source_revision="$(git rev-parse HEAD)"
+          payload_sha="$(sha256sum build/r9-amiga-payload/RIVETR9 | awk '{print $1}')"
+
+          python3 scripts/r9_e3_receipt.py             --proof build/r9-amiga/guest-proof.txt             --output build/r9-amiga/receipt.json             --target-profile amiga-m68k             --source-revision "$source_revision"             --emulator "$emulator"             --guest-media-sha256 "$RIVET_VALIDATED_MEDIA_SHA256"             --guest-media-label "${{ inputs.media_label }}"             --payload-sha256 "$payload_sha"             --rom-sha256 "$RIVET_VALIDATED_ROM_SHA256"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: r9-amiga-e3-receipt
+          path: |
+            build/r9-amiga/receipt.json
+            build/r9-amiga/guest-proof.txt
+            build/r9-amiga-payload/payload.sha256
+            build/r9-amiga-payload/toolchain-image.json
