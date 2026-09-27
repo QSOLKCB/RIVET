@@ -1300,6 +1300,11 @@ static int test_review_regressions(void)
 
 static int test_config_failures(void)
 {
+    static const unsigned char valid_config[] =
+        "RIVET-WEB1 1\n"
+        "home=https://site.test/home\n"
+        "downloads=0\n"
+        "user-css=\n";
     static const unsigned char bad_magic[] =
         "RIVET-WEB1 2\n"
         "home=https://site.test/home\n"
@@ -1320,9 +1325,31 @@ static int test_config_failures(void)
     static const unsigned char suffix[] =
         "\ndownloads=0\nuser-css=\n";
     unsigned char long_home[768];
+    union {
+        rivet_browser_config config;
+        unsigned char bytes[128];
+    } aliased;
     size_t cursor;
     size_t path_bytes;
     rivet_browser_config config;
+
+    CHECK(sizeof(valid_config) - 1u <=
+          sizeof(aliased.bytes));
+    memcpy(
+        aliased.bytes,
+        valid_config,
+        sizeof(valid_config) - 1u
+    );
+    CHECK(rivet_browser_config_parse(
+        &aliased.config,
+        aliased.bytes,
+        sizeof(valid_config) - 1u) ==
+        RIVET_ERR_INVALID_ARGUMENT);
+    CHECK(bytes_equal(
+        aliased.bytes,
+        sizeof(valid_config) - 1u,
+        valid_config,
+        sizeof(valid_config) - 1u));
 
     CHECK(rivet_browser_config_parse(
         &config,
