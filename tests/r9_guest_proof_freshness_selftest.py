@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+import json
+import re
 from pathlib import Path
 
 WINDOWS = Path("scripts/r9_windows9x_full_system.sh")
@@ -10,6 +12,7 @@ TRUST_WORKFLOW = Path(".github/workflows/r9-trust-anchor.yml")
 MAC = Path("scripts/r9_classic_mac_full_system.sh")
 AMIGA = Path("scripts/r9_amiga_full_system.sh")
 AMIGA_WORKFLOW = Path(".github/workflows/r9-amiga.yml")
+RETRO_MACHINE = Path("machine/retro-v2.json")
 
 def require_before(text: str, first: str, second: str, label: str):
     first_at = text.find(first)
@@ -138,11 +141,27 @@ def main() -> int:
         "machine/retro-v2.json",
         "machine/project-v12.json",
         ".github/workflows/r9-trust-anchor.yml",
-        "git diff --name-only --no-renames",
+        "git -C candidate diff --name-only --no-renames",
     ):
         if required not in trust_workflow:
             raise SystemExit(
                 "Base trust workflow is missing invariant: " + required
+            )
+
+    machine = json.loads(RETRO_MACHINE.read_text(encoding="utf-8"))
+    emulator_patterns = machine["e3_emulator_identity"]["target_patterns"]
+    emulator_samples = {
+        "windows9x-x86": "qemu-system-i386 test",
+        "classic-mac-m68k": "qemu-system-m68k test",
+        "classic-mac-powerpc": "qemu-system-ppc test",
+        "amiga-m68k": "fs-uae test",
+    }
+    for target, sample in emulator_samples.items():
+        pattern = emulator_patterns[target]
+        if re.match(pattern, sample, re.IGNORECASE) is None:
+            raise SystemExit(
+                "Machine emulator regex disagrees with validator for "
+                + target
             )
 
     mac = MAC.read_text(encoding="utf-8")
