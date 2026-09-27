@@ -18,11 +18,26 @@ PROOF_RE = re.compile(
     r"downloads=(?P<downloads>[0-9]+)$"
 )
 
-WINDOWS_9X_VER_RE = re.compile(
-    r"^(?P<identity>.*\bWindows\b.*"
-    r"\[Version 4\.(?:00|10|90)"
-    r"(?:\.[0-9A-Za-z]+)*\].*)$",
-    re.IGNORECASE,
+WINDOWS_9X_VER_PATTERNS = (
+    re.compile(
+        r"^(?P<identity>.*\bWindows 95\b.*"
+        r"\[Version 4\.00"
+        r"(?:\.[0-9A-Za-z]+)*\].*)$",
+        re.IGNORECASE,
+    ),
+    re.compile(
+        r"^(?P<identity>.*\bWindows 98\b.*"
+        r"\[Version 4\.10"
+        r"(?:\.[0-9A-Za-z]+)*\].*)$",
+        re.IGNORECASE,
+    ),
+    re.compile(
+        r"^(?P<identity>.*\bWindows "
+        r"(?:Me|Millennium)\b.*"
+        r"\[Version 4\.90"
+        r"(?:\.[0-9A-Za-z]+)*\].*)$",
+        re.IGNORECASE,
+    ),
 )
 
 TARGETS = {
@@ -51,12 +66,13 @@ def windows_9x_identity(text: str) -> str:
         stripped = line.strip()
         if stripped.startswith("rivet-r9-guest:"):
             continue
-        match = WINDOWS_9X_VER_RE.match(stripped)
-        if match:
-            return match.group("identity")
+        for pattern in WINDOWS_9X_VER_PATTERNS:
+            match = pattern.match(stripped)
+            if match:
+                return match.group("identity")
     raise ValueError(
-        "R9 E3 receipt: Windows 9x VER identity "
-        "(4.00/4.10/4.90) not found"
+        "R9 E3 receipt: consumer Windows 95/98/Me "
+        "VER identity not found"
     )
 
 def validate_identity(
