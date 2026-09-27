@@ -158,7 +158,7 @@ def main() -> int:
                 "--source-revision", SOURCE,
                 "--emulator", "fs-uae test",
                 "--guest-media-sha256", "1" * 64,
-                "--guest-media-label", "AROS/Amiga test media",
+                "--guest-media-label", "Amiga test media",
                 "--payload-sha256", "2" * 64,
             ],
             check=False,
