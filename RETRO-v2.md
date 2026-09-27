@@ -66,6 +66,8 @@ Payload:
 
 - 32-bit PE/Win32;
 - built from the current source revision with the i686 MinGW toolchain;
+- freestanding Windows 95-floor entrypoint using Kernel32 file/process APIs only;
+- no MSVCRT/UCRT/API-set CRT import is permitted;
 - frozen WEB1 proof linked directly into the guest executable.
 
 Harness:
@@ -178,7 +180,7 @@ The receipt must include:
 - one or more SHA-256-bound evidence attachments;
 - result `pass`.
 
-The validator rejects receipts with missing hardware identity, a CPU outside the target architecture family, missing or target-incompatible software identity, an OS version outside the target's historical version envelope, mismatched proof identity, or unhashed attachments. For example, a `classic-mac-m68k` physical receipt must identify an m68k CPU, Classic Mac OS in the supported 6.x/7.x/8.0–8.1 envelope, and the Mac OS Toolbox API; another operating system or CPU family is different evidence and requires its own target profile.
+The validator rejects receipts with missing hardware identity, a CPU outside the target architecture family, missing or target-incompatible software identity, an OS version outside the target's historical version envelope, mismatched proof identity, or unhashed attachments. Windows x86 CPU identity must be established by explicit x86-family model tokens rather than vendor names alone; e.g. Intel Itanium is not x86 evidence. For example, a `classic-mac-m68k` physical receipt must identify an m68k CPU, Classic Mac OS in the supported 6.x/7.x/8.0–8.1 envelope, and the Mac OS Toolbox API; another operating system or CPU family is different evidence and requires its own target profile.
 
 Physical evidence is intentionally retained by explicit PR/artifact rather than fabricated automatically.
 
@@ -189,6 +191,8 @@ RIVET does not commit or redistribute proprietary Windows, Macintosh, AmigaOS/Wo
 Manual workflows obtain media only from repository secrets controlled by the user/operator and require the caller to provide the expected digest separately.
 
 A successful download without a matching digest is a failure.
+
+Full-system harnesses may continue to proof extraction after GNU `timeout` status 124 or kill-after status 137. Those statuses are not passes by themselves: only a fresh, target/source-bound guest proof can mint evidence.
 
 ## Completion rule
 
