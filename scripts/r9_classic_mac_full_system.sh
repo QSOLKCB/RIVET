@@ -49,10 +49,10 @@ rm -f "$PROOF"
 
 hmount "$GUEST"
 hcd ":System Folder:Startup Items"
-if hls "RIVET-R9-RECEIPT.TXT" >/dev/null 2>&1; then
-  hdel "RIVET-R9-RECEIPT.TXT"
+if hls ":RIVET-R9-RECEIPT.TXT" >/dev/null 2>&1; then
+  hdel ":RIVET-R9-RECEIPT.TXT"
 fi
-hcopy -m "$PAYLOAD" "RIVETR9"
+hcopy -m "$PAYLOAD" ":RIVETR9"
 humount
 
 QEMU_ARGS=(
@@ -85,7 +85,7 @@ fi
 
 hmount "$GUEST"
 hcd ":System Folder:Startup Items"
-hcopy -t "RIVET-R9-RECEIPT.TXT" "$PROOF"
+hcopy -t ":RIVET-R9-RECEIPT.TXT" "$PROOF"
 humount
 
 cat "$PROOF"
