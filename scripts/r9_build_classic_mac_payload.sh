@@ -33,7 +33,7 @@ if [[ '$ARCH' == m68k ]]; then
     -DRIVET_R9_SOURCE_REVISION=\\\"$SOURCE_REVISION\\\" \
     core/rivet.c gfx/raster.c ui/ui.c \
     web/stream_url_utf8.c web/html_css.c web/layout_image.c \
-    apps/browser/browser.c evidence/r9_guest_browser_proof.c \
+    apps/browser/browser.c evidence/r9_guest_browser_proof.c evidence/r9_classic_mac_os_identity.c \
     -Wl,--mac-single -o '$OUT_DIR/RIVETR9.code.bin'
   \$REZ -I\$RINC \
     --copy '$OUT_DIR/RIVETR9.code.bin' \
@@ -52,7 +52,7 @@ else
     -DRIVET_R9_SOURCE_REVISION=\\\"$SOURCE_REVISION\\\" \
     core/rivet.c gfx/raster.c ui/ui.c \
     web/stream_url_utf8.c web/html_css.c web/layout_image.c \
-    apps/browser/browser.c evidence/r9_guest_browser_proof.c \
+    apps/browser/browser.c evidence/r9_guest_browser_proof.c evidence/r9_classic_mac_os_identity.c \
     -o '$OUT_DIR/RIVETR9.xcoff'
   \$MAKEPEF -o '$OUT_DIR/RIVETR9.pef' '$OUT_DIR/RIVETR9.xcoff'
   \$REZ \$RINC/RetroPPCAPPL.r -I\$RINC \
