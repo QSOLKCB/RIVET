@@ -2,6 +2,7 @@
 from pathlib import Path
 
 WINDOWS = Path("scripts/r9_windows9x_full_system.sh")
+WINDOWS_BUILD = Path("scripts/r9_build_windows9x_payload.sh")
 MAC = Path("scripts/r9_classic_mac_full_system.sh")
 AMIGA = Path("scripts/r9_amiga_full_system.sh")
 AMIGA_WORKFLOW = Path(".github/workflows/r9-amiga.yml")
@@ -59,6 +60,24 @@ def main() -> int:
         "Windows proof exit ordering",
     )
 
+    windows_build = WINDOWS_BUILD.read_text(encoding="utf-8")
+    for required in (
+        "-nostdlib",
+        "evidence/r9_win9x_browser_proof.c",
+        "payload-imports.txt",
+        "MSVCRT|UCRTBASE|api-ms-win-crt",
+    ):
+        if required not in windows_build:
+            raise SystemExit(
+                "Windows 95 payload must retain CRT-free build guard: "
+                + required
+            )
+
+    if "$QEMU_STATUS -ne 137" not in windows:
+        raise SystemExit(
+            "Windows harness must accept timeout kill-after status 137"
+        )
+
     mac = MAC.read_text(encoding="utf-8")
     require_before(
         mac,
@@ -67,6 +86,12 @@ def main() -> int:
         "Classic Mac freshness",
     )
 
+    if "$QEMU_STATUS -ne 137" not in mac:
+        raise SystemExit(
+            "Classic Mac harness must accept timeout "
+            "kill-after status 137"
+        )
+
     amiga = AMIGA.read_text(encoding="utf-8")
     require_before(
         amiga,
@@ -74,6 +99,11 @@ def main() -> int:
         'timeout --signal=TERM --kill-after=20 "$TIMEOUT_SECONDS"',
         "Amiga freshness",
     )
+
+    if "$FSUAE_STATUS -ne 137" not in amiga:
+        raise SystemExit(
+            "Amiga harness must accept timeout kill-after status 137"
+        )
 
     amiga_workflow = AMIGA_WORKFLOW.read_text(
         encoding="utf-8"
