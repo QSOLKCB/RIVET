@@ -37,6 +37,7 @@ def run_e3(
     output: Path,
     check: bool = False,
     emulator: str = "qemu-system-i386 test",
+    source_revision: str = SOURCE,
 ):
     return subprocess.run(
         [
@@ -45,7 +46,7 @@ def run_e3(
             "--proof", str(proof),
             "--output", str(output),
             "--target-profile", "windows9x-x86",
-            "--source-revision", SOURCE,
+            "--source-revision", source_revision,
             "--emulator", emulator,
             "--guest-media-sha256", "1" * 64,
             "--guest-media-label", "Windows 98 SE test image",
@@ -181,6 +182,36 @@ def main() -> int:
         assert result.returncode != 0
         assert not nonzero_exit_output.exists()
 
+        null_source_output = root / "e3-null-source.json"
+        result = run_e3(
+            good,
+            null_source_output,
+            source_revision="0" * 40,
+        )
+        assert result.returncode != 0
+        assert not null_source_output.exists()
+
+        ambiguous = root / "proof-multiple-lines.txt"
+        ambiguous.write_text(
+            GUEST_LINE + "\n" +
+            (
+                "rivet-r9-guest: target=amiga-m68k "
+                "source=ffffffffffffffffffffffffffffffffffffffff "
+                "pointer_bits=32 endian=big "
+                "document_fnv1a64=0000000000000000 "
+                "source_fnv1a64=0000000000000000 "
+                "history=0 bookmarks=0 fetches=0 downloads=0"
+            ) + "\n" +
+            "proof_exit=0\n" +
+            "startup_stage=winstart\n" +
+            WIN98_VER + "\n",
+            encoding="utf-8",
+        )
+        ambiguous_output = root / "multiple-proof-lines.json"
+        result = run_e3(ambiguous, ambiguous_output)
+        assert result.returncode != 0
+        assert not ambiguous_output.exists()
+
         empty_emulator = root / "empty-emulator.json"
         result = run_e3(
             good,
@@ -296,6 +327,26 @@ def main() -> int:
         mc68040_path = root / "e4-mc68040.json"
         write_json(mc68040_path, mc68040)
         validate_e4(mc68040_path, check=True)
+
+        ppc604e = base_e4()
+        ppc604e["target_profile"] = "classic-mac-powerpc"
+        ppc604e["software_environment"] = {
+            "os_name": "Classic Mac OS",
+            "os_version": "8.6",
+            "api": "Mac OS Toolbox",
+        }
+        ppc604e["hardware"] = {
+            "manufacturer": "Apple",
+            "model": "Power Macintosh 9600",
+            "cpu": "PowerPC 604e",
+            "memory_bytes": 128 * 1024 * 1024,
+        }
+        ppc604e["browser_proof"]["target"] = (
+            "classic-mac-powerpc"
+        )
+        ppc604e_path = root / "e4-powerpc-604e.json"
+        write_json(ppc604e_path, ppc604e)
+        validate_e4(ppc604e_path, check=True)
 
         missing_software = base_e4()
         del missing_software["software_environment"]
