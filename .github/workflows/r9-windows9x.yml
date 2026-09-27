@@ -70,7 +70,7 @@ jobs:
 
       - name: Execute Windows 9x full-system proof
         run: |
-          bash scripts/r9_windows9x_full_system.sh             build/r9-win9x-media/guest.img             "${{ inputs.guest_partition }}"             build/r9-win9x-payload/RIVETR9.EXE             "$(git rev-parse HEAD)"             "$RIVET_VALIDATED_TIMEOUT_SECONDS"             build/r9-windows9x
+          bash scripts/r9_windows9x_full_system.sh             build/r9-win9x-media/guest.img             "$RIVET_VALIDATED_GUEST_PARTITION"             "$RIVET_VALIDATED_WINDOWS_DIRECTORY"             build/r9-win9x-payload/RIVETR9.EXE             "$(git rev-parse HEAD)"             "$RIVET_VALIDATED_TIMEOUT_SECONDS"             build/r9-windows9x
 
           grep -Ei 'Windows|Version 4\.(00|10)'             build/r9-windows9x/guest-proof.txt
 
