@@ -61,6 +61,18 @@ def require_windows_9x_startup(text: str) -> None:
             "from WINSTART startup stage"
         )
 
+def require_windows_9x_proof_exit(text: str) -> None:
+    markers = [
+        line.strip()
+        for line in text.splitlines()
+        if line.strip().startswith("proof_exit=")
+    ]
+    if markers != ["proof_exit=0"]:
+        raise ValueError(
+            "R9 E3 receipt: Windows guest proof exit "
+            "must be exactly proof_exit=0"
+        )
+
 def windows_9x_identity(text: str) -> str:
     for line in text.splitlines():
         stripped = line.strip()
@@ -160,6 +172,7 @@ def main() -> int:
         )
         if args.target_profile == "windows9x-x86":
             require_windows_9x_startup(proof_text)
+            require_windows_9x_proof_exit(proof_text)
             guest_os_identity = windows_9x_identity(
                 proof_text
             )
