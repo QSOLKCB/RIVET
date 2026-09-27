@@ -301,6 +301,25 @@ def main() -> int:
         write_json(wrong_cpu_path, wrong_cpu)
         assert validate_e4(wrong_cpu_path).returncode != 0
 
+        windows95 = base_e4()
+        windows95["target_profile"] = "windows9x-x86"
+        windows95["software_environment"] = {
+            "os_name": "Windows 95",
+            "os_version": "4.00.950",
+            "api": "Win32",
+        }
+        windows95["hardware"] = {
+            "manufacturer": "IBM Compatible",
+            "model": "Physical 486 test system",
+            "cpu": "Intel 80486DX2",
+            "memory_bytes": 64 * 1024 * 1024,
+        }
+        windows95["browser_proof"]["target"] = "windows9x-x86"
+        windows95["browser_proof"]["endian"] = "little"
+        windows95_path = root / "e4-windows95.json"
+        write_json(windows95_path, windows95)
+        validate_e4(windows95_path, check=True)
+
         itanium = base_e4()
         itanium["target_profile"] = "windows9x-x86"
         itanium["software_environment"] = {
