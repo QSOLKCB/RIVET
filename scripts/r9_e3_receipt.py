@@ -19,9 +19,9 @@ PROOF_RE = re.compile(
 )
 
 WINDOWS_9X_VER_RE = re.compile(
-    r"^(?P<identity>.*\\bWindows\\b.*"
-    r"\\[Version 4\\.(?:00|10|90)"
-    r"(?:\\.[0-9A-Za-z]+)*\\].*)$",
+    r"^(?P<identity>.*\bWindows\b.*"
+    r"\[Version 4\.(?:00|10|90)"
+    r"(?:\.[0-9A-Za-z]+)*\].*)$",
     re.IGNORECASE,
 )
 
