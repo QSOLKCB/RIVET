@@ -32,6 +32,11 @@ TARGETS = {
     "amiga-m68k": (32, "big"),
 }
 
+ROM_REQUIRED_TARGETS = {
+    "classic-mac-m68k",
+    "amiga-m68k",
+}
+
 def require_windows_9x_startup(text: str) -> None:
     if "startup_stage=winstart" not in {
         line.strip() for line in text.splitlines()
@@ -110,8 +115,16 @@ def main() -> int:
     ):
         if not re.fullmatch(r"[0-9a-f]{64}", value):
             raise SystemExit(f"R9 E3 receipt: {label} SHA-256 must be 64 lowercase hex characters")
+    if args.target_profile in ROM_REQUIRED_TARGETS and not args.rom_sha256:
+        raise SystemExit(
+            "R9 E3 receipt: ROM SHA-256 is required for "
+            f"{args.target_profile}"
+        )
     if args.rom_sha256 and not re.fullmatch(r"[0-9a-f]{64}", args.rom_sha256):
-        raise SystemExit("R9 E3 receipt: ROM SHA-256 must be 64 lowercase hex characters")
+        raise SystemExit(
+            "R9 E3 receipt: ROM SHA-256 must be "
+            "64 lowercase hex characters"
+        )
 
     try:
         proof_path = Path(args.proof)
