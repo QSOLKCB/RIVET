@@ -53,7 +53,7 @@ jobs:
       - name: Install full-system dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y --no-install-recommends             curl file fs-uae python3-pip
+          sudo apt-get install -y --no-install-recommends             curl file fs-uae python3-pip xauth xvfb
           python3 -m pip install --user --break-system-packages amitools
           echo "$HOME/.local/bin" >> "$GITHUB_PATH"
 
@@ -71,7 +71,7 @@ jobs:
 
       - name: Execute Amiga full-system proof
         run: |
-          bash scripts/r9_amiga_full_system.sh             build/r9-amiga-media/guest.hdf             "$RIVET_VALIDATED_PARTITION"             build/r9-amiga-payload/RIVETR9             build/r9-amiga-media/kick.rom             "$(git rev-parse HEAD)"             "$RIVET_VALIDATED_TIMEOUT_SECONDS"             build/r9-amiga
+          xvfb-run -a bash scripts/r9_amiga_full_system.sh             build/r9-amiga-media/guest.hdf             "$RIVET_VALIDATED_PARTITION"             build/r9-amiga-payload/RIVETR9             build/r9-amiga-media/kick.rom             "$(git rev-parse HEAD)"             "$RIVET_VALIDATED_TIMEOUT_SECONDS"             build/r9-amiga
 
       - name: Mint E3 receipt
         run: |
