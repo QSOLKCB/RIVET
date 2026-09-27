@@ -18,17 +18,18 @@ jobs:
           failed=0
 
           while IFS= read -r path; do
+            [[ -n "$path" ]] || continue
             case "$path" in
-              AGENTS.md|README.md|ROADMAP.md|index.html)
-                continue
+              .github/workflows/r9-amiga.yml|.github/workflows/r9-classic-mac.yml|.github/workflows/r9-target-harnesses.yml|.github/workflows/r9-windows9x.yml|AGENTS.md|README.md|RETRO-v2.md|ROADMAP.md|evidence/r9_amiga_os_identity.c|evidence/r9_classic_mac_os_identity.c|evidence/r9_guest_browser_proof.c|evidence/r9_win9x_browser_proof.c|evidence/retro/README.md|evidence/retro/physical-receipt.example.json|index.html|machine/project-v12.json|machine/retro-v2.json|scripts/r9_amiga_full_system.sh|scripts/r9_build_amiga_payload.sh|scripts/r9_build_classic_mac_payload.sh|scripts/r9_build_windows9x_payload.sh|scripts/r9_classic_mac_full_system.sh|scripts/r9_e3_receipt.py|scripts/r9_validate_dispatch_inputs.py|scripts/r9_validate_physical_receipt.py|scripts/r9_windows9x_full_system.sh|tests/r9_e3_e4_receipt_selftest.py|tests/r9_guest_proof_freshness_selftest.py|tests/r9_workflow_input_selftest.py)
+                ;;
+              *)
+                echo "Frozen pre-R9-v2 surface changed outside allowlist: $path" >&2
+                failed=1
                 ;;
             esac
-
-            if ! git diff --quiet "$baseline" -- "$path"; then
-              echo "Frozen pre-R9-v2 path changed: $path" >&2
-              failed=1
-            fi
-          done < <(git ls-tree -r --name-only "$baseline")
+          done < <(
+            git diff --name-only --no-renames "$baseline" HEAD
+          )
 
           exit "$failed"
 
