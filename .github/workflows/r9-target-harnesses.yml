@@ -53,6 +53,9 @@ jobs:
       - name: Workflow input routing self-test
         run: python3 tests/r9_workflow_input_selftest.py
 
+      - name: Guest proof freshness self-test
+        run: python3 tests/r9_guest_proof_freshness_selftest.py
+
       - name: Python syntax
         run: |
           python3 -m py_compile             scripts/r9_e3_receipt.py             scripts/r9_validate_dispatch_inputs.py             scripts/r9_validate_physical_receipt.py
