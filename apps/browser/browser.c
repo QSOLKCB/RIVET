@@ -1990,14 +1990,21 @@ static rivet_result browser_scrolled_y(
             return RIVET_OK;
         }
 
-        magnitude =
-            delta - (unsigned long)origin_y;
-        if (magnitude >
-            (unsigned long)LONG_MAX + 1ul) {
-            return RIVET_ERR_CAPACITY;
+        {
+            unsigned long negative_limit =
+                (unsigned long)(-(LONG_MIN + 1L)) + 1ul;
+
+            magnitude =
+                delta - (unsigned long)origin_y;
+            if (magnitude > negative_limit) {
+                return RIVET_ERR_CAPACITY;
+            }
+            if (magnitude == negative_limit) {
+                *translated_y = LONG_MIN;
+            } else {
+                *translated_y = -(long)magnitude;
+            }
         }
-        *translated_y =
-            -((long)(magnitude - 1ul)) - 1L;
     }
 
     return RIVET_OK;
