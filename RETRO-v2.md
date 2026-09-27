@@ -78,6 +78,7 @@ Harness:
 - payload and startup batch are injected into the guest FAT filesystem;
 - QEMU full-system x86 executes the guest;
 - the guest writes the source-bound proof and Windows `VER` output;
+- the guest must record exactly one `proof_exit=0` marker; a missing, duplicate or nonzero proof-exit marker is not evidence;
 - the receipt retains media digest, payload digest and emulator identity.
 
 A passing receipt proves only the exact pinned media/environment named in that receipt.
@@ -166,7 +167,7 @@ rivet.retro-e4-receipt/v1
 
 The receipt must include:
 
-- exact source revision;
+- exact non-null Git source revision;
 - one of the named historical target profiles;
 - `execution=physical-hardware`;
 - manufacturer and model;
@@ -177,10 +178,10 @@ The receipt must include:
   - OS version compatible with the selected target family;
   - API identity;
 - exact frozen WEB1 proof;
-- one or more SHA-256-bound evidence attachments;
+- one or more SHA-256-bound evidence attachments with non-placeholder digests;
 - result `pass`.
 
-The validator rejects receipts with missing hardware identity, a CPU outside the target architecture family, mixed host/emulator CPU descriptions, missing or target-incompatible software identity, an OS version outside the target's historical version envelope, mismatched proof identity, or unhashed attachments. The **entire** CPU identity must match one physical target-compatible CPU description; a compatible token embedded inside incompatible host or emulator prose is not sufficient. Windows x86 CPU identity must be established by explicit x86-family model tokens rather than vendor names alone; e.g. Intel Itanium is not x86 evidence. For example, a `classic-mac-m68k` physical receipt must identify an m68k CPU, Classic Mac OS in the supported 6.x/7.x/8.0–8.1 envelope, and the Mac OS Toolbox API; another operating system or CPU family is different evidence and requires its own target profile.
+The validator rejects receipts with a Git null source OID, missing hardware identity, a CPU outside the target architecture family, mixed host/emulator CPU descriptions, missing or target-incompatible software identity, an OS version outside the target's historical version envelope, mismatched proof identity, unhashed attachments, or the all-zero SHA-256 placeholder digest. The **entire** CPU identity must match one physical target-compatible CPU description; a compatible token embedded inside incompatible host or emulator prose is not sufficient. Canonical Motorola forms such as `MC68040` and `Motorola MC68040` are valid m68k identities. Windows x86 CPU identity must be established by explicit x86-family model tokens rather than vendor names alone; e.g. Intel Itanium is not x86 evidence. For example, a `classic-mac-m68k` physical receipt must identify an m68k CPU, Classic Mac OS in the supported 6.x/7.x/8.0–8.1 envelope, and the Mac OS Toolbox API; another operating system or CPU family is different evidence and requires its own target profile.
 
 Physical evidence is intentionally retained by explicit PR/artifact rather than fabricated automatically.
 
