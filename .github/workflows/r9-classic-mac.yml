@@ -1,0 +1,115 @@
+name: R9 Classic Mac E3 Full-System
+
+on:
+  workflow_dispatch:
+    inputs:
+      architecture:
+        description: Classic Macintosh CPU architecture
+        required: true
+        type: choice
+        options:
+          - m68k
+          - powerpc
+      media_sha256:
+        description: SHA-256 of the user-supplied bootable HFS disk image
+        required: true
+        type: string
+      rom_sha256:
+        description: SHA-256 of the user-supplied ROM (required for m68k; optional for PPC)
+        required: false
+        default: ""
+        type: string
+      media_label:
+        description: Exact Classic Mac OS product/media label
+        required: true
+        type: string
+      timeout_seconds:
+        description: Maximum guest runtime
+        required: true
+        default: "600"
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  classic-mac-e3:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 150
+    env:
+      RIVET_MAC_M68K_IMAGE_URL: ${{ secrets.RIVET_CLASSIC_MAC_M68K_IMAGE_URL }}
+      RIVET_MAC_PPC_IMAGE_URL: ${{ secrets.RIVET_CLASSIC_MAC_PPC_IMAGE_URL }}
+      RIVET_MAC_M68K_ROM_URL: ${{ secrets.RIVET_CLASSIC_MAC_M68K_ROM_URL }}
+      RIVET_MAC_PPC_ROM_URL: ${{ secrets.RIVET_CLASSIC_MAC_PPC_ROM_URL }}
+      RIVET_INPUT_MEDIA_SHA256: ${{ inputs.media_sha256 }}
+      RIVET_INPUT_ROM_SHA256: ${{ inputs.rom_sha256 }}
+      RIVET_INPUT_TIMEOUT_SECONDS: ${{ inputs.timeout_seconds }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate dispatch inputs
+        run: python3 scripts/r9_validate_dispatch_inputs.py --github-env "$GITHUB_ENV"
+
+      - name: Install full-system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends             curl file hfsutils qemu-system-misc
+
+      - name: Select and verify guest media
+        run: |
+          set -euo pipefail
+          mkdir -p build/r9-mac-media
+          if [[ "${{ inputs.architecture }}" == "m68k" ]]; then
+            media_url="$RIVET_MAC_M68K_IMAGE_URL"
+            rom_url="$RIVET_MAC_M68K_ROM_URL"
+            test -n "$RIVET_VALIDATED_ROM_SHA256"
+          else
+            media_url="$RIVET_MAC_PPC_IMAGE_URL"
+            rom_url="$RIVET_MAC_PPC_ROM_URL"
+          fi
+          test -n "$media_url"
+
+          curl -L --fail --retry 3 "$media_url"             -o build/r9-mac-media/guest.img
+          printf '%s  %s\n' "$RIVET_VALIDATED_MEDIA_SHA256"             build/r9-mac-media/guest.img | sha256sum -c -
+
+          if [[ -n "$RIVET_VALIDATED_ROM_SHA256" ]]; then
+            test -n "$rom_url"
+            curl -L --fail --retry 3 "$rom_url"               -o build/r9-mac-media/rom.bin
+            printf '%s  %s\n' "$RIVET_VALIDATED_ROM_SHA256"               build/r9-mac-media/rom.bin | sha256sum -c -
+          fi
+
+      - name: Build source-bound Classic Mac payload
+        run: |
+          bash scripts/r9_build_classic_mac_payload.sh             "${{ inputs.architecture }}"             "$(git rev-parse HEAD)"             build/r9-mac-payload
+
+      - name: Execute Classic Mac full-system proof
+        run: |
+          rom=-
+          if [[ -f build/r9-mac-media/rom.bin ]]; then
+            rom=build/r9-mac-media/rom.bin
+          fi
+          bash scripts/r9_classic_mac_full_system.sh             "${{ inputs.architecture }}"             build/r9-mac-media/guest.img             build/r9-mac-payload/RIVETR9.bin             "$(git rev-parse HEAD)"             "$RIVET_VALIDATED_TIMEOUT_SECONDS"             "$rom"             build/r9-classic-mac
+
+      - name: Mint E3 receipt
+        run: |
+          if [[ "${{ inputs.architecture }}" == "m68k" ]]; then
+            target=classic-mac-m68k
+            emulator="$(qemu-system-m68k --version | head -n1)"
+          else
+            target=classic-mac-powerpc
+            emulator="$(qemu-system-ppc --version | head -n1)"
+          fi
+          source_revision="$(git rev-parse HEAD)"
+          payload_sha="$(sha256sum build/r9-mac-payload/RIVETR9.bin | awk '{print $1}')"
+
+          python3 scripts/r9_e3_receipt.py             --proof build/r9-classic-mac/guest-proof.txt             --output build/r9-classic-mac/receipt.json             --target-profile "$target"             --source-revision "$source_revision"             --emulator "$emulator"             --guest-media-sha256 "$RIVET_VALIDATED_MEDIA_SHA256"             --guest-media-label "${{ inputs.media_label }}"             --payload-sha256 "$payload_sha"             --rom-sha256 "$RIVET_VALIDATED_ROM_SHA256"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: r9-classic-mac-e3-receipt
+          path: |
+            build/r9-classic-mac/receipt.json
+            build/r9-classic-mac/guest-proof.txt
+            build/r9-classic-mac/serial.log
+            build/r9-mac-payload/payload.sha256
+            build/r9-mac-payload/toolchain-image.json
