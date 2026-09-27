@@ -95,7 +95,13 @@
           "Windows 98": "^4\\.10(?:\\.[0-9A-Za-z]+)*$",
           "Windows Me": "^4\\.90(?:\\.[0-9A-Za-z]+)*$"
         },
-        "cpu_pattern": "(?i)(?:(?:intel\\s+)?(?:x86|(?:80|i)?386(?:dx|sx)?|(?:80|i)?486(?:dx(?:2|4)?|sx)?|i[5-6]86|pentium(?:\\s+(?:pro|ii|iii|4|mmx))?|celeron)|(?:amd\\s+)?(?:am386(?:dx|sx)?|am486(?:dx(?:2|4)?|sx)?|athlon(?:\\s+xp)?|duron|k[56](?:-[23])?)|cyrix\\s+6x86|via\\s+c3)"
+        "cpu_pattern": "(?i)(?:(?:intel\\s+)?(?:x86|(?:80|i)?386(?:dx|sx)?|(?:80|i)?486(?:dx(?:2|4)?|sx)?|i[5-6]86|pentium(?:\\s+(?:pro|ii|iii|4|mmx))?|celeron)|(?:amd\\s+)?(?:am386(?:dx|sx)?|am486(?:dx(?:2|4)?|sx)?|athlon(?:\\s+xp)?|duron|k[56](?:-[23])?)|cyrix\\s+6x86|via\\s+c3)",
+        "minimum_cpu_generation": {
+          "Windows 95": "386",
+          "Windows 98": "486",
+          "Windows Me": "Pentium-class"
+        },
+        "cpu_generation_rule": "accepted x86 CPU identity must meet the minimum generation for the selected Windows product"
       },
       "classic-mac-m68k": {
         "os_names": [
@@ -228,5 +234,16 @@
     "payload_destination": ":RIVETR9",
     "receipt_path": ":RIVET-R9-RECEIPT.TXT",
     "rule": "relative HFS operands passed to hfsutils must be colon-qualified so they are not parsed as host paths"
+  },
+  "e4_json_parsing": {
+    "duplicate_keys_forbidden": true,
+    "scope": "every JSON object at every nesting level",
+    "rule": "receipts with duplicate field names are ambiguous and invalid"
+  },
+  "e3_output_publication": {
+    "clear_requested_output_before_validation": true,
+    "temporary_suffix": ".tmp",
+    "atomic_replace_after_validation": true,
+    "failure_rule": "failed validation or publication leaves no receipt at the requested output path"
   }
 }
