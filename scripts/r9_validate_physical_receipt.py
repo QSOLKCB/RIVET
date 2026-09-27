@@ -17,8 +17,8 @@ TARGETS = {
         "api": "Win32",
         "cpu_pattern": (
             r"(?i)(?:\bx86\b|"
-            r"\b(?:i?386(?:dx|sx)?|"
-            r"i?486(?:dx(?:2|4)?|sx)?)\b|"
+            r"\b(?:(?:80|i)?386(?:dx|sx)?|"
+            r"(?:80|i)?486(?:dx(?:2|4)?|sx)?)\b|"
             r"\bi[5-6]86\b|\bpentium(?:\s+"
             r"(?:pro|ii|iii|4|mmx))?\b|\bceleron\b|"
             r"\bathlon(?:\s+xp)?\b|\bduron\b|"
