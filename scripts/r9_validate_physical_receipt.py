@@ -9,25 +9,63 @@ TARGETS = {
         "pointer_bits": 32,
         "endian": "little",
         "os_names": {"Windows 95", "Windows 98", "Windows Me"},
+        "os_versions": {
+            "Windows 95": r"^4\.00(?:\.[0-9A-Za-z]+)*$",
+            "Windows 98": r"^4\.10(?:\.[0-9A-Za-z]+)*$",
+            "Windows Me": r"^4\.90(?:\.[0-9A-Za-z]+)*$",
+        },
         "api": "Win32",
+        "cpu_pattern": (
+            r"(?i)(?:x86|80386|80486|i[3-6]86|pentium|"
+            r"celeron|athlon|k5|k6|cyrix|via|intel|amd)"
+        ),
     },
     "classic-mac-m68k": {
         "pointer_bits": 32,
         "endian": "big",
         "os_names": {"Classic Mac OS"},
+        "os_versions": {
+            "Classic Mac OS": (
+                r"^(?:6\.[0-9]+(?:\.[0-9]+)?|"
+                r"7\.[0-9]+(?:\.[0-9]+)?|"
+                r"8\.[01](?:\.[0-9]+)?)$"
+            ),
+        },
         "api": "Mac OS Toolbox",
+        "cpu_pattern": (
+            r"(?i)(?:m68k|(?:motorola\s+)?"
+            r"68(?:000|010|020|030|040|060))"
+        ),
     },
     "classic-mac-powerpc": {
         "pointer_bits": 32,
         "endian": "big",
         "os_names": {"Classic Mac OS"},
+        "os_versions": {
+            "Classic Mac OS": (
+                r"^(?:7\.[0-9]+(?:\.[0-9]+)?|"
+                r"8\.[0-9]+(?:\.[0-9]+)?|"
+                r"9\.[0-9]+(?:\.[0-9]+)?)$"
+            ),
+        },
         "api": "Mac OS Toolbox",
+        "cpu_pattern": (
+            r"(?i)(?:powerpc|\bppc\b|\b60[134]\b|"
+            r"\b750\b|\bg[34]\b)"
+        ),
     },
     "amiga-m68k": {
         "pointer_bits": 32,
         "endian": "big",
         "os_names": {"AmigaOS"},
+        "os_versions": {
+            "AmigaOS": r"^[1-3]\.[0-9]+(?:\.[0-9]+)?$",
+        },
         "api": "AmigaOS",
+        "cpu_pattern": (
+            r"(?i)(?:m68k|(?:motorola\s+)?"
+            r"68(?:000|010|020|030|040|060))"
+        ),
     },
 }
 
@@ -96,7 +134,7 @@ def main() -> int:
             software["os_name"],
             "software_environment.os_name",
         )
-        require_identity(
+        os_version = require_identity(
             software["os_version"],
             "software_environment.os_version",
         )
@@ -115,6 +153,12 @@ def main() -> int:
                 "software_environment.api does not match "
                 f"{target}"
             )
+        version_pattern = target_contract["os_versions"][os_name]
+        if re.fullmatch(version_pattern, os_version) is None:
+            raise ValueError(
+                "software_environment.os_version does not match "
+                f"{target}/{os_name}"
+            )
 
         hardware = data.get("hardware")
         if not isinstance(hardware, dict):
@@ -124,6 +168,15 @@ def main() -> int:
                 raise ValueError(f"hardware.{field} is required")
         for field in ("manufacturer", "model", "cpu"):
             require_identity(hardware[field], f"hardware.{field}")
+        cpu_identity = hardware["cpu"].strip()
+        if re.search(
+            target_contract["cpu_pattern"],
+            cpu_identity,
+        ) is None:
+            raise ValueError(
+                "hardware.cpu is incompatible with "
+                f"{target}"
+            )
         require_integer(
             hardware["memory_bytes"],
             "hardware.memory_bytes",
