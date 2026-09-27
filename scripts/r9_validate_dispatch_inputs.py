@@ -74,6 +74,13 @@ def main() -> int:
             "windows_directory",
             r"/[A-Za-z0-9._-]{1,32}",
         )
+        dos_drive = optional_env_text(
+            "RIVET_INPUT_DOS_DRIVE",
+            "dos_drive",
+            r"[A-Za-z]:",
+        )
+        if dos_drive:
+            dos_drive = dos_drive.upper()
         architecture = optional_env_text(
             "RIVET_INPUT_ARCHITECTURE",
             "architecture",
@@ -102,6 +109,10 @@ def main() -> int:
             if windows_directory:
                 handle.write(
                     f"RIVET_VALIDATED_WINDOWS_DIRECTORY={windows_directory}\n"
+                )
+            if dos_drive:
+                handle.write(
+                    f"RIVET_VALIDATED_DOS_DRIVE={dos_drive}\n"
                 )
             if architecture:
                 handle.write(
