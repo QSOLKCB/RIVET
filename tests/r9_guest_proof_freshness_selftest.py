@@ -4,6 +4,7 @@ from pathlib import Path
 WINDOWS = Path("scripts/r9_windows9x_full_system.sh")
 MAC = Path("scripts/r9_classic_mac_full_system.sh")
 AMIGA = Path("scripts/r9_amiga_full_system.sh")
+AMIGA_WORKFLOW = Path(".github/workflows/r9-amiga.yml")
 
 def require_before(text: str, first: str, second: str, label: str):
     first_at = text.find(first)
@@ -41,6 +42,23 @@ def main() -> int:
             "the original WINSTART contents"
         )
 
+    if "%ERRORLEVEL%" in windows:
+        raise SystemExit(
+            "Windows proof exit capture must not use "
+            "%ERRORLEVEL% under COMMAND.COM"
+        )
+    if "IF ERRORLEVEL 1 GOTO RIVET_FAIL" not in windows:
+        raise SystemExit(
+            "Windows proof exit capture must use "
+            "IF ERRORLEVEL-compatible syntax"
+        )
+    require_before(
+        windows,
+        "IF ERRORLEVEL 1 GOTO RIVET_FAIL",
+        "ECHO proof_exit=0",
+        "Windows proof exit ordering",
+    )
+
     mac = MAC.read_text(encoding="utf-8")
     require_before(
         mac,
@@ -56,6 +74,20 @@ def main() -> int:
         'timeout --signal=TERM --kill-after=20 "$TIMEOUT_SECONDS"',
         "Amiga freshness",
     )
+
+    amiga_workflow = AMIGA_WORKFLOW.read_text(
+        encoding="utf-8"
+    )
+    if "xvfb-run -a bash scripts/r9_amiga_full_system.sh" not in (
+        amiga_workflow
+    ):
+        raise SystemExit(
+            "Amiga workflow must execute FS-UAE harness under Xvfb"
+        )
+    if "xauth xvfb" not in amiga_workflow:
+        raise SystemExit(
+            "Amiga workflow must install Xvfb and xauth"
+        )
 
     print("r9 guest proof freshness self-test: ok")
     return 0
