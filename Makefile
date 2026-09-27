@@ -24,7 +24,7 @@ DOCUMENT_ABI_OBJECTS = $(BUILD_DIR)/r7-abi-stream.o $(BUILD_DIR)/r7-abi-html.o $
 BROWSER = apps/browser/browser.c
 BROWSER_HEADER = include/rivet/browser.h
 
-.PHONY: all gfx ui textview platform-posix document browser test test-gfx test-ui test-textview test-platform test-document test-document-charset test-document-abi test-browser check-no-heap check-no-heap-gfx check-no-heap-ui check-no-heap-textview check-no-heap-platform check-no-heap-document check-no-heap-browser clean
+.PHONY: all gfx ui textview platform-posix document browser test test-gfx test-ui test-textview test-platform test-document test-document-charset test-document-abi test-browser test-browser-charset check-no-heap check-no-heap-gfx check-no-heap-ui check-no-heap-textview check-no-heap-platform check-no-heap-document check-no-heap-browser clean
 
 all: $(BUILD_DIR)/rivet-headless
 
@@ -97,6 +97,9 @@ $(BUILD_DIR)/rivet-document-proof: $(DOCUMENT) $(DOCUMENT_HEADER) $(HEADER) exam
 $(BUILD_DIR)/test-browser: $(CORE) $(GFX) $(UI) $(DOCUMENT) $(BROWSER) $(BROWSER_HEADER) $(DOCUMENT_HEADER) $(UI_HEADER) $(GFX_HEADER) $(HEADER) tests/test_browser.c | $(BUILD_DIR)
 	$(CC) $(CPPFLAGS) -Iinclude $(CFLAGS) $(CORE) $(GFX) $(UI) $(DOCUMENT) $(BROWSER) tests/test_browser.c -o $@
 
+$(BUILD_DIR)/test-browser-charset: $(CORE) $(GFX) $(UI) $(DOCUMENT) $(BROWSER) $(BROWSER_HEADER) $(DOCUMENT_HEADER) $(UI_HEADER) $(GFX_HEADER) $(HEADER) tests/test_browser_charset.c | $(BUILD_DIR)
+	$(CC) $(CPPFLAGS) -Iinclude $(CFLAGS) $(CORE) $(GFX) $(UI) $(DOCUMENT) $(BROWSER) tests/test_browser_charset.c -o $@
+
 $(BUILD_DIR)/rivet-web1-proof: $(CORE) $(GFX) $(UI) $(DOCUMENT) $(BROWSER) $(BROWSER_HEADER) $(DOCUMENT_HEADER) $(UI_HEADER) $(GFX_HEADER) $(HEADER) $(HEADLESS_PPM) $(HEADLESS_PPM_HEADER) examples/r8_browser_proof.c | $(BUILD_DIR)
 	$(CC) $(CPPFLAGS) -Iinclude -Iplatform/headless $(CFLAGS) $(CORE) $(GFX) $(UI) $(DOCUMENT) $(BROWSER) $(HEADLESS_PPM) examples/r8_browser_proof.c -o $@
 
@@ -126,6 +129,9 @@ test-document-abi: check-no-heap-document $(BUILD_DIR)/test-document-abi
 
 test-browser: check-no-heap-browser $(BUILD_DIR)/test-browser
 	./$(BUILD_DIR)/test-browser
+
+test-browser-charset: check-no-heap-browser $(BUILD_DIR)/test-browser-charset
+	./$(BUILD_DIR)/test-browser-charset
 
 check-no-heap:
 	@if grep -En '(malloc|calloc|realloc|free)[[:space:]]*\(' $(CORE) >/dev/null; then \
