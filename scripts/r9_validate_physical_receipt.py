@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import argparse
+import hashlib
 import json
 import re
 import subprocess
@@ -455,6 +456,50 @@ def require_sha256(value: object, field: str) -> str:
         raise ValueError(f"{field} must not be the all-zero placeholder digest")
     return value
 
+def verify_attachment(
+    receipt_path: Path,
+    name: str,
+    expected_sha256: str,
+    field: str,
+) -> None:
+    relative = Path(name)
+    if relative.is_absolute():
+        raise ValueError(
+            f"{field}.name must be relative to the receipt directory"
+        )
+
+    receipt_root = receipt_path.resolve().parent
+    try:
+        attachment = (receipt_root / relative).resolve(strict=True)
+        attachment.relative_to(receipt_root)
+    except (OSError, ValueError):
+        raise ValueError(
+            f"{field}.name does not resolve to a retained file "
+            "inside the receipt directory"
+        )
+
+    if not attachment.is_file():
+        raise ValueError(
+            f"{field}.name must resolve to a regular retained file"
+        )
+
+    digest = hashlib.sha256()
+    try:
+        with attachment.open("rb") as handle:
+            for chunk in iter(lambda: handle.read(1024 * 1024), b""):
+                digest.update(chunk)
+    except OSError as exc:
+        raise ValueError(
+            f"{field}.name could not be hashed: {exc}"
+        ) from exc
+
+    actual = digest.hexdigest()
+    if actual != expected_sha256:
+        raise ValueError(
+            f"{field}.sha256 mismatch: expected "
+            f"{expected_sha256}, got {actual}"
+        )
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("receipt")
@@ -732,13 +777,20 @@ def main() -> int:
                 raise ValueError(
                     f"attachments[{index}] must be an object"
                 )
-            require_evidence_name(
+            field = f"attachments[{index}]"
+            name = require_evidence_name(
                 item.get("name"),
-                f"attachments[{index}].name",
+                f"{field}.name",
             )
-            require_sha256(
+            expected_sha256 = require_sha256(
                 item.get("sha256"),
-                f"attachments[{index}].sha256",
+                f"{field}.sha256",
+            )
+            verify_attachment(
+                path,
+                name,
+                expected_sha256,
+                field,
             )
 
         if data.get("result") != "pass":

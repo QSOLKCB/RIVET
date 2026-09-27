@@ -48,9 +48,30 @@
         "scripts/r9_build_amiga_payload.sh"
       ]
     },
-    "source_revision_payload_rule": "the claimed source commit must contain every target-specific payload source/build path required for the selected E3 target",
+    "source_revision_payload_rule": "the claimed source commit must resolve every target-specific payload source/build path to the exact frozen Git blob identity",
     "max_proof_bytes": 65536,
-    "proof_size_rule": "guest-controlled proof input is read with a 65536-byte hard limit before UTF-8 decoding or parsing"
+    "proof_size_rule": "guest-controlled proof input is read with a 65536-byte hard limit before UTF-8 decoding or parsing",
+    "target_required_source_blobs": {
+      "windows9x-x86": {
+        "evidence/r9_win9x_browser_proof.c": "7758623c70bf686ccecd8ff261d1c1fbbb0259f6",
+        "scripts/r9_build_windows9x_payload.sh": "f851ee04f410e06528f06bbfae3176f4f14eca36"
+      },
+      "classic-mac-m68k": {
+        "evidence/r9_guest_browser_proof.c": "96eca03a3062fab51f85e1d585149cc3cf309dce",
+        "evidence/r9_classic_mac_os_identity.c": "329c32517937a6a56f899d1f7febf70bedaff3ac",
+        "scripts/r9_build_classic_mac_payload.sh": "01954eca1a9a97cef71bb8969750df97b10fca9f"
+      },
+      "classic-mac-powerpc": {
+        "evidence/r9_guest_browser_proof.c": "96eca03a3062fab51f85e1d585149cc3cf309dce",
+        "evidence/r9_classic_mac_os_identity.c": "329c32517937a6a56f899d1f7febf70bedaff3ac",
+        "scripts/r9_build_classic_mac_payload.sh": "01954eca1a9a97cef71bb8969750df97b10fca9f"
+      },
+      "amiga-m68k": {
+        "evidence/r9_guest_browser_proof.c": "96eca03a3062fab51f85e1d585149cc3cf309dce",
+        "evidence/r9_amiga_os_identity.c": "80576a18ca63c0e193efb830080ae952276a0ffc",
+        "scripts/r9_build_amiga_payload.sh": "b1199f2d3eb87d91edd0dff3aa2c35fb7362471a"
+      }
+    }
   },
   "e3_targets": [
     {
@@ -397,7 +418,8 @@
       "examples/r8_browser_proof.c": "70b368992094b92bc7050ea36a393e46b7199bf2",
       "apps/browser/browser.c": "a808edfc81b71f3b624cce5fc395e64e024d0093",
       "include/rivet/browser.h": "a7b2eac03cf08a12cd0baba8c348b04bc7f113de"
-    }
+    },
+    "attachment_rule": "each attachment name is a relative path under the receipt directory, must resolve to a retained regular file without escaping that directory tree, and its actual bytes must match the declared SHA-256"
   },
   "e3_windows_identity": {
     "required_identity_lines": 1,
@@ -507,7 +529,8 @@
     "changed_path_command": "git diff --name-only --no-renames <baseline> HEAD",
     "allowlist_required": true,
     "enforced_by": ".github/workflows/r9-trust-anchor.yml from the base branch",
-    "rule": "the fixed allowlist is evaluated by pull_request_target code from main, not by candidate workflow code"
+    "rule": "the fixed baseline-to-HEAD allowlist is evaluated by pull_request_target code from main for every non-maintenance PR, including PRs opened after R9 v2 merges",
+    "applies_to": "every non-maintenance pull request"
   },
   "classic_mac_hfs_operands": {
     "explicit_hfs_prefix_required": true,

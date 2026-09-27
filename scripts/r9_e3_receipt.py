@@ -119,26 +119,37 @@ ROM_REQUIRED_TARGETS = {
     "amiga-m68k",
 }
 
-TARGET_REQUIRED_SOURCE_PATHS = {
-    "windows9x-x86": (
-        "evidence/r9_win9x_browser_proof.c",
-        "scripts/r9_build_windows9x_payload.sh",
-    ),
-    "classic-mac-m68k": (
-        "evidence/r9_guest_browser_proof.c",
-        "evidence/r9_classic_mac_os_identity.c",
-        "scripts/r9_build_classic_mac_payload.sh",
-    ),
-    "classic-mac-powerpc": (
-        "evidence/r9_guest_browser_proof.c",
-        "evidence/r9_classic_mac_os_identity.c",
-        "scripts/r9_build_classic_mac_payload.sh",
-    ),
-    "amiga-m68k": (
-        "evidence/r9_guest_browser_proof.c",
-        "evidence/r9_amiga_os_identity.c",
-        "scripts/r9_build_amiga_payload.sh",
-    ),
+TARGET_REQUIRED_SOURCE_BLOBS = {
+    "windows9x-x86": {
+        "evidence/r9_win9x_browser_proof.c":
+            "7758623c70bf686ccecd8ff261d1c1fbbb0259f6",
+        "scripts/r9_build_windows9x_payload.sh":
+            "f851ee04f410e06528f06bbfae3176f4f14eca36",
+    },
+    "classic-mac-m68k": {
+        "evidence/r9_guest_browser_proof.c":
+            "96eca03a3062fab51f85e1d585149cc3cf309dce",
+        "evidence/r9_classic_mac_os_identity.c":
+            "329c32517937a6a56f899d1f7febf70bedaff3ac",
+        "scripts/r9_build_classic_mac_payload.sh":
+            "01954eca1a9a97cef71bb8969750df97b10fca9f",
+    },
+    "classic-mac-powerpc": {
+        "evidence/r9_guest_browser_proof.c":
+            "96eca03a3062fab51f85e1d585149cc3cf309dce",
+        "evidence/r9_classic_mac_os_identity.c":
+            "329c32517937a6a56f899d1f7febf70bedaff3ac",
+        "scripts/r9_build_classic_mac_payload.sh":
+            "01954eca1a9a97cef71bb8969750df97b10fca9f",
+    },
+    "amiga-m68k": {
+        "evidence/r9_guest_browser_proof.c":
+            "96eca03a3062fab51f85e1d585149cc3cf309dce",
+        "evidence/r9_amiga_os_identity.c":
+            "80576a18ca63c0e193efb830080ae952276a0ffc",
+        "scripts/r9_build_amiga_payload.sh":
+            "b1199f2d3eb87d91edd0dff3aa2c35fb7362471a",
+    },
 }
 
 def require_windows_9x_startup(text: str) -> None:
@@ -209,24 +220,31 @@ def require_target_payload_source(
     value: str,
     target: str,
 ) -> None:
-    for source_path in TARGET_REQUIRED_SOURCE_PATHS[target]:
+    for source_path, expected_blob in (
+        TARGET_REQUIRED_SOURCE_BLOBS[target].items()
+    ):
         result = subprocess.run(
             [
                 "git",
                 "-C",
                 str(REPO_ROOT),
-                "cat-file",
-                "-e",
+                "rev-parse",
+                "--verify",
                 f"{value}:{source_path}",
             ],
             check=False,
-            stdout=subprocess.DEVNULL,
+            stdout=subprocess.PIPE,
             stderr=subprocess.DEVNULL,
+            text=True,
         )
-        if result.returncode != 0:
+        actual_blob = result.stdout.strip()
+        if (
+            result.returncode != 0
+            or actual_blob != expected_blob
+        ):
             raise ValueError(
-                "R9 E3 receipt: source revision does not "
-                f"contain {target} payload source: {source_path}"
+                "R9 E3 receipt: source revision does not contain "
+                f"frozen {target} blob {expected_blob} at {source_path}"
             )
 
 def _single_os_line(text: str) -> str:

@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import hashlib
 import json
 import os
 import subprocess
@@ -14,6 +15,8 @@ E4_SOURCE = SOURCE
 NONEXISTENT_SOURCE = "f" * 40
 PRE_PAYLOAD_SOURCE = "7d260e0671c5d089b25d6075ab1b66fb0886c99e"
 INITIAL_SOURCE = "c63bb846f93ac24b55518b3f6c0e6761e4faac3b"
+ATTACHMENT_BYTES = b"RIVET retained E4 fixture\n"
+ATTACHMENT_SHA256 = hashlib.sha256(ATTACHMENT_BYTES).hexdigest()
 GUEST_LINE = (
     "rivet-r9-guest: target=windows9x-x86 "
     f"source={SOURCE} pointer_bits=32 endian=little "
@@ -132,7 +135,10 @@ def base_e4():
             "downloads": 1,
         },
         "attachments": [
-            {"name": "receipt-photo.jpg", "sha256": "3" * 64}
+            {
+                "name": "receipt-photo.jpg",
+                "sha256": ATTACHMENT_SHA256,
+            }
         ],
         "result": "pass",
     }
@@ -152,6 +158,53 @@ def git_mktree(entries):
         ["git", "mktree"],
         input=payload,
         text=True,
+    ).strip()
+
+def zero_windows_payload_source_commit():
+    empty_blob = subprocess.check_output(
+        ["git", "hash-object", "-w", "--stdin"],
+        input="",
+        text=True,
+    ).strip()
+    evidence = git_mktree([
+        (
+            "100644",
+            "blob",
+            empty_blob,
+            "r9_win9x_browser_proof.c",
+        ),
+    ])
+    scripts = git_mktree([
+        (
+            "100644",
+            "blob",
+            empty_blob,
+            "r9_build_windows9x_payload.sh",
+        ),
+    ])
+    root = git_mktree([
+        ("040000", "tree", evidence, "evidence"),
+        ("040000", "tree", scripts, "scripts"),
+    ])
+    env = os.environ.copy()
+    env.update(
+        {
+            "GIT_AUTHOR_NAME": "RIVET self-test",
+            "GIT_AUTHOR_EMAIL": "rivet-selftest@example.invalid",
+            "GIT_COMMITTER_NAME": "RIVET self-test",
+            "GIT_COMMITTER_EMAIL": "rivet-selftest@example.invalid",
+        }
+    )
+    return subprocess.check_output(
+        [
+            "git",
+            "commit-tree",
+            root,
+            "-m",
+            "zero Windows payload sources",
+        ],
+        text=True,
+        env=env,
     ).strip()
 
 def zero_web1_source_commit():
@@ -198,6 +251,9 @@ def zero_web1_source_commit():
 def main() -> int:
     with tempfile.TemporaryDirectory() as tmp:
         root = Path(tmp)
+        (root / "receipt-photo.jpg").write_bytes(
+            ATTACHMENT_BYTES
+        )
 
         good = root / "proof-good.txt"
         good.write_text(
@@ -348,6 +404,30 @@ def main() -> int:
         )
         assert result.returncode != 0
         assert not pre_payload_output.exists()
+
+        zero_windows_source = zero_windows_payload_source_commit()
+        zero_windows_proof = root / "proof-zero-windows-source.txt"
+        zero_windows_proof.write_text(
+            GUEST_LINE.replace(
+                SOURCE,
+                zero_windows_source,
+            ) + "\n" +
+            "proof_exit=0\n" +
+            "startup_stage=winstart\n" +
+            WIN98_VER + "\n",
+            encoding="utf-8",
+        )
+        zero_windows_output = root / "zero-windows-source.json"
+        result = run_e3(
+            zero_windows_proof,
+            zero_windows_output,
+            source_revision=zero_windows_source,
+        )
+        assert result.returncode != 0
+        assert "does not contain frozen windows9x-x86 blob" in (
+            result.stderr
+        )
+        assert not zero_windows_output.exists()
 
         ambiguous = root / "proof-multiple-lines.txt"
         ambiguous.write_text(
@@ -767,6 +847,37 @@ def main() -> int:
         e4 = root / "e4.json"
         write_json(e4, base_e4())
         validate_e4(e4, check=True)
+
+        missing_attachment = base_e4()
+        missing_attachment["attachments"][0]["name"] = (
+            "definitely-missing-r9-photo.jpg"
+        )
+        missing_attachment_path = root / "e4-missing-attachment.json"
+        write_json(missing_attachment_path, missing_attachment)
+        result = validate_e4(missing_attachment_path)
+        assert result.returncode != 0
+        assert "does not resolve to a retained file" in result.stderr
+
+        absolute_attachment = base_e4()
+        absolute_attachment["attachments"][0]["name"] = (
+            "/tmp/definitely-missing-r9-photo.jpg"
+        )
+        absolute_attachment_path = root / "e4-absolute-attachment.json"
+        write_json(absolute_attachment_path, absolute_attachment)
+        result = validate_e4(absolute_attachment_path)
+        assert result.returncode != 0
+        assert "must be relative" in result.stderr
+
+        wrong_attachment_digest = base_e4()
+        wrong_attachment_digest["attachments"][0]["sha256"] = "4" * 64
+        wrong_attachment_digest_path = root / "e4-wrong-attachment-digest.json"
+        write_json(
+            wrong_attachment_digest_path,
+            wrong_attachment_digest,
+        )
+        result = validate_e4(wrong_attachment_digest_path)
+        assert result.returncode != 0
+        assert "sha256 mismatch" in result.stderr
 
         mc68040 = base_e4()
         mc68040["hardware"]["model"] = "Quadra 840AV"
