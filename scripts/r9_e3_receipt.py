@@ -2,7 +2,10 @@
 import argparse
 import json
 import re
+import subprocess
 from pathlib import Path
+
+REPO_ROOT = Path(__file__).resolve().parents[1]
 
 PROOF_RE = re.compile(
     r"^rivet-r9-guest: "
@@ -43,6 +46,23 @@ WINDOWS_9X_VER_PATTERNS = (
 WINDOWS_VERSION_LINE_RE = re.compile(
     r"^.*\bWindows\b.*\[Version [^\]]+\].*$",
     re.IGNORECASE,
+)
+
+CLASSIC_MAC_OS_RE = re.compile(
+    r"^rivet-r9-os: "
+    r"target=(?P<target>classic-mac-(?:m68k|powerpc)) "
+    r"os=classic-mac-os "
+    r"version=(?P<major>[0-9]+)\.(?P<minor>[0-9]+)\.(?P<patch>[0-9]+) "
+    r"api=toolbox$"
+)
+
+AMIGA_OS_RE = re.compile(
+    r"^rivet-r9-os: target=amiga-m68k os=amigaos "
+    r"exec_version=(?P<exec_version>[0-9]+) "
+    r"exec_revision=(?P<exec_revision>[0-9]+) "
+    r"dos_version=(?P<dos_version>[0-9]+) "
+    r"dos_revision=(?P<dos_revision>[0-9]+) "
+    r"api=exec-dos$"
 )
 
 TARGETS = {
@@ -100,6 +120,99 @@ def windows_9x_identity(text: str) -> str:
         "R9 E3 receipt: Windows identity is not "
         "consumer Windows 95/98/Me"
     )
+
+def require_git_commit(value: str) -> str:
+    result = subprocess.run(
+        [
+            "git",
+            "-C",
+            str(REPO_ROOT),
+            "cat-file",
+            "-e",
+            f"{value}^{{commit}}",
+        ],
+        check=False,
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+    )
+    if result.returncode != 0:
+        raise ValueError(
+            "R9 E3 receipt: source revision must resolve "
+            "to a RIVET commit"
+        )
+    return value
+
+def _single_os_line(text: str) -> str:
+    lines = [
+        line.strip()
+        for line in text.splitlines()
+        if line.strip().startswith("rivet-r9-os:")
+    ]
+    if len(lines) != 1:
+        raise ValueError(
+            "R9 E3 receipt: non-Windows proof must contain "
+            "exactly one rivet-r9-os identity line"
+        )
+    return lines[0]
+
+def classic_mac_identity(text: str, target: str) -> str:
+    line = _single_os_line(text)
+    match = CLASSIC_MAC_OS_RE.fullmatch(line)
+    if match is None or match.group("target") != target:
+        raise ValueError(
+            "R9 E3 receipt: Classic Mac OS identity does not "
+            f"match {target}"
+        )
+
+    version = tuple(
+        int(match.group(field))
+        for field in ("major", "minor", "patch")
+    )
+    if target == "classic-mac-m68k":
+        valid = (
+            version[0] in (6, 7)
+            or (
+                version[0] == 8
+                and version[1] in (0, 1)
+            )
+        )
+    else:
+        valid = (
+            (
+                version[0] == 7
+                and version >= (7, 1, 2)
+            )
+            or version[0] in (8, 9)
+        )
+    if not valid:
+        raise ValueError(
+            "R9 E3 receipt: Classic Mac OS runtime version "
+            f"is incompatible with {target}"
+        )
+    return line
+
+def amiga_identity(text: str) -> str:
+    line = _single_os_line(text)
+    match = AMIGA_OS_RE.fullmatch(line)
+    if match is None:
+        raise ValueError(
+            "R9 E3 receipt: AmigaOS Exec/DOS runtime identity "
+            "not found"
+        )
+
+    exec_version = int(match.group("exec_version"))
+    dos_version = int(match.group("dos_version"))
+    if not (33 <= exec_version <= 45):
+        raise ValueError(
+            "R9 E3 receipt: AmigaOS Exec version is outside "
+            "the classic AmigaOS envelope"
+        )
+    if not (33 <= dos_version <= 45):
+        raise ValueError(
+            "R9 E3 receipt: AmigaOS DOS version is outside "
+            "the classic AmigaOS envelope"
+        )
+    return line
 
 def require_sha256(value: str, field: str) -> str:
     if not re.fullmatch(r"[0-9a-f]{64}", value):
@@ -185,6 +298,11 @@ def main() -> int:
             "the Git null OID"
         )
     try:
+        require_git_commit(args.source_revision)
+    except ValueError as exc:
+        raise SystemExit(str(exc))
+
+    try:
         require_sha256(
             args.guest_media_sha256,
             "guest media",
@@ -229,8 +347,17 @@ def main() -> int:
             guest_os_identity = windows_9x_identity(
                 proof_text
             )
+        elif args.target_profile.startswith("classic-mac-"):
+            guest_os_identity = classic_mac_identity(
+                proof_text,
+                args.target_profile,
+            )
+        elif args.target_profile == "amiga-m68k":
+            guest_os_identity = amiga_identity(proof_text)
         else:
-            guest_os_identity = None
+            raise ValueError(
+                "R9 E3 receipt: unsupported OS identity target"
+            )
     except (OSError, UnicodeError, ValueError) as exc:
         raise SystemExit(str(exc))
 
