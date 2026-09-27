@@ -614,6 +614,7 @@ def main() -> int:
                 "RIVET_INPUT_TIMEOUT_SECONDS": "600",
                 "RIVET_INPUT_MEDIA_LABEL": malicious_label,
                 "RIVET_INPUT_GUEST_PARTITION": "/dev/sda1",
+                "RIVET_INPUT_DOS_DRIVE": "d:",
                 "RIVET_INPUT_WINDOWS_DIRECTORY": "/WINDOWS",
             }
         )
@@ -629,6 +630,7 @@ def main() -> int:
         )
         env_text = env_path.read_text(encoding="utf-8")
         assert f"RIVET_VALIDATED_MEDIA_LABEL={malicious_label}" in env_text
+        assert "RIVET_VALIDATED_DOS_DRIVE=D:" in env_text
         assert not marker.exists()
 
     print("r9 E3/E4 receipt self-test: ok")
