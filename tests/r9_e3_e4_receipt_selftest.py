@@ -38,6 +38,8 @@ def run_e3(
     check: bool = False,
     emulator: str = "qemu-system-i386 test",
     source_revision: str = SOURCE,
+    guest_media_sha256: str = "1" * 64,
+    payload_sha256: str = "2" * 64,
 ):
     return subprocess.run(
         [
@@ -48,9 +50,9 @@ def run_e3(
             "--target-profile", "windows9x-x86",
             "--source-revision", source_revision,
             "--emulator", emulator,
-            "--guest-media-sha256", "1" * 64,
+            "--guest-media-sha256", guest_media_sha256,
             "--guest-media-label", "Windows 98 SE test image",
-            "--payload-sha256", "2" * 64,
+            "--payload-sha256", payload_sha256,
         ],
         check=check,
         stdout=subprocess.PIPE,
@@ -212,6 +214,55 @@ def main() -> int:
         assert result.returncode != 0
         assert not ambiguous_output.exists()
 
+        malformed_duplicate = root / "proof-malformed-duplicate.txt"
+        malformed_duplicate.write_text(
+            GUEST_LINE + "\n" +
+            "rivet-r9-guest: target=amiga-m68k "
+            "malformed-and-contradictory\n" +
+            "proof_exit=0\n" +
+            "startup_stage=winstart\n" +
+            WIN98_VER + "\n",
+            encoding="utf-8",
+        )
+        malformed_duplicate_output = (
+            root / "malformed-duplicate.json"
+        )
+        result = run_e3(
+            malformed_duplicate,
+            malformed_duplicate_output,
+        )
+        assert result.returncode != 0
+        assert not malformed_duplicate_output.exists()
+
+        conflicting_windows = root / "proof-conflicting-windows.txt"
+        conflicting_windows.write_text(
+            GUEST_LINE + "\n" +
+            "proof_exit=0\n" +
+            "startup_stage=winstart\n" +
+            WIN98_VER + "\n" +
+            XP_VER + "\n",
+            encoding="utf-8",
+        )
+        conflicting_windows_output = (
+            root / "conflicting-windows.json"
+        )
+        result = run_e3(
+            conflicting_windows,
+            conflicting_windows_output,
+        )
+        assert result.returncode != 0
+        assert not conflicting_windows_output.exists()
+
+        zero_digests_output = root / "zero-e3-digests.json"
+        result = run_e3(
+            good,
+            zero_digests_output,
+            guest_media_sha256="0" * 64,
+            payload_sha256="0" * 64,
+        )
+        assert result.returncode != 0
+        assert not zero_digests_output.exists()
+
         empty_emulator = root / "empty-emulator.json"
         result = run_e3(
             good,
@@ -348,6 +399,26 @@ def main() -> int:
         write_json(ppc604e_path, ppc604e)
         validate_e4(ppc604e_path, check=True)
 
+        ppc_pre_floor = base_e4()
+        ppc_pre_floor["target_profile"] = "classic-mac-powerpc"
+        ppc_pre_floor["software_environment"] = {
+            "os_name": "Classic Mac OS",
+            "os_version": "7.0",
+            "api": "Mac OS Toolbox",
+        }
+        ppc_pre_floor["hardware"] = {
+            "manufacturer": "Apple",
+            "model": "Power Macintosh 9600",
+            "cpu": "PowerPC 604e",
+            "memory_bytes": 128 * 1024 * 1024,
+        }
+        ppc_pre_floor["browser_proof"]["target"] = (
+            "classic-mac-powerpc"
+        )
+        ppc_pre_floor_path = root / "e4-powerpc-pre-floor.json"
+        write_json(ppc_pre_floor_path, ppc_pre_floor)
+        assert validate_e4(ppc_pre_floor_path).returncode != 0
+
         missing_software = base_e4()
         del missing_software["software_environment"]
         missing_software_path = root / "e4-missing-software.json"
@@ -422,6 +493,25 @@ def main() -> int:
         windows95_path = root / "e4-windows95.json"
         write_json(windows95_path, windows95)
         validate_e4(windows95_path, check=True)
+
+        amd_am486 = base_e4()
+        amd_am486["target_profile"] = "windows9x-x86"
+        amd_am486["software_environment"] = {
+            "os_name": "Windows 95",
+            "os_version": "4.00.950",
+            "api": "Win32",
+        }
+        amd_am486["hardware"] = {
+            "manufacturer": "AMD",
+            "model": "Physical Am486 test system",
+            "cpu": "AMD Am486DX4",
+            "memory_bytes": 64 * 1024 * 1024,
+        }
+        amd_am486["browser_proof"]["target"] = "windows9x-x86"
+        amd_am486["browser_proof"]["endian"] = "little"
+        amd_am486_path = root / "e4-amd-am486.json"
+        write_json(amd_am486_path, amd_am486)
+        validate_e4(amd_am486_path, check=True)
 
         itanium = base_e4()
         itanium["target_profile"] = "windows9x-x86"
