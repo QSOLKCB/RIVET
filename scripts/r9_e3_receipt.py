@@ -7,6 +7,34 @@ from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 
+MAX_PROOF_BYTES = 64 * 1024
+
+CLASSIC_MAC_Q800_RELEASES = {
+    (7, 1, 0),
+    (7, 1, 1),
+    (7, 5, 0),
+    (7, 5, 1),
+    (7, 5, 2),
+    (7, 5, 3),
+    (7, 5, 5),
+    (7, 6, 0),
+    (7, 6, 1),
+    (8, 0, 0),
+    (8, 1, 0),
+}
+
+CLASSIC_MAC_MAC99_RELEASES = {
+    (8, 6, 0),
+    (9, 0, 0),
+    (9, 0, 2),
+    (9, 0, 3),
+    (9, 0, 4),
+    (9, 1, 0),
+    (9, 2, 0),
+    (9, 2, 1),
+    (9, 2, 2),
+}
+
 PROOF_RE = re.compile(
     r"^rivet-r9-guest: "
     r"target=(?P<target>\S+) "
@@ -215,21 +243,9 @@ def classic_mac_identity(text: str, target: str) -> str:
         for field in ("major", "minor", "patch")
     )
     if target == "classic-mac-m68k":
-        valid = (
-            (version[0] == 7 and version >= (7, 1, 0))
-            or (
-                version[0] == 8
-                and version[1] in (0, 1)
-            )
-        )
+        valid = version in CLASSIC_MAC_Q800_RELEASES
     else:
-        valid = (
-            (
-                version[0] == 7
-                and version >= (7, 1, 2)
-            )
-            or version[0] in (8, 9)
-        )
+        valid = version in CLASSIC_MAC_MAC99_RELEASES
     if not valid:
         raise ValueError(
             "R9 E3 receipt: Classic Mac OS runtime version "
@@ -289,6 +305,16 @@ def validate_identity(
             f"R9 E3 receipt: {field} contains control characters"
         )
     return value
+
+def read_bounded_proof(path: Path) -> str:
+    with path.open("rb") as handle:
+        raw = handle.read(MAX_PROOF_BYTES + 1)
+    if len(raw) > MAX_PROOF_BYTES:
+        raise ValueError(
+            "R9 E3 receipt: guest proof exceeds "
+            f"{MAX_PROOF_BYTES} bytes"
+        )
+    return raw.decode("utf-8", errors="strict")
 
 def parse_proof_text(text: str) -> dict:
     proof_lines = [
@@ -389,10 +415,7 @@ def main() -> int:
 
     try:
         proof_path = Path(args.proof)
-        proof_text = proof_path.read_text(
-            encoding="utf-8",
-            errors="strict",
-        )
+        proof_text = read_bounded_proof(proof_path)
         proof = parse_proof_text(proof_text)
         media_label = validate_identity(
             args.guest_media_label,

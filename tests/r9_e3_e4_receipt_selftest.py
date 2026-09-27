@@ -179,6 +179,15 @@ def main() -> int:
 
         run_e3(good, receipt, check=True)
 
+        oversized = root / "proof-oversized.txt"
+        oversized.write_bytes(
+            good.read_bytes() + b"X" * (64 * 1024)
+        )
+        oversized_output = root / "oversized.json"
+        result = run_e3(oversized, oversized_output)
+        assert result.returncode != 0
+        assert not oversized_output.exists()
+
         win95 = root / "proof-win95.txt"
         win95.write_text(
             GUEST_LINE + "\n" +
@@ -547,6 +556,35 @@ def main() -> int:
         )
         assert mac_ppc_output.exists()
 
+        pre_mac99_ppc_proof = root / "proof-pre-mac99-ppc.txt"
+        pre_mac99_ppc_proof.write_text(
+            MAC_PPC_GUEST_LINE + "\n" +
+            "rivet-r9-os: target=classic-mac-powerpc "
+            "os=classic-mac-os version=7.1.2 api=toolbox\n",
+            encoding="utf-8",
+        )
+        pre_mac99_ppc_output = root / "pre-mac99-ppc.json"
+        result = subprocess.run(
+            [
+                sys.executable,
+                "scripts/r9_e3_receipt.py",
+                "--proof", str(pre_mac99_ppc_proof),
+                "--output", str(pre_mac99_ppc_output),
+                "--target-profile", "classic-mac-powerpc",
+                "--source-revision", SOURCE,
+                "--emulator", "QEMU mac99",
+                "--guest-media-sha256", "1" * 64,
+                "--guest-media-label", "System 7.1.2 test media",
+                "--payload-sha256", "2" * 64,
+            ],
+            check=False,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+        )
+        assert result.returncode != 0
+        assert not pre_mac99_ppc_output.exists()
+
         nonexistent_ppc_proof = root / "proof-nonexistent-ppc.txt"
         nonexistent_ppc_proof.write_text(
             MAC_PPC_GUEST_LINE.replace(
@@ -612,6 +650,47 @@ def main() -> int:
         write_json(mc68040_path, mc68040)
         validate_e4(mc68040_path, check=True)
 
+        m68k_nonexistent_release = base_e4()
+        m68k_nonexistent_release["software_environment"][
+            "os_version"
+        ] = "6.99.99"
+        m68k_nonexistent_release["hardware"] = {
+            "manufacturer": "Apple",
+            "model": "Macintosh IIci",
+            "cpu": "Motorola MC68030",
+            "memory_bytes": 8 * 1024 * 1024,
+        }
+        m68k_nonexistent_release_path = (
+            root / "e4-m68k-nonexistent-release.json"
+        )
+        write_json(
+            m68k_nonexistent_release_path,
+            m68k_nonexistent_release,
+        )
+        assert (
+            validate_e4(
+                m68k_nonexistent_release_path
+            ).returncode != 0
+        )
+
+        m68k_low_memory = base_e4()
+        m68k_low_memory["hardware"]["model"] = "Quadra 840AV"
+        m68k_low_memory["hardware"]["cpu"] = "Motorola MC68040"
+        m68k_low_memory["hardware"]["memory_bytes"] = 1
+        m68k_low_memory_path = root / "e4-m68k-low-memory.json"
+        write_json(m68k_low_memory_path, m68k_low_memory)
+        assert validate_e4(m68k_low_memory_path).returncode != 0
+
+        m68k_min_memory = base_e4()
+        m68k_min_memory["hardware"]["model"] = "Quadra 840AV"
+        m68k_min_memory["hardware"]["cpu"] = "Motorola MC68040"
+        m68k_min_memory["hardware"]["memory_bytes"] = (
+            8 * 1024 * 1024
+        )
+        m68k_min_memory_path = root / "e4-m68k-min-memory.json"
+        write_json(m68k_min_memory_path, m68k_min_memory)
+        validate_e4(m68k_min_memory_path, check=True)
+
         ppc604e = base_e4()
         ppc604e["target_profile"] = "classic-mac-powerpc"
         ppc604e["software_environment"] = {
@@ -631,6 +710,22 @@ def main() -> int:
         ppc604e_path = root / "e4-powerpc-604e.json"
         write_json(ppc604e_path, ppc604e)
         validate_e4(ppc604e_path, check=True)
+
+        ppc_low_memory = json.loads(json.dumps(ppc604e))
+        ppc_low_memory["hardware"]["memory_bytes"] = (
+            16 * 1024 * 1024
+        )
+        ppc_low_memory_path = root / "e4-ppc-low-memory.json"
+        write_json(ppc_low_memory_path, ppc_low_memory)
+        assert validate_e4(ppc_low_memory_path).returncode != 0
+
+        ppc_min_memory = json.loads(json.dumps(ppc604e))
+        ppc_min_memory["hardware"]["memory_bytes"] = (
+            24 * 1024 * 1024
+        )
+        ppc_min_memory_path = root / "e4-ppc-min-memory.json"
+        write_json(ppc_min_memory_path, ppc_min_memory)
+        validate_e4(ppc_min_memory_path, check=True)
 
         ppc603e = base_e4()
         ppc603e["target_profile"] = "classic-mac-powerpc"

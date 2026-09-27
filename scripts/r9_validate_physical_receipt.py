@@ -7,6 +7,30 @@ from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 
+CLASSIC_MAC_M68K_RELEASES = {
+    "6.0",
+    "6.0.1",
+    "6.0.2",
+    "6.0.3",
+    "6.0.4",
+    "6.0.5",
+    "6.0.7",
+    "6.0.8",
+    "7.0",
+    "7.0.1",
+    "7.1",
+    "7.1.1",
+    "7.5",
+    "7.5.1",
+    "7.5.2",
+    "7.5.3",
+    "7.5.5",
+    "7.6",
+    "7.6.1",
+    "8.0",
+    "8.1",
+}
+
 CLASSIC_MAC_POWERPC_RELEASES = {
     "7.1.2",
     "7.5",
@@ -30,6 +54,56 @@ CLASSIC_MAC_POWERPC_RELEASES = {
     "9.2.1",
     "9.2.2",
 }
+
+CLASSIC_MAC_M68K_MEMORY_MIN_BYTES = {
+    "6.0": 1 * 1024 * 1024,
+    "6.0.1": 1 * 1024 * 1024,
+    "6.0.2": 1 * 1024 * 1024,
+    "6.0.3": 1 * 1024 * 1024,
+    "6.0.4": 1 * 1024 * 1024,
+    "6.0.5": 1 * 1024 * 1024,
+    "6.0.7": 1 * 1024 * 1024,
+    "6.0.8": 1 * 1024 * 1024,
+    "7.0": 2 * 1024 * 1024,
+    "7.0.1": 2 * 1024 * 1024,
+    "7.1": 2 * 1024 * 1024,
+    "7.1.1": 2 * 1024 * 1024,
+    "7.5": 4 * 1024 * 1024,
+    "7.5.1": 4 * 1024 * 1024,
+    "7.5.2": 4 * 1024 * 1024,
+    "7.5.3": 4 * 1024 * 1024,
+    "7.5.5": 4 * 1024 * 1024,
+    "7.6": 8 * 1024 * 1024,
+    "7.6.1": 8 * 1024 * 1024,
+    "8.0": 12 * 1024 * 1024,
+    "8.1": 12 * 1024 * 1024,
+}
+
+CLASSIC_MAC_POWERPC_MEMORY_MIN_BYTES = {
+    "7.1.2": 8 * 1024 * 1024,
+    "7.5": 8 * 1024 * 1024,
+    "7.5.1": 8 * 1024 * 1024,
+    "7.5.2": 8 * 1024 * 1024,
+    "7.5.3": 8 * 1024 * 1024,
+    "7.5.5": 8 * 1024 * 1024,
+    "7.6": 8 * 1024 * 1024,
+    "7.6.1": 8 * 1024 * 1024,
+    "8.0": 12 * 1024 * 1024,
+    "8.1": 12 * 1024 * 1024,
+    "8.5": 24 * 1024 * 1024,
+    "8.5.1": 24 * 1024 * 1024,
+    "8.6": 24 * 1024 * 1024,
+    "9.0": 32 * 1024 * 1024,
+    "9.0.2": 32 * 1024 * 1024,
+    "9.0.3": 32 * 1024 * 1024,
+    "9.0.4": 32 * 1024 * 1024,
+    "9.1": 32 * 1024 * 1024,
+    "9.2": 32 * 1024 * 1024,
+    "9.2.1": 32 * 1024 * 1024,
+    "9.2.2": 32 * 1024 * 1024,
+}
+
+AMIGA_MEMORY_MIN_BYTES = 512 * 1024
 
 WINDOWS_CPU_MIN_GENERATION = {
     "Windows 95": 3,
@@ -305,6 +379,14 @@ def main() -> int:
                 f"{target}/{os_name}"
             )
         if (
+            target == "classic-mac-m68k"
+            and os_version not in CLASSIC_MAC_M68K_RELEASES
+        ):
+            raise ValueError(
+                "software_environment.os_version is not a "
+                "published Classic Mac OS m68k release"
+            )
+        if (
             target == "classic-mac-powerpc"
             and os_version not in CLASSIC_MAC_POWERPC_RELEASES
         ):
@@ -355,11 +437,21 @@ def main() -> int:
         )
         if target == "windows9x-x86":
             minimum_memory = WINDOWS_MEMORY_MIN_BYTES[os_name]
-            if memory_bytes < minimum_memory:
-                raise ValueError(
-                    "hardware.memory_bytes is below the minimum "
-                    f"for {os_name}"
-                )
+        elif target == "classic-mac-m68k":
+            minimum_memory = CLASSIC_MAC_M68K_MEMORY_MIN_BYTES[
+                os_version
+            ]
+        elif target == "classic-mac-powerpc":
+            minimum_memory = CLASSIC_MAC_POWERPC_MEMORY_MIN_BYTES[
+                os_version
+            ]
+        else:
+            minimum_memory = AMIGA_MEMORY_MIN_BYTES
+        if memory_bytes < minimum_memory:
+            raise ValueError(
+                "hardware.memory_bytes is below the minimum "
+                f"for {target}/{os_name} {os_version}"
+            )
 
         proof = data.get("browser_proof")
         if not isinstance(proof, dict):

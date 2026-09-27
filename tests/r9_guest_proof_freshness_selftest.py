@@ -139,9 +139,9 @@ def main() -> int:
         )
     expected_authorities = {
         "RETRO-v2.md":
-            "1815d1cf3f1a67ca9adbbd0e458f230f59337731",
+            "8e9d186312e46ac904101a4202d3a31f21a22e99",
         "machine/retro-v2.json":
-            "452ae571ef29827fdf302558bc23d7763c8ed853",
+            "05fd0fed042d8ba03c2cf520b233b5556890ba06",
         "machine/project-v12.json":
             "955e7a661b04d8c4b7e3b2be0406de86d5a18511",
     }
