@@ -78,6 +78,28 @@ ROM_REQUIRED_TARGETS = {
     "amiga-m68k",
 }
 
+TARGET_REQUIRED_SOURCE_PATHS = {
+    "windows9x-x86": (
+        "evidence/r9_win9x_browser_proof.c",
+        "scripts/r9_build_windows9x_payload.sh",
+    ),
+    "classic-mac-m68k": (
+        "evidence/r9_guest_browser_proof.c",
+        "evidence/r9_classic_mac_os_identity.c",
+        "scripts/r9_build_classic_mac_payload.sh",
+    ),
+    "classic-mac-powerpc": (
+        "evidence/r9_guest_browser_proof.c",
+        "evidence/r9_classic_mac_os_identity.c",
+        "scripts/r9_build_classic_mac_payload.sh",
+    ),
+    "amiga-m68k": (
+        "evidence/r9_guest_browser_proof.c",
+        "evidence/r9_amiga_os_identity.c",
+        "scripts/r9_build_amiga_payload.sh",
+    ),
+}
+
 def require_windows_9x_startup(text: str) -> None:
     if "startup_stage=winstart" not in {
         line.strip() for line in text.splitlines()
@@ -142,6 +164,30 @@ def require_git_commit(value: str) -> str:
         )
     return value
 
+def require_target_payload_source(
+    value: str,
+    target: str,
+) -> None:
+    for source_path in TARGET_REQUIRED_SOURCE_PATHS[target]:
+        result = subprocess.run(
+            [
+                "git",
+                "-C",
+                str(REPO_ROOT),
+                "cat-file",
+                "-e",
+                f"{value}:{source_path}",
+            ],
+            check=False,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+        )
+        if result.returncode != 0:
+            raise ValueError(
+                "R9 E3 receipt: source revision does not "
+                f"contain {target} payload source: {source_path}"
+            )
+
 def _single_os_line(text: str) -> str:
     lines = [
         line.strip()
@@ -170,7 +216,7 @@ def classic_mac_identity(text: str, target: str) -> str:
     )
     if target == "classic-mac-m68k":
         valid = (
-            version[0] in (6, 7)
+            (version[0] == 7 and version >= (7, 1, 0))
             or (
                 version[0] == 8
                 and version[1] in (0, 1)
@@ -311,6 +357,10 @@ def main() -> int:
         )
     try:
         require_git_commit(args.source_revision)
+        require_target_payload_source(
+            args.source_revision,
+            args.target_profile,
+        )
     except ValueError as exc:
         raise SystemExit(str(exc))
 
