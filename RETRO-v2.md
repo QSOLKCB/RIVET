@@ -168,17 +168,17 @@ The receipt must include:
 - one of the named historical target profiles;
 - `execution=physical-hardware`;
 - manufacturer and model;
-- CPU identity;
+- CPU identity compatible with the target architecture;
 - installed memory;
 - exact software environment:
   - OS name;
-  - OS version;
+  - OS version compatible with the selected target family;
   - API identity;
 - exact frozen WEB1 proof;
 - one or more SHA-256-bound evidence attachments;
 - result `pass`.
 
-The validator rejects receipts with missing hardware identity, missing or target-incompatible software identity, mismatched proof identity, or unhashed attachments. For example, a `classic-mac-m68k` physical receipt must identify Classic Mac OS and the Mac OS Toolbox API; another operating system on the same m68k hardware is different evidence and requires its own target profile.
+The validator rejects receipts with missing hardware identity, a CPU outside the target architecture family, missing or target-incompatible software identity, an OS version outside the target's historical version envelope, mismatched proof identity, or unhashed attachments. For example, a `classic-mac-m68k` physical receipt must identify an m68k CPU, Classic Mac OS in the supported 6.x/7.x/8.0–8.1 envelope, and the Mac OS Toolbox API; another operating system or CPU family is different evidence and requires its own target profile.
 
 Physical evidence is intentionally retained by explicit PR/artifact rather than fabricated automatically.
 
