@@ -15,7 +15,19 @@ jobs:
       - name: Verify merged R1-R9-v1 surfaces remain unchanged
         run: |
           baseline=7d260e0671c5d089b25d6075ab1b66fb0886c99e
+          authority_baseline=f7e340cf63b805885d3d977565ca234713277b11
           failed=0
+
+          for authority in \
+            RETRO-v2.md \
+            machine/retro-v2.json \
+            machine/project-v12.json; do
+            if ! git diff --quiet \
+                "$authority_baseline" HEAD -- "$authority"; then
+              echo "Frozen R9-v2 authority changed: $authority" >&2
+              failed=1
+            fi
+          done
 
           while IFS= read -r path; do
             [[ -n "$path" ]] || continue
