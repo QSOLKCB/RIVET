@@ -44,6 +44,8 @@ jobs:
       RIVET_INPUT_MEDIA_SHA256: ${{ inputs.media_sha256 }}
       RIVET_INPUT_ROM_SHA256: ${{ inputs.rom_sha256 }}
       RIVET_INPUT_TIMEOUT_SECONDS: ${{ inputs.timeout_seconds }}
+      RIVET_INPUT_MEDIA_LABEL: ${{ inputs.media_label }}
+      RIVET_INPUT_ARCHITECTURE: ${{ inputs.architecture }}
     steps:
       - uses: actions/checkout@v4
 
@@ -59,7 +61,7 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p build/r9-mac-media
-          if [[ "${{ inputs.architecture }}" == "m68k" ]]; then
+          if [[ "$RIVET_VALIDATED_ARCHITECTURE" == "m68k" ]]; then
             media_url="$RIVET_MAC_M68K_IMAGE_URL"
             rom_url="$RIVET_MAC_M68K_ROM_URL"
             test -n "$RIVET_VALIDATED_ROM_SHA256"
@@ -80,7 +82,7 @@ jobs:
 
       - name: Build source-bound Classic Mac payload
         run: |
-          bash scripts/r9_build_classic_mac_payload.sh             "${{ inputs.architecture }}"             "$(git rev-parse HEAD)"             build/r9-mac-payload
+          bash scripts/r9_build_classic_mac_payload.sh             "$RIVET_VALIDATED_ARCHITECTURE"             "$(git rev-parse HEAD)"             build/r9-mac-payload
 
       - name: Execute Classic Mac full-system proof
         run: |
@@ -88,11 +90,11 @@ jobs:
           if [[ -f build/r9-mac-media/rom.bin ]]; then
             rom=build/r9-mac-media/rom.bin
           fi
-          bash scripts/r9_classic_mac_full_system.sh             "${{ inputs.architecture }}"             build/r9-mac-media/guest.img             build/r9-mac-payload/RIVETR9.bin             "$(git rev-parse HEAD)"             "$RIVET_VALIDATED_TIMEOUT_SECONDS"             "$rom"             build/r9-classic-mac
+          bash scripts/r9_classic_mac_full_system.sh             "$RIVET_VALIDATED_ARCHITECTURE"             build/r9-mac-media/guest.img             build/r9-mac-payload/RIVETR9.bin             "$(git rev-parse HEAD)"             "$RIVET_VALIDATED_TIMEOUT_SECONDS"             "$rom"             build/r9-classic-mac
 
       - name: Mint E3 receipt
         run: |
-          if [[ "${{ inputs.architecture }}" == "m68k" ]]; then
+          if [[ "$RIVET_VALIDATED_ARCHITECTURE" == "m68k" ]]; then
             target=classic-mac-m68k
             emulator="$(qemu-system-m68k --version | head -n1)"
           else
@@ -102,7 +104,7 @@ jobs:
           source_revision="$(git rev-parse HEAD)"
           payload_sha="$(sha256sum build/r9-mac-payload/RIVETR9.bin | awk '{print $1}')"
 
-          python3 scripts/r9_e3_receipt.py             --proof build/r9-classic-mac/guest-proof.txt             --output build/r9-classic-mac/receipt.json             --target-profile "$target"             --source-revision "$source_revision"             --emulator "$emulator"             --guest-media-sha256 "$RIVET_VALIDATED_MEDIA_SHA256"             --guest-media-label "${{ inputs.media_label }}"             --payload-sha256 "$payload_sha"             --rom-sha256 "$RIVET_VALIDATED_ROM_SHA256"
+          python3 scripts/r9_e3_receipt.py             --proof build/r9-classic-mac/guest-proof.txt             --output build/r9-classic-mac/receipt.json             --target-profile "$target"             --source-revision "$source_revision"             --emulator "$emulator"             --guest-media-sha256 "$RIVET_VALIDATED_MEDIA_SHA256"             --guest-media-label "$RIVET_VALIDATED_MEDIA_LABEL"             --payload-sha256 "$payload_sha"             --rom-sha256 "$RIVET_VALIDATED_ROM_SHA256"
 
       - uses: actions/upload-artifact@v4
         with:
