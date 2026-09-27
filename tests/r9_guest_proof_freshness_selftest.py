@@ -128,34 +128,32 @@ def main() -> int:
         raise SystemExit(
             "Frozen-surface gate must not enumerate only baseline paths"
         )
-    authority_baseline = (
-        "f7e340cf63b805885d3d977565ca234713277b11"
-    )
-    if (
-        f"authority_baseline={authority_baseline}"
-        not in target_workflow
-    ):
+    if "authority_baseline=" in target_workflow:
         raise SystemExit(
-            "R9 v2 authority gate lost its pinned exact baseline"
+            "R9 v2 authority freeze must not depend on a "
+            "historical commit baseline"
         )
-    if (
-        'git diff --quiet \\'
-        not in target_workflow
-        or '"$authority_baseline" HEAD -- "$authority"'
-        not in target_workflow
-    ):
+    if 'git hash-object -- "$path"' not in target_workflow:
         raise SystemExit(
-            "R9 v2 authority gate must diff each authority "
-            "against the pinned baseline"
+            "R9 v2 authority freeze must be content-addressed"
         )
-    for authority in (
-        "RETRO-v2.md",
-        "machine/retro-v2.json",
-        "machine/project-v12.json",
-    ):
+    expected_authorities = {
+        "RETRO-v2.md":
+            "843369409a60ecfdecf920c86b686e4e74d41b2d",
+        "machine/retro-v2.json":
+            "525e6b743f05bce5121c792e28c390d5e421a14f",
+        "machine/project-v12.json":
+            "955e7a661b04d8c4b7e3b2be0406de86d5a18511",
+    }
+    for authority, blob_sha in expected_authorities.items():
         if authority not in target_workflow:
             raise SystemExit(
                 "R9 v2 authority gate is missing: " + authority
+            )
+        if blob_sha not in target_workflow:
+            raise SystemExit(
+                "R9 v2 authority gate lost blob pin for: "
+                + authority
             )
     for required in (
         "evidence/r9_classic_mac_os_identity.c",
