@@ -39,6 +39,8 @@ jobs:
       RIVET_INPUT_MEDIA_SHA256: ${{ inputs.media_sha256 }}
       RIVET_INPUT_ROM_SHA256: ${{ inputs.rom_sha256 }}
       RIVET_INPUT_TIMEOUT_SECONDS: ${{ inputs.timeout_seconds }}
+      RIVET_INPUT_MEDIA_LABEL: ${{ inputs.media_label }}
+      RIVET_INPUT_PARTITION: ${{ inputs.partition }}
     steps:
       - uses: actions/checkout@v4
 
@@ -69,7 +71,7 @@ jobs:
 
       - name: Execute Amiga full-system proof
         run: |
-          bash scripts/r9_amiga_full_system.sh             build/r9-amiga-media/guest.hdf             "${{ inputs.partition }}"             build/r9-amiga-payload/RIVETR9             build/r9-amiga-media/kick.rom             "$(git rev-parse HEAD)"             "$RIVET_VALIDATED_TIMEOUT_SECONDS"             build/r9-amiga
+          bash scripts/r9_amiga_full_system.sh             build/r9-amiga-media/guest.hdf             "$RIVET_VALIDATED_PARTITION"             build/r9-amiga-payload/RIVETR9             build/r9-amiga-media/kick.rom             "$(git rev-parse HEAD)"             "$RIVET_VALIDATED_TIMEOUT_SECONDS"             build/r9-amiga
 
       - name: Mint E3 receipt
         run: |
@@ -77,7 +79,7 @@ jobs:
           source_revision="$(git rev-parse HEAD)"
           payload_sha="$(sha256sum build/r9-amiga-payload/RIVETR9 | awk '{print $1}')"
 
-          python3 scripts/r9_e3_receipt.py             --proof build/r9-amiga/guest-proof.txt             --output build/r9-amiga/receipt.json             --target-profile amiga-m68k             --source-revision "$source_revision"             --emulator "$emulator"             --guest-media-sha256 "$RIVET_VALIDATED_MEDIA_SHA256"             --guest-media-label "${{ inputs.media_label }}"             --payload-sha256 "$payload_sha"             --rom-sha256 "$RIVET_VALIDATED_ROM_SHA256"
+          python3 scripts/r9_e3_receipt.py             --proof build/r9-amiga/guest-proof.txt             --output build/r9-amiga/receipt.json             --target-profile amiga-m68k             --source-revision "$source_revision"             --emulator "$emulator"             --guest-media-sha256 "$RIVET_VALIDATED_MEDIA_SHA256"             --guest-media-label "$RIVET_VALIDATED_MEDIA_LABEL"             --payload-sha256 "$payload_sha"             --rom-sha256 "$RIVET_VALIDATED_ROM_SHA256"
 
       - uses: actions/upload-artifact@v4
         with:
