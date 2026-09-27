@@ -32,6 +32,15 @@ TARGETS = {
     "amiga-m68k": (32, "big"),
 }
 
+def require_windows_9x_startup(text: str) -> None:
+    if "startup_stage=winstart" not in {
+        line.strip() for line in text.splitlines()
+    }:
+        raise ValueError(
+            "R9 E3 receipt: Windows proof was not recorded "
+            "from WINSTART startup stage"
+        )
+
 def windows_9x_identity(text: str) -> str:
     for line in text.splitlines():
         stripped = line.strip()
@@ -120,11 +129,13 @@ def main() -> int:
             args.emulator,
             "emulator identity",
         )
-        guest_os_identity = (
-            windows_9x_identity(proof_text)
-            if args.target_profile == "windows9x-x86"
-            else None
-        )
+        if args.target_profile == "windows9x-x86":
+            require_windows_9x_startup(proof_text)
+            guest_os_identity = windows_9x_identity(
+                proof_text
+            )
+        else:
+            guest_os_identity = None
     except (OSError, UnicodeError, ValueError) as exc:
         raise SystemExit(str(exc))
 
