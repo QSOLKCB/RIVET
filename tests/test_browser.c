@@ -458,6 +458,9 @@ static int test_browser_flow(void)
     rivet_key_event source =
         {0x53u,RIVET_MOD_CTRL,1};
     unsigned char pixels[120u * 64u * 4u];
+    unsigned char oversized_url[
+        RIVET_BROWSER_URL_MAX + 1u
+    ];
     unsigned char chrome_before[
         120u *
         RIVET_BROWSER_CHROME_HEIGHT *
@@ -546,6 +549,54 @@ static int test_browser_flow(void)
     CHECK(browser.selected_link_node !=
           RIVET_DOCUMENT_NO_PARENT);
     CHECK(find_red_text(&browser));
+
+    {
+        size_t selected = browser.selected_link_node;
+        rivet_doc_slice saved_href =
+            browser.document.nodes[selected].href;
+        const unsigned char *saved_source =
+            browser.document.source;
+        size_t saved_source_bytes =
+            browser.document.source_bytes;
+        size_t fetch_before = io_state.fetch_count;
+        size_t download_before = io_state.download_count;
+        static const unsigned char prefix[] =
+            "https://site.test/";
+
+        CHECK(selected <
+              browser.document.node_count);
+        CHECK(sizeof(prefix) - 1u <
+              sizeof(oversized_url));
+        memcpy(
+            oversized_url,
+            prefix,
+            sizeof(prefix) - 1u
+        );
+        memset(
+            oversized_url + sizeof(prefix) - 1u,
+            0x61,
+            sizeof(oversized_url) -
+                (sizeof(prefix) - 1u)
+        );
+
+        browser.document.source = oversized_url;
+        browser.document.source_bytes =
+            sizeof(oversized_url);
+        browser.document.nodes[selected].href.offset = 0u;
+        browser.document.nodes[selected].href.length =
+            sizeof(oversized_url);
+
+        CHECK(rivet_browser_download_selected(
+            &browser) == RIVET_ERR_CAPACITY);
+        CHECK(io_state.fetch_count == fetch_before);
+        CHECK(io_state.download_count == download_before);
+
+        browser.document.source = saved_source;
+        browser.document.source_bytes =
+            saved_source_bytes;
+        browser.document.nodes[selected].href =
+            saved_href;
+    }
 
     CHECK(rivet_browser_next_link(
         &browser) == RIVET_OK);
