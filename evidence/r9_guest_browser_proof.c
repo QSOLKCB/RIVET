@@ -179,20 +179,20 @@ int main(int argc, char **argv)
     const char *output_path =
         argc > 1 ? argv[1] : "RIVET-R9-RECEIPT.TXT";
     FILE *receipt;
-    unsigned char document_bytes[2048];
-    unsigned char scratch_bytes[512];
-    rivet_doc_node nodes[64];
-    rivet_css_rule rules[32];
-    rivet_layout_box boxes[128];
-    rivet_browser_url history[8];
-    rivet_browser_url bookmarks[8];
-    rivet_browser_storage storage;
-    rivet_browser_config config;
-    rivet_browser browser;
-    proof_io io_state;
-    rivet_browser_io io;
-    unsigned char pixels[PROOF_PIXELS];
-    rivet_surface surface;
+    static unsigned char document_bytes[2048];
+    static unsigned char scratch_bytes[512];
+    static rivet_doc_node nodes[64];
+    static rivet_css_rule rules[32];
+    static rivet_layout_box boxes[128];
+    static rivet_browser_url history[8];
+    static rivet_browser_url bookmarks[8];
+    static rivet_browser_storage storage;
+    static rivet_browser_config config;
+    static rivet_browser browser;
+    static proof_io io_state;
+    static rivet_browser_io io;
+    static unsigned char pixels[PROOF_PIXELS];
+    static rivet_surface surface;
     rivet_rect bounds =
         {0L,0L,PROOF_WIDTH,PROOF_HEIGHT};
     rivet_browser_style style = {
