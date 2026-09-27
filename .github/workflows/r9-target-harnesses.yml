@@ -15,19 +15,32 @@ jobs:
       - name: Verify merged R1-R9-v1 surfaces remain unchanged
         run: |
           baseline=7d260e0671c5d089b25d6075ab1b66fb0886c99e
-          authority_baseline=f7e340cf63b805885d3d977565ca234713277b11
           failed=0
 
-          for authority in \
-            RETRO-v2.md \
-            machine/retro-v2.json \
-            machine/project-v12.json; do
-            if ! git diff --quiet \
-                "$authority_baseline" HEAD -- "$authority"; then
-              echo "Frozen R9-v2 authority changed: $authority" >&2
+          check_authority_blob() {
+            path="$1"
+            expected="$2"
+            actual="$(git hash-object -- "$path")" || {
+              echo "Unable to hash R9-v2 authority: $path" >&2
+              failed=1
+              return
+            }
+            if [[ "$actual" != "$expected" ]]; then
+              echo "Frozen R9-v2 authority changed: $path" >&2
+              echo "expected blob $expected, got $actual" >&2
               failed=1
             fi
-          done
+          }
+
+          check_authority_blob \
+            RETRO-v2.md \
+            843369409a60ecfdecf920c86b686e4e74d41b2d
+          check_authority_blob \
+            machine/retro-v2.json \
+            525e6b743f05bce5121c792e28c390d5e421a14f
+          check_authority_blob \
+            machine/project-v12.json \
+            955e7a661b04d8c4b7e3b2be0406de86d5a18511
 
           while IFS= read -r path; do
             [[ -n "$path" ]] || continue
