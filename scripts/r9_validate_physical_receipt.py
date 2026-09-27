@@ -5,11 +5,21 @@ import re
 from pathlib import Path
 
 TARGETS = {
-    "windows9x-x86",
-    "classic-mac-m68k",
-    "classic-mac-powerpc",
-    "amiga-m68k",
+    "windows9x-x86": (32, "little"),
+    "classic-mac-m68k": (32, "big"),
+    "classic-mac-powerpc": (32, "big"),
+    "amiga-m68k": (32, "big"),
 }
+
+def require_identity(value: object, field: str) -> str:
+    if not isinstance(value, str):
+        raise ValueError(f"{field} must be a string")
+    value = value.strip()
+    if not value or len(value) > 160:
+        raise ValueError(f"{field} must be 1..160 non-whitespace characters")
+    if any(ord(ch) < 0x20 or ord(ch) == 0x7f for ch in value):
+        raise ValueError(f"{field} contains control characters")
+    return value
 
 def require_sha256(value: object, field: str) -> str:
     if not isinstance(value, str) or not re.fullmatch(r"[0-9a-f]{64}", value):
@@ -34,7 +44,8 @@ def main() -> int:
             raise ValueError("physical receipt must declare E4")
         if data.get("execution") != "physical-hardware":
             raise ValueError("physical receipt must declare physical-hardware execution")
-        if data.get("target_profile") not in TARGETS:
+        target = data.get("target_profile")
+        if target not in TARGETS:
             raise ValueError("unsupported physical target profile")
         source = data.get("source_revision")
         if not isinstance(source, str) or not re.fullmatch(r"[0-9a-f]{40}", source):
@@ -46,13 +57,20 @@ def main() -> int:
         for field in ("manufacturer", "model", "cpu", "memory_bytes"):
             if field not in hardware:
                 raise ValueError(f"hardware.{field} is required")
+        for field in ("manufacturer", "model", "cpu"):
+            require_identity(hardware[field], f"hardware.{field}")
         if not isinstance(hardware["memory_bytes"], int) or hardware["memory_bytes"] <= 0:
             raise ValueError("hardware.memory_bytes must be a positive integer")
 
         proof = data.get("browser_proof")
         if not isinstance(proof, dict):
             raise ValueError("browser_proof object is required")
+        pointer_bits, endian = TARGETS[target]
         expected = {
+            "target": target,
+            "source": source,
+            "pointer_bits": pointer_bits,
+            "endian": endian,
             "document_fnv1a64": "75be6cc92698ac1a",
             "source_fnv1a64": "5cf7c63a1fa3d9b4",
             "history": 2,
