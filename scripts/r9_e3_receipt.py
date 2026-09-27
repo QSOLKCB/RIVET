@@ -74,18 +74,40 @@ def require_windows_9x_proof_exit(text: str) -> None:
         )
 
 def windows_9x_identity(text: str) -> str:
-    for line in text.splitlines():
-        stripped = line.strip()
-        if stripped.startswith("rivet-r9-guest:"):
-            continue
-        for pattern in WINDOWS_9X_VER_PATTERNS:
-            match = pattern.match(stripped)
-            if match:
-                return match.group("identity")
+    identity_lines = [
+        line.strip()
+        for line in text.splitlines()
+        if WINDOWS_VERSION_LINE_RE.match(line.strip())
+    ]
+    if len(identity_lines) != 1:
+        raise ValueError(
+            "R9 E3 receipt: Windows proof must contain exactly "
+            "one Windows [Version ...] identity line"
+        )
+
+    identity = identity_lines[0]
+    for pattern in WINDOWS_9X_VER_PATTERNS:
+        match = pattern.match(identity)
+        if match:
+            return match.group("identity")
+
     raise ValueError(
-        "R9 E3 receipt: consumer Windows 95/98/Me "
-        "VER identity not found"
+        "R9 E3 receipt: Windows identity is not "
+        "consumer Windows 95/98/Me"
     )
+
+def require_sha256(value: str, field: str) -> str:
+    if not re.fullmatch(r"[0-9a-f]{64}", value):
+        raise ValueError(
+            f"R9 E3 receipt: {field} SHA-256 must be "
+            "64 lowercase hex characters"
+        )
+    if value == "0" * 64:
+        raise ValueError(
+            f"R9 E3 receipt: {field} SHA-256 must not be "
+            "the all-zero placeholder digest"
+        )
+    return value
 
 def validate_identity(
     value: str,
@@ -105,19 +127,24 @@ def validate_identity(
     return value
 
 def parse_proof_text(text: str) -> dict:
-    matches = []
-    for line in text.splitlines():
-        match = PROOF_RE.match(line.strip())
-        if match:
-            matches.append(match)
-
-    if len(matches) != 1:
+    proof_lines = [
+        line.strip()
+        for line in text.splitlines()
+        if line.strip().startswith("rivet-r9-guest:")
+    ]
+    if len(proof_lines) != 1:
         raise ValueError(
             "R9 guest proof must contain exactly one "
             "rivet-r9-guest proof line"
         )
 
-    data = matches[0].groupdict()
+    match = PROOF_RE.match(proof_lines[0])
+    if match is None:
+        raise ValueError(
+            "R9 guest proof line is malformed"
+        )
+
+    data = match.groupdict()
     for key in (
         "pointer_bits",
         "history",
@@ -152,22 +179,28 @@ def main() -> int:
             "R9 E3 receipt: source revision must not be "
             "the Git null OID"
         )
-    for label, value in (
-        ("guest media", args.guest_media_sha256),
-        ("payload", args.payload_sha256),
-    ):
-        if not re.fullmatch(r"[0-9a-f]{64}", value):
-            raise SystemExit(f"R9 E3 receipt: {label} SHA-256 must be 64 lowercase hex characters")
+    try:
+        require_sha256(
+            args.guest_media_sha256,
+            "guest media",
+        )
+        require_sha256(
+            args.payload_sha256,
+            "payload",
+        )
+    except ValueError as exc:
+        raise SystemExit(str(exc))
+
     if args.target_profile in ROM_REQUIRED_TARGETS and not args.rom_sha256:
         raise SystemExit(
             "R9 E3 receipt: ROM SHA-256 is required for "
             f"{args.target_profile}"
         )
-    if args.rom_sha256 and not re.fullmatch(r"[0-9a-f]{64}", args.rom_sha256):
-        raise SystemExit(
-            "R9 E3 receipt: ROM SHA-256 must be "
-            "64 lowercase hex characters"
-        )
+    if args.rom_sha256:
+        try:
+            require_sha256(args.rom_sha256, "ROM")
+        except ValueError as exc:
+            raise SystemExit(str(exc))
 
     try:
         proof_path = Path(args.proof)
