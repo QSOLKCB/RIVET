@@ -11,6 +11,10 @@
     "memory_bytes": 1
   },
   "browser_proof": {
+    "target": "classic-mac-m68k",
+    "source": "0000000000000000000000000000000000000000",
+    "pointer_bits": 32,
+    "endian": "big",
     "document_fnv1a64": "75be6cc92698ac1a",
     "source_fnv1a64": "5cf7c63a1fa3d9b4",
     "history": 2,
