@@ -58,21 +58,19 @@ WINDOWS_IDENTITY_RE = re.compile(
 WINDOWS_9X_VER_PATTERNS = (
     re.compile(
         r"^(?P<identity>(?:Microsoft\s+)?Windows 95\.? "
-        r"\[Version 4\.00"
-        r"(?:\.[0-9A-Za-z]+)*\])$",
+        r"\[Version 4\.00\."
+        r"(?:950(?:A|B|C)?|1111|1212|1214)\])$",
         re.IGNORECASE,
     ),
     re.compile(
         r"^(?P<identity>(?:Microsoft\s+)?Windows 98 "
-        r"\[Version 4\.10"
-        r"(?:\.[0-9A-Za-z]+)*\])$",
+        r"\[Version 4\.10\.(?:1998|2222A?)\])$",
         re.IGNORECASE,
     ),
     re.compile(
         r"^(?P<identity>(?:Microsoft\s+)?Windows "
         r"(?:Me|Millennium) "
-        r"\[Version 4\.90"
-        r"(?:\.[0-9A-Za-z]+)*\])$",
+        r"\[Version 4\.90\.3000\])$",
         re.IGNORECASE,
     ),
 )

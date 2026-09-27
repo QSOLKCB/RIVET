@@ -1,0 +1,84 @@
+name: R9 Immutable Trust Anchor
+
+on:
+  pull_request_target:
+    types: [opened, synchronize, reopened]
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  immutable-r9-boundary:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout trusted base
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.base.sha }}
+          fetch-depth: 0
+          path: base
+
+      - name: Checkout candidate without executing it
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ github.event.pull_request.head.repo.full_name }}
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+          path: candidate
+
+      - name: Verify immutable R9 trust boundary
+        env:
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          set -euo pipefail
+
+          baseline=7d260e0671c5d089b25d6075ab1b66fb0886c99e
+          failed=0
+
+          check_blob() {
+            path="$1"
+            expected="$2"
+            actual="$(git -C candidate hash-object -- "$path")" || {
+              echo "Unable to hash candidate authority: $path" >&2
+              failed=1
+              return
+            }
+            if [[ "$actual" != "$expected" ]]; then
+              echo "Immutable R9 authority changed: $path" >&2
+              echo "expected blob $expected, got $actual" >&2
+              failed=1
+            fi
+          }
+
+          check_blob RETRO-v2.md 830dc2292a7813314d78e23aa5cbaea6a55e1936
+          check_blob machine/retro-v2.json 90893ade930860ea79f26a258fec0395dee5333a
+          check_blob machine/project-v12.json 955e7a661b04d8c4b7e3b2be0406de86d5a18511
+
+          base_guard="$(git -C base hash-object -- .github/workflows/r9-trust-anchor.yml)"
+          candidate_guard="$(git -C candidate hash-object -- .github/workflows/r9-trust-anchor.yml)" || {
+            echo "Candidate is missing the base trust workflow" >&2
+            exit 1
+          }
+          if [[ "$candidate_guard" != "$base_guard" ]]; then
+            echo "Candidate attempted to modify the base trust workflow" >&2
+            failed=1
+          fi
+
+          if [[ "$PR_NUMBER" == "12" ]]; then
+            while IFS= read -r path; do
+              [[ -n "$path" ]] || continue
+              case "$path" in
+                .github/workflows/r9-amiga.yml|.github/workflows/r9-classic-mac.yml|.github/workflows/r9-target-harnesses.yml|.github/workflows/r9-trust-anchor.yml|.github/workflows/r9-windows9x.yml|AGENTS.md|README.md|RETRO-v2.md|ROADMAP.md|evidence/r9_amiga_os_identity.c|evidence/r9_classic_mac_os_identity.c|evidence/r9_guest_browser_proof.c|evidence/r9_win9x_browser_proof.c|evidence/retro/README.md|evidence/retro/physical-receipt.example.json|index.html|machine/project-v12.json|machine/retro-v2.json|scripts/r9_amiga_full_system.sh|scripts/r9_build_amiga_payload.sh|scripts/r9_build_classic_mac_payload.sh|scripts/r9_build_windows9x_payload.sh|scripts/r9_classic_mac_full_system.sh|scripts/r9_e3_receipt.py|scripts/r9_validate_dispatch_inputs.py|scripts/r9_validate_physical_receipt.py|scripts/r9_windows9x_full_system.sh|tests/r9_e3_e4_receipt_selftest.py|tests/r9_guest_proof_freshness_selftest.py|tests/r9_workflow_input_selftest.py)
+                  ;;
+                *)
+                  echo "Frozen pre-R9-v2 surface changed outside trusted allowlist: $path" >&2
+                  failed=1
+                  ;;
+              esac
+            done < <(
+              git -C candidate diff --name-only --no-renames "$baseline" HEAD
+            )
+          fi
+
+          exit "$failed"

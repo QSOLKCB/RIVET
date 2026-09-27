@@ -132,7 +132,27 @@
           "Windows 98": 16777216,
           "Windows Me": 33554432
         },
-        "memory_floor_rule": "hardware.memory_bytes must meet the minimum RAM for the selected Windows product"
+        "memory_floor_rule": "hardware.memory_bytes must meet the minimum RAM for the selected Windows product",
+        "allowed_os_versions": {
+          "Windows 95": [
+            "4.00.950",
+            "4.00.950A",
+            "4.00.950B",
+            "4.00.950C",
+            "4.00.1111",
+            "4.00.1212",
+            "4.00.1214"
+          ],
+          "Windows 98": [
+            "4.10.1998",
+            "4.10.2222",
+            "4.10.2222A"
+          ],
+          "Windows Me": [
+            "4.90.3000"
+          ]
+        },
+        "os_release_rule": "software_environment.os_version must be one of the explicit published consumer Windows 95/98/Me build identities"
       },
       "classic-mac-m68k": {
         "os_names": [
@@ -282,7 +302,7 @@
           "AmigaOS": "^[1-3]\\.[0-9]+(?:\\.[0-9]+)?$"
         },
         "cpu_pattern": "(?i)(?:(?:motorola\\s+)?m68k|(?:motorola\\s+)?(?:mc)?68(?:000|010|020|030|040|060))",
-        "memory_floor_rule": "AmigaOS 3.5/3.9 require at least 4 MiB; other accepted releases retain the 512 KiB baseline",
+        "memory_floor_rule": "AmigaOS 3.1.4/3.2.x require at least 2 MiB; AmigaOS 3.5/3.9 require at least 4 MiB; earlier accepted releases retain the 512 KiB baseline",
         "allowed_os_versions": [
           "1.0",
           "1.1",
@@ -311,7 +331,12 @@
         "minimum_memory_bytes_default": 524288,
         "minimum_memory_bytes_overrides": {
           "3.5": 4194304,
-          "3.9": 4194304
+          "3.9": 4194304,
+          "3.1.4": 2097152,
+          "3.2": 2097152,
+          "3.2.1": 2097152,
+          "3.2.2": 2097152,
+          "3.2.3": 2097152
         }
       }
     },
@@ -356,11 +381,30 @@
   "e3_windows_identity": {
     "required_identity_lines": 1,
     "line_shape": "Windows ... [Version ...]",
-    "rule": "exactly one Windows version identity occurrence is permitted across the proof, including multiple identities concatenated on one physical line; canonical Windows 95 product punctuation is accepted, and the identity must still match the exact consumer Windows 95/98/Me version family",
+    "rule": "exactly one Windows version identity occurrence is permitted and it must match an explicit published consumer Windows 95/98/Me build",
     "required_identity_occurrences": 1,
     "canonical_windows95_punctuation": [
       "Windows 95. [Version 4.00.950]"
-    ]
+    ],
+    "allowed_versions": {
+      "Windows 95": [
+        "4.00.950",
+        "4.00.950A",
+        "4.00.950B",
+        "4.00.950C",
+        "4.00.1111",
+        "4.00.1212",
+        "4.00.1214"
+      ],
+      "Windows 98": [
+        "4.10.1998",
+        "4.10.2222",
+        "4.10.2222A"
+      ],
+      "Windows Me": [
+        "4.90.3000"
+      ]
+    }
   },
   "e3_provenance_sentinels": {
     "forbidden_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
@@ -439,7 +483,8 @@
     "baseline": "7d260e0671c5d089b25d6075ab1b66fb0886c99e",
     "changed_path_command": "git diff --name-only --no-renames <baseline> HEAD",
     "allowlist_required": true,
-    "rule": "newly added, deleted or modified paths outside the explicit R9-v2 allowlist fail the frozen-source gate"
+    "enforced_by": ".github/workflows/r9-trust-anchor.yml from the base branch",
+    "rule": "the fixed allowlist is evaluated by pull_request_target code from main, not by candidate workflow code"
   },
   "classic_mac_hfs_operands": {
     "explicit_hfs_prefix_required": true,
@@ -466,16 +511,18 @@
       "machine/retro-v2.json",
       "machine/project-v12.json"
     ],
-    "baseline_pinned_by": ".github/workflows/r9-target-harnesses.yml",
+    "baseline_pinned_by": ".github/workflows/r9-trust-anchor.yml",
+    "execution_source": "trusted-base-branch-pull_request_target",
     "addressing": "git-blob-sha",
-    "rule": "after publication, each authority file must retain its pinned Git blob SHA; no historical baseline commit is required or referenced"
+    "candidate_guard_must_match_base": true,
+    "rule": "the base-branch guard owns authority blob pins and the R9-v2 changed-path allowlist; candidate changes cannot rewrite either trust anchor"
   },
   "e3_emulator_identity": {
     "target_patterns": {
-      "windows9x-x86": "^qemu-system-i386(?:\\\\s|:|$)",
-      "classic-mac-m68k": "^qemu-system-m68k(?:\\\\s|:|$)",
-      "classic-mac-powerpc": "^qemu-system-ppc(?:\\\\s|:|$)",
-      "amiga-m68k": "^fs-uae(?:\\\\s|:|$)"
+      "windows9x-x86": "^qemu-system-i386(?:\\s|:|$)",
+      "classic-mac-m68k": "^qemu-system-m68k(?:\\s|:|$)",
+      "classic-mac-powerpc": "^qemu-system-ppc(?:\\s|:|$)",
+      "amiga-m68k": "^fs-uae(?:\\s|:|$)"
     },
     "rule": "E3 emulator identity must name the target-specific full-system harness executable family; unrelated emulators and user-mode programs are invalid"
   }

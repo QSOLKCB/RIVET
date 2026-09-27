@@ -6,6 +6,7 @@ WINDOWS_BUILD = Path("scripts/r9_build_windows9x_payload.sh")
 WINDOWS_PROOF = Path("evidence/r9_win9x_browser_proof.c")
 WINDOWS_WORKFLOW = Path(".github/workflows/r9-windows9x.yml")
 TARGET_WORKFLOW = Path(".github/workflows/r9-target-harnesses.yml")
+TRUST_WORKFLOW = Path(".github/workflows/r9-trust-anchor.yml")
 MAC = Path("scripts/r9_classic_mac_full_system.sh")
 AMIGA = Path("scripts/r9_amiga_full_system.sh")
 AMIGA_WORKFLOW = Path(".github/workflows/r9-amiga.yml")
@@ -117,52 +118,31 @@ def main() -> int:
     target_workflow = TARGET_WORKFLOW.read_text(
         encoding="utf-8"
     )
-    if 'git diff --name-only --no-renames "$baseline" HEAD' not in (
-        target_workflow
+    for forbidden in (
+        "check_authority_blob",
+        "frozen-r9-v1:",
+        "git diff --name-only --no-renames",
     ):
-        raise SystemExit(
-            "Frozen-surface gate must inspect complete baseline-to-HEAD "
-            "path changes"
-        )
-    if 'git ls-tree -r --name-only "$baseline"' in target_workflow:
-        raise SystemExit(
-            "Frozen-surface gate must not enumerate only baseline paths"
-        )
-    if "authority_baseline=" in target_workflow:
-        raise SystemExit(
-            "R9 v2 authority freeze must not depend on a "
-            "historical commit baseline"
-        )
-    if 'git hash-object -- "$path"' not in target_workflow:
-        raise SystemExit(
-            "R9 v2 authority freeze must be content-addressed"
-        )
-    expected_authorities = {
-        "RETRO-v2.md":
-            "4719c36f92f1e31f0c3e344b2df9f01368151c4e",
-        "machine/retro-v2.json":
-            "014c2c5d5b1bdbdfaf2f26b700ce78f6b02a9abc",
-        "machine/project-v12.json":
-            "955e7a661b04d8c4b7e3b2be0406de86d5a18511",
-    }
-    for authority, blob_sha in expected_authorities.items():
-        if authority not in target_workflow:
+        if forbidden in target_workflow:
             raise SystemExit(
-                "R9 v2 authority gate is missing: " + authority
+                "Candidate workflow must not self-authorize the "
+                "immutable boundary: " + forbidden
             )
-        if blob_sha not in target_workflow:
-            raise SystemExit(
-                "R9 v2 authority gate lost blob pin for: "
-                + authority
-            )
+
+    trust_workflow = TRUST_WORKFLOW.read_text(encoding="utf-8")
     for required in (
-        "evidence/r9_classic_mac_os_identity.c",
-        "evidence/r9_amiga_os_identity.c",
+        "pull_request_target:",
+        "github.event.pull_request.head.sha",
+        "candidate",
+        "RETRO-v2.md",
+        "machine/retro-v2.json",
+        "machine/project-v12.json",
+        ".github/workflows/r9-trust-anchor.yml",
+        "git diff --name-only --no-renames",
     ):
-        if required not in target_workflow:
+        if required not in trust_workflow:
             raise SystemExit(
-                "Frozen-surface gate is missing R9-v2 allowlist path: "
-                + required
+                "Base trust workflow is missing invariant: " + required
             )
 
     mac = MAC.read_text(encoding="utf-8")

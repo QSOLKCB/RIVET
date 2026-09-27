@@ -203,6 +203,19 @@ def main() -> int:
         )
         assert win95_data["guest_os_identity"] == WIN95_VER
 
+        fake_windows = root / "proof-fake-windows.txt"
+        fake_windows.write_text(
+            GUEST_LINE + "\n" +
+            "proof_exit=0\n" +
+            "startup_stage=winstart\n" +
+            "Microsoft Windows 98 [Version 4.10.FAKE]\n",
+            encoding="utf-8",
+        )
+        fake_windows_output = root / "fake-windows.json"
+        result = run_e3(fake_windows, fake_windows_output)
+        assert result.returncode != 0
+        assert not fake_windows_output.exists()
+
         xp = root / "proof-xp.txt"
         xp.write_text(
             GUEST_LINE + "\n" +
@@ -893,6 +906,25 @@ def main() -> int:
         write_json(wrong_version_path, wrong_version)
         assert validate_e4(wrong_version_path).returncode != 0
 
+        fake_windows_e4 = base_e4()
+        fake_windows_e4["target_profile"] = "windows9x-x86"
+        fake_windows_e4["software_environment"] = {
+            "os_name": "Windows 98",
+            "os_version": "4.10.FAKE",
+            "api": "Win32",
+        }
+        fake_windows_e4["hardware"] = {
+            "manufacturer": "IBM Compatible",
+            "model": "Physical 486 test system",
+            "cpu": "Intel 80486DX2",
+            "memory_bytes": 64 * 1024 * 1024,
+        }
+        fake_windows_e4["browser_proof"]["target"] = "windows9x-x86"
+        fake_windows_e4["browser_proof"]["endian"] = "little"
+        fake_windows_e4_path = root / "e4-fake-windows.json"
+        write_json(fake_windows_e4_path, fake_windows_e4)
+        assert validate_e4(fake_windows_e4_path).returncode != 0
+
         wrong_cpu = base_e4()
         wrong_cpu["hardware"]["cpu"] = "Intel Core i9-14900K"
         wrong_cpu_path = root / "e4-wrong-cpu.json"
@@ -1129,6 +1161,27 @@ def main() -> int:
         amiga_low_memory_path = root / "e4-amiga-low-memory.json"
         write_json(amiga_low_memory_path, amiga_low_memory)
         assert validate_e4(amiga_low_memory_path).returncode != 0
+
+        amiga_32 = json.loads(json.dumps(amiga_e4))
+        amiga_32["software_environment"]["os_version"] = "3.2"
+        amiga_32["hardware"]["cpu"] = "Motorola 68000"
+        amiga_32["hardware"]["memory_bytes"] = 512 * 1024
+        amiga_32_path = root / "e4-amiga-3.2-low-memory.json"
+        write_json(amiga_32_path, amiga_32)
+        assert validate_e4(amiga_32_path).returncode != 0
+
+        amiga_32_floor = json.loads(json.dumps(amiga_32))
+        amiga_32_floor["hardware"]["memory_bytes"] = 2 * 1024 * 1024
+        amiga_32_floor_path = root / "e4-amiga-3.2-floor.json"
+        write_json(amiga_32_floor_path, amiga_32_floor)
+        validate_e4(amiga_32_floor_path, check=True)
+
+        amiga_314 = json.loads(json.dumps(amiga_32))
+        amiga_314["software_environment"]["os_version"] = "3.1.4"
+        amiga_314["hardware"]["memory_bytes"] = 2 * 1024 * 1024
+        amiga_314_path = root / "e4-amiga-3.1.4-floor.json"
+        write_json(amiga_314_path, amiga_314)
+        validate_e4(amiga_314_path, check=True)
 
         null_source = base_e4()
         null_source["source_revision"] = "0" * 40

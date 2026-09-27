@@ -139,6 +139,7 @@ CLASSIC_MAC_POWERPC_CPU_MIN_GENERATION = {
 }
 
 AMIGA_MEMORY_MIN_BYTES = 512 * 1024
+AMIGA_MID_MEMORY_MIN_BYTES = 2 * 1024 * 1024
 AMIGA_HIGH_MEMORY_MIN_BYTES = 4 * 1024 * 1024
 AMIGA_CPU_MIN_GENERATION = {
     "3.5": 20,
@@ -149,6 +150,24 @@ WINDOWS_CPU_MIN_GENERATION = {
     "Windows 95": 3,
     "Windows 98": 4,
     "Windows Me": 5,
+}
+
+WINDOWS_RELEASES = {
+    "Windows 95": {
+        "4.00.950",
+        "4.00.950A",
+        "4.00.950B",
+        "4.00.950C",
+        "4.00.1111",
+        "4.00.1212",
+        "4.00.1214",
+    },
+    "Windows 98": {
+        "4.10.1998",
+        "4.10.2222",
+        "4.10.2222A",
+    },
+    "Windows Me": {"4.90.3000"},
 }
 
 WINDOWS_MEMORY_MIN_BYTES = {
@@ -469,6 +488,14 @@ def main() -> int:
                 f"{target}/{os_name}"
             )
         if (
+            target == "windows9x-x86"
+            and os_version not in WINDOWS_RELEASES[os_name]
+        ):
+            raise ValueError(
+                "software_environment.os_version is not a "
+                f"published {os_name} release"
+            )
+        if (
             target == "classic-mac-m68k"
             and os_version not in CLASSIC_MAC_M68K_RELEASES
         ):
@@ -590,11 +617,18 @@ def main() -> int:
                 os_version
             ]
         else:
-            minimum_memory = (
-                AMIGA_HIGH_MEMORY_MIN_BYTES
-                if os_version in {"3.5", "3.9"}
-                else AMIGA_MEMORY_MIN_BYTES
-            )
+            if os_version in {"3.5", "3.9"}:
+                minimum_memory = AMIGA_HIGH_MEMORY_MIN_BYTES
+            elif os_version in {
+                "3.1.4",
+                "3.2",
+                "3.2.1",
+                "3.2.2",
+                "3.2.3",
+            }:
+                minimum_memory = AMIGA_MID_MEMORY_MIN_BYTES
+            else:
+                minimum_memory = AMIGA_MEMORY_MIN_BYTES
         if memory_bytes < minimum_memory:
             raise ValueError(
                 "hardware.memory_bytes is below the minimum "

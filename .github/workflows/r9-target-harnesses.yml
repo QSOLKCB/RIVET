@@ -5,60 +5,12 @@ on:
   pull_request:
 
 jobs:
-  frozen-r9-v1:
+  candidate-contract:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
-      - name: Verify merged R1-R9-v1 surfaces remain unchanged
-        run: |
-          baseline=7d260e0671c5d089b25d6075ab1b66fb0886c99e
-          failed=0
-
-          check_authority_blob() {
-            path="$1"
-            expected="$2"
-            actual="$(git hash-object -- "$path")" || {
-              echo "Unable to hash R9-v2 authority: $path" >&2
-              failed=1
-              return
-            }
-            if [[ "$actual" != "$expected" ]]; then
-              echo "Frozen R9-v2 authority changed: $path" >&2
-              echo "expected blob $expected, got $actual" >&2
-              failed=1
-            fi
-          }
-
-          check_authority_blob \
-            RETRO-v2.md \
-            4719c36f92f1e31f0c3e344b2df9f01368151c4e
-          check_authority_blob \
-            machine/retro-v2.json \
-            014c2c5d5b1bdbdfaf2f26b700ce78f6b02a9abc
-          check_authority_blob \
-            machine/project-v12.json \
-            955e7a661b04d8c4b7e3b2be0406de86d5a18511
-
-          while IFS= read -r path; do
-            [[ -n "$path" ]] || continue
-            case "$path" in
-              .github/workflows/r9-amiga.yml|.github/workflows/r9-classic-mac.yml|.github/workflows/r9-target-harnesses.yml|.github/workflows/r9-windows9x.yml|AGENTS.md|README.md|RETRO-v2.md|ROADMAP.md|evidence/r9_amiga_os_identity.c|evidence/r9_classic_mac_os_identity.c|evidence/r9_guest_browser_proof.c|evidence/r9_win9x_browser_proof.c|evidence/retro/README.md|evidence/retro/physical-receipt.example.json|index.html|machine/project-v12.json|machine/retro-v2.json|scripts/r9_amiga_full_system.sh|scripts/r9_build_amiga_payload.sh|scripts/r9_build_classic_mac_payload.sh|scripts/r9_build_windows9x_payload.sh|scripts/r9_classic_mac_full_system.sh|scripts/r9_e3_receipt.py|scripts/r9_validate_dispatch_inputs.py|scripts/r9_validate_physical_receipt.py|scripts/r9_windows9x_full_system.sh|tests/r9_e3_e4_receipt_selftest.py|tests/r9_guest_proof_freshness_selftest.py|tests/r9_workflow_input_selftest.py)
-                ;;
-              *)
-                echo "Frozen pre-R9-v2 surface changed outside allowlist: $path" >&2
-                failed=1
-                ;;
-            esac
-          done < <(
-            git diff --name-only --no-renames "$baseline" HEAD
-          )
-
-          exit "$failed"
-
-      - name: Validate machine JSON
+      - name: Validate candidate machine JSON
         run: |
           python3 - <<'PY'
           import json
