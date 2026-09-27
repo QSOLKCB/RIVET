@@ -50,7 +50,7 @@ fetches=4
 downloads=1
 ```
 
-The guest writes exactly one plain-text proof line. The host refuses to mint an E3 JSON receipt if the proof file contains zero or multiple `rivet-r9-guest` lines, if the source revision is the Git null OID, or if any proof field differs.
+The guest writes exactly one plain-text proof line. The host refuses to mint an E3 JSON receipt if the proof file contains zero or multiple lines beginning with `rivet-r9-guest:` — including malformed or contradictory duplicates — if the source revision is the Git null OID, or if any proof field differs.
 
 This proves local parsing, layout, browser state transitions and software rendering. It is explicitly not remote pixel rendering.
 
@@ -78,7 +78,9 @@ Harness:
 - payload and startup batch are injected into the guest FAT filesystem;
 - QEMU full-system x86 executes the guest;
 - the guest writes the source-bound proof and Windows `VER` output;
+- the proof must contain exactly one Windows `[Version ...]` identity line, and it must identify consumer Windows 95, Windows 98 or Windows Me; conflicting Windows identities invalidate the evidence;
 - the guest must record exactly one `proof_exit=0` marker; a missing, duplicate or nonzero proof-exit marker is not evidence;
+- guest-media, payload and optional/required ROM SHA-256 values must be real nonzero digests; the all-zero placeholder is invalid;
 - the receipt retains media digest, payload digest and emulator identity.
 
 A passing receipt proves only the exact pinned media/environment named in that receipt.
@@ -181,7 +183,7 @@ The receipt must include:
 - one or more SHA-256-bound evidence attachments with non-placeholder digests;
 - result `pass`.
 
-The validator rejects receipts with a Git null source OID, missing hardware identity, a CPU outside the target architecture family, mixed host/emulator CPU descriptions, missing or target-incompatible software identity, an OS version outside the target's historical version envelope, mismatched proof identity, unhashed attachments, or the all-zero SHA-256 placeholder digest. The **entire** CPU identity must match one physical target-compatible CPU description; a compatible token embedded inside incompatible host or emulator prose is not sufficient. Canonical Motorola forms such as `MC68040` and `Motorola MC68040` are valid m68k identities. Canonical PowerPC suffix forms such as `PowerPC 604e` are valid PowerPC identities. Windows x86 CPU identity must be established by explicit x86-family model tokens rather than vendor names alone; e.g. Intel Itanium is not x86 evidence. For example, a `classic-mac-m68k` physical receipt must identify an m68k CPU, Classic Mac OS in the supported 6.x/7.x/8.0–8.1 envelope, and the Mac OS Toolbox API; another operating system or CPU family is different evidence and requires its own target profile.
+The validator rejects receipts with a Git null source OID, missing hardware identity, a CPU outside the target architecture family, mixed host/emulator CPU descriptions, missing or target-incompatible software identity, an OS version outside the target's historical version envelope, mismatched proof identity, unhashed attachments, or the all-zero SHA-256 placeholder digest. The **entire** CPU identity must match one physical target-compatible CPU description; a compatible token embedded inside incompatible host or emulator prose is not sufficient. Canonical Motorola forms such as `MC68040` and `Motorola MC68040` are valid m68k identities. Canonical PowerPC suffix forms such as `PowerPC 604e` are valid PowerPC identities. Classic Mac PowerPC evidence requires System/Classic Mac OS 7.1.2 or later within the 7.x line, or compatible 8.x/9.x releases; pre-PowerPC releases such as 7.0 are invalid. AMD x86 identities such as `AMD Am486DX4` are valid Windows 9x CPU identities. Windows x86 CPU identity must be established by explicit x86-family model tokens rather than vendor names alone; e.g. Intel Itanium is not x86 evidence. For example, a `classic-mac-m68k` physical receipt must identify an m68k CPU, Classic Mac OS in the supported 6.x/7.x/8.0–8.1 envelope, and the Mac OS Toolbox API; another operating system or CPU family is different evidence and requires its own target profile.
 
 Physical evidence is intentionally retained by explicit PR/artifact rather than fabricated automatically.
 
