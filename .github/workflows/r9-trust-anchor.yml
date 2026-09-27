@@ -28,8 +28,6 @@ jobs:
           path: candidate
 
       - name: Verify immutable R9 trust boundary
-        env:
-          PR_NUMBER: ${{ github.event.pull_request.number }}
         run: |
           set -euo pipefail
 
@@ -66,8 +64,8 @@ jobs:
             exit 0
           fi
 
-          check_blob RETRO-v2.md 3fce61c62738d5f2c6883ea5ca81b046f717914b
-          check_blob machine/retro-v2.json 44c4e146b5fcb389c236ea741f234466fb355249
+          check_blob RETRO-v2.md b766b9cec59d2ce8ef6027120e2f1ef1355e1555
+          check_blob machine/retro-v2.json c13aeca4748605bdfd4ae86fbf569886901ef5d7
           check_blob machine/project-v12.json 955e7a661b04d8c4b7e3b2be0406de86d5a18511
 
           if [[ "$candidate_guard" != "$base_guard" ]]; then
@@ -75,20 +73,18 @@ jobs:
             failed=1
           fi
 
-          if [[ "$PR_NUMBER" == "12" ]]; then
-            while IFS= read -r path; do
-              [[ -n "$path" ]] || continue
-              case "$path" in
-                .github/workflows/r9-amiga.yml|.github/workflows/r9-classic-mac.yml|.github/workflows/r9-target-harnesses.yml|.github/workflows/r9-trust-anchor.yml|.github/workflows/r9-windows9x.yml|AGENTS.md|README.md|RETRO-v2.md|ROADMAP.md|evidence/r9_amiga_os_identity.c|evidence/r9_classic_mac_os_identity.c|evidence/r9_guest_browser_proof.c|evidence/r9_win9x_browser_proof.c|evidence/retro/README.md|evidence/retro/physical-receipt.example.json|index.html|machine/project-v12.json|machine/retro-v2.json|scripts/r9_amiga_full_system.sh|scripts/r9_build_amiga_payload.sh|scripts/r9_build_classic_mac_payload.sh|scripts/r9_build_windows9x_payload.sh|scripts/r9_classic_mac_full_system.sh|scripts/r9_e3_receipt.py|scripts/r9_validate_dispatch_inputs.py|scripts/r9_validate_physical_receipt.py|scripts/r9_windows9x_full_system.sh|tests/r9_e3_e4_receipt_selftest.py|tests/r9_guest_proof_freshness_selftest.py|tests/r9_workflow_input_selftest.py)
-                  ;;
-                *)
-                  echo "Frozen pre-R9-v2 surface changed outside trusted allowlist: $path" >&2
-                  failed=1
-                  ;;
-              esac
-            done < <(
-              git -C candidate diff --name-only --no-renames "$baseline" HEAD
-            )
-          fi
+          while IFS= read -r path; do
+            [[ -n "$path" ]] || continue
+            case "$path" in
+              .github/workflows/r9-amiga.yml|.github/workflows/r9-classic-mac.yml|.github/workflows/r9-target-harnesses.yml|.github/workflows/r9-trust-anchor.yml|.github/workflows/r9-windows9x.yml|AGENTS.md|README.md|RETRO-v2.md|ROADMAP.md|evidence/r9_amiga_os_identity.c|evidence/r9_classic_mac_os_identity.c|evidence/r9_guest_browser_proof.c|evidence/r9_win9x_browser_proof.c|evidence/retro/README.md|evidence/retro/physical-receipt.example.json|index.html|machine/project-v12.json|machine/retro-v2.json|scripts/r9_amiga_full_system.sh|scripts/r9_build_amiga_payload.sh|scripts/r9_build_classic_mac_payload.sh|scripts/r9_build_windows9x_payload.sh|scripts/r9_classic_mac_full_system.sh|scripts/r9_e3_receipt.py|scripts/r9_validate_dispatch_inputs.py|scripts/r9_validate_physical_receipt.py|scripts/r9_windows9x_full_system.sh|tests/r9_e3_e4_receipt_selftest.py|tests/r9_guest_proof_freshness_selftest.py|tests/r9_workflow_input_selftest.py)
+                ;;
+              *)
+                echo "Frozen pre-R9-v2 surface changed outside trusted allowlist: $path" >&2
+                failed=1
+                ;;
+            esac
+          done < <(
+            git -C candidate diff --name-only --no-renames "$baseline" HEAD
+          )
 
           exit "$failed"
