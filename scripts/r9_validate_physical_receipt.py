@@ -219,7 +219,10 @@ def main() -> int:
             if field not in hardware:
                 raise ValueError(f"hardware.{field} is required")
         for field in ("manufacturer", "model", "cpu"):
-            require_identity(hardware[field], f"hardware.{field}")
+            require_evidence_name(
+                hardware[field],
+                f"hardware.{field}",
+            )
         cpu_identity = hardware["cpu"].strip()
         if re.fullmatch(
             target_contract["cpu_pattern"],
