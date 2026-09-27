@@ -5,10 +5,30 @@ import re
 from pathlib import Path
 
 TARGETS = {
-    "windows9x-x86": (32, "little"),
-    "classic-mac-m68k": (32, "big"),
-    "classic-mac-powerpc": (32, "big"),
-    "amiga-m68k": (32, "big"),
+    "windows9x-x86": {
+        "pointer_bits": 32,
+        "endian": "little",
+        "os_names": {"Windows 95", "Windows 98", "Windows Me"},
+        "api": "Win32",
+    },
+    "classic-mac-m68k": {
+        "pointer_bits": 32,
+        "endian": "big",
+        "os_names": {"Classic Mac OS"},
+        "api": "Mac OS Toolbox",
+    },
+    "classic-mac-powerpc": {
+        "pointer_bits": 32,
+        "endian": "big",
+        "os_names": {"Classic Mac OS"},
+        "api": "Mac OS Toolbox",
+    },
+    "amiga-m68k": {
+        "pointer_bits": 32,
+        "endian": "big",
+        "os_names": {"AmigaOS"},
+        "api": "AmigaOS",
+    },
 }
 
 def require_identity(value: object, field: str) -> str:
@@ -62,6 +82,40 @@ def main() -> int:
         if not isinstance(source, str) or not re.fullmatch(r"[0-9a-f]{40}", source):
             raise ValueError("source_revision must be 40 lowercase hex characters")
 
+        software = data.get("software_environment")
+        if not isinstance(software, dict):
+            raise ValueError(
+                "software_environment object is required"
+            )
+        for field in ("os_name", "os_version", "api"):
+            if field not in software:
+                raise ValueError(
+                    f"software_environment.{field} is required"
+                )
+        os_name = require_identity(
+            software["os_name"],
+            "software_environment.os_name",
+        )
+        require_identity(
+            software["os_version"],
+            "software_environment.os_version",
+        )
+        api = require_identity(
+            software["api"],
+            "software_environment.api",
+        )
+        target_contract = TARGETS[target]
+        if os_name not in target_contract["os_names"]:
+            raise ValueError(
+                "software_environment.os_name does not match "
+                f"{target}"
+            )
+        if api != target_contract["api"]:
+            raise ValueError(
+                "software_environment.api does not match "
+                f"{target}"
+            )
+
         hardware = data.get("hardware")
         if not isinstance(hardware, dict):
             raise ValueError("hardware object is required")
@@ -79,7 +133,8 @@ def main() -> int:
         proof = data.get("browser_proof")
         if not isinstance(proof, dict):
             raise ValueError("browser_proof object is required")
-        pointer_bits, endian = TARGETS[target]
+        pointer_bits = target_contract["pointer_bits"]
+        endian = target_contract["endian"]
         for field in (
             "pointer_bits",
             "history",
