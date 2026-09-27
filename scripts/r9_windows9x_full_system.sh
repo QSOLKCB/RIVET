@@ -16,6 +16,7 @@ OUT_DIR="${7:-build/r9-windows9x}"
 GUEST="$OUT_DIR/windows9x.qcow2"
 RUN_BAT="$OUT_DIR/RUN-R9.BAT"
 WINSTART="$OUT_DIR/WINSTART.BAT"
+WINSTART_ORIGINAL="$OUT_DIR/WINSTART.ORIGINAL.BAT"
 PROOF="$OUT_DIR/guest-proof.txt"
 
 for command in qemu-img qemu-system-i386 guestfish timeout; do
@@ -43,14 +44,19 @@ BAT
 if guestfish --ro -a "$GUEST" -m "$GUEST_PARTITION" \
     exists "$WINDOWS_DIRECTORY/WINSTART.BAT" | grep -q true; then
   guestfish --ro -a "$GUEST" -m "$GUEST_PARTITION" \
-    download "$WINDOWS_DIRECTORY/WINSTART.BAT" "$WINSTART"
+    download "$WINDOWS_DIRECTORY/WINSTART.BAT" "$WINSTART_ORIGINAL"
 else
-  : > "$WINSTART"
+  : > "$WINSTART_ORIGINAL"
 fi
-printf '\r\nCALL C:\\RIVET-R9\\RUN-R9.BAT\r\n' >> "$WINSTART"
+
+printf '@ECHO OFF\r\nCALL C:\\RIVET-R9\\RUN-R9.BAT\r\n' > "$WINSTART"
+cat "$WINSTART_ORIGINAL" >> "$WINSTART"
+
+rm -f "$PROOF"
 
 guestfish --rw -a "$GUEST" -m "$GUEST_PARTITION" <<EOF
 mkdir-p /RIVET-R9
+rm-f /RIVET-R9/RECEIPT.TXT
 upload $PAYLOAD /RIVET-R9/RIVETR9.EXE
 upload $RUN_BAT /RIVET-R9/RUN-R9.BAT
 upload $WINSTART $WINDOWS_DIRECTORY/WINSTART.BAT
