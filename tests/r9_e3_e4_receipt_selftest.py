@@ -17,7 +17,12 @@ GUEST_LINE = (
 WIN98_VER = "Microsoft Windows 98 [Version 4.10.2222]"
 XP_VER = "Microsoft Windows XP [Version 5.1.2600]"
 
-def run_e3(proof: Path, output: Path, check: bool = False):
+def run_e3(
+    proof: Path,
+    output: Path,
+    check: bool = False,
+    emulator: str = "qemu-system-i386 test",
+):
     return subprocess.run(
         [
             sys.executable,
@@ -26,7 +31,7 @@ def run_e3(proof: Path, output: Path, check: bool = False):
             "--output", str(output),
             "--target-profile", "windows9x-x86",
             "--source-revision", SOURCE,
-            "--emulator", "qemu-system-i386 test",
+            "--emulator", emulator,
             "--guest-media-sha256", "1" * 64,
             "--guest-media-label", "Windows 98 SE test image",
             "--payload-sha256", "2" * 64,
@@ -121,6 +126,15 @@ def main() -> int:
         assert result.returncode != 0
         assert not no_ver_output.exists()
 
+        empty_emulator = root / "empty-emulator.json"
+        result = run_e3(
+            good,
+            empty_emulator,
+            emulator="   ",
+        )
+        assert result.returncode != 0
+        assert not empty_emulator.exists()
+
         bad_hash = root / "proof-bad-hash.txt"
         bad_hash.write_text(
             (GUEST_LINE + "\n" + WIN98_VER + "\n").replace(
@@ -157,6 +171,25 @@ def main() -> int:
         anonymous_path = root / "e4-anonymous.json"
         write_json(anonymous_path, anonymous)
         assert validate_e4(anonymous_path).returncode != 0
+
+        unnamed_attachment = base_e4()
+        unnamed_attachment["attachments"][0]["name"] = ""
+        unnamed_attachment_path = root / "e4-unnamed-attachment.json"
+        write_json(
+            unnamed_attachment_path,
+            unnamed_attachment,
+        )
+        assert (
+            validate_e4(unnamed_attachment_path).returncode != 0
+        )
+
+        boolean_counts = base_e4()
+        boolean_counts["hardware"]["memory_bytes"] = True
+        boolean_counts["browser_proof"]["bookmarks"] = True
+        boolean_counts["browser_proof"]["downloads"] = True
+        boolean_counts_path = root / "e4-boolean-counts.json"
+        write_json(boolean_counts_path, boolean_counts)
+        assert validate_e4(boolean_counts_path).returncode != 0
 
         env_path = root / "github-env.txt"
         marker = root / "should-not-exist"
