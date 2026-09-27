@@ -70,5 +70,41 @@
   "e4_validator": "scripts/r9_validate_physical_receipt.py",
   "media_redistributed_by_rivet": false,
   "implementation_completion": "all-target-harnesses-and-receipt-validators-present",
-  "support_claim_rule": "target-support-remains-unclaimed-until-passing-target-specific-e3-or-e4-receipt-is-retained"
+  "support_claim_rule": "target-support-remains-unclaimed-until-passing-target-specific-e3-or-e4-receipt-is-retained",
+  "e4_software_environment": {
+    "required_fields": [
+      "os_name",
+      "os_version",
+      "api"
+    ],
+    "target_requirements": {
+      "windows9x-x86": {
+        "os_names": [
+          "Windows 95",
+          "Windows 98",
+          "Windows Me"
+        ],
+        "api": "Win32"
+      },
+      "classic-mac-m68k": {
+        "os_names": [
+          "Classic Mac OS"
+        ],
+        "api": "Mac OS Toolbox"
+      },
+      "classic-mac-powerpc": {
+        "os_names": [
+          "Classic Mac OS"
+        ],
+        "api": "Mac OS Toolbox"
+      },
+      "amiga-m68k": {
+        "os_names": [
+          "AmigaOS"
+        ],
+        "api": "AmigaOS"
+      }
+    },
+    "rule": "physical evidence is bound to the exact OS version and target-compatible API identity"
+  }
 }
